@@ -1,0 +1,2 @@
+# Los puertos del entorno local están en compose.yaml.
+services: {}

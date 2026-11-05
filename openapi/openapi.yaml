@@ -1,0 +1,8 @@
+openapi: 3.0.3
+info:
+  title: Aselto API
+  version: 0.1.0
+  description: >
+    Contrato de la API. Las operaciones de producto se añaden en la tarea
+    correspondiente. Esta versión todavía no describe rutas.
+paths: {}
