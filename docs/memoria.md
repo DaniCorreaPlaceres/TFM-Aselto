@@ -165,13 +165,20 @@ El inicio muestra el saludo, la acción de añadir un documento, los ingresos y 
 
 ### API prevista
 
-Prefijo `/api/v1`. La sesión web no sustituye a esta API. El contrato concreto se escribe en la tarea que lo abra. La primera comprobación de entorno es `GET /salud`, que no forma parte del producto.
+Prefijo `/api/v1`. La sesión web no sustituye a esta API. El contrato vive en `openapi/openapi.yaml`: OpenAPI 3.0.3, título «Aselto API», versión 0.1.0. Hoy declara el documento y deja las rutas vacías. Las operaciones de producto se añaden en la tarea de la API. La primera comprobación de entorno es `GET /salud`, que no forma parte del producto.
 
 ## 7. Ramas y entorno
 
 `main` está protegida. No se trabaja sobre ella ni se le hace push directo. Recibe una versión cuando se promueve desde `develop` mediante pull request.
 
 `develop` es la rama de integración. Cada tarea crea una subrama `feature/<tarea>` desde `develop` y vuelve a `develop` mediante pull request.
+
+Cada pull request y cada push a `develop` o `main` ejecuta `.github/workflows/comprobaciones.yml` con PHP 8.4, la versión mínima del proyecto. Los cuatro trabajos son:
+
+- **PHP-CS-Fixer.** Revisa el estilo en seco, con las reglas `@Symfony`. No reescribe los finales de línea.
+- **PHP-Stan.** Analiza `src`, `tests` y `bin/validate-openapi.php` en el nivel 6.
+- **PHPUnit.** Ejecuta la suite de `tests/`.
+- **OpenAPI.** Valida `openapi/openapi.yaml` con `bin/validate-openapi.php`.
 
 Entorno local:
 
