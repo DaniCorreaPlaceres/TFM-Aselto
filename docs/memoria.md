@@ -70,7 +70,7 @@ La web y la API llaman a los mismos casos de uso. La app futura solo tendrá que
 - Composer.
 - `gh` para el remoto y las reglas de rama.
 - OpenAI, solo como adaptador opcional de extracción. Sin clave, el flujo se enseña con el adaptador de ejemplo.
-- PHPUnit, cuando una tarea incluya pruebas.
+- PHPUnit, PHPStan, PHP-CS-Fixer y la validación OpenAPI. En cada pull request hacia `develop` o `main` los ejecuta `.github/workflows/comprobaciones.yml`.
 - Node, cuando haga falta construir estilos.
 
 Método: especificación corta antes de cada tarea. La ficha vive en `docs/sdd/<tarea>.md` y contiene objetivo, fuera de alcance y criterios de aceptación. La rama de esa tarea sale de `develop`. Al terminar se anota solo lo que se ha comprobado.

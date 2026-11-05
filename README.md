@@ -18,3 +18,7 @@ docker compose up --build
 - Mercure en el puerto 9080
 
 Credenciales solo de desarrollo. La aplicación de producto todavía no está construida: `/salud` confirma que PHP, Nginx y MySQL responden.
+
+## Comprobaciones
+
+En cada pull request hacia `develop` o `main` se ejecutan PHP-CS-Fixer, PHP-Stan, PHPUnit y OpenAPI.
