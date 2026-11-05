@@ -5,6 +5,7 @@ Toda la documentación del proyecto vive en esta carpeta, en la raíz del reposi
 ## Mapa
 
 - [memoria.md](memoria.md). Punto de partida: producto, stack, herramientas, arquitectura y especificaciones.
+- [Tareas.md](Tareas.md). Lista de tareas del proyecto, sin el detalle de cada una.
 - [producto/Aselto_Documento_introductorio.docx](producto/Aselto_Documento_introductorio.docx). Texto de presentación del proyecto.
 - [diseno/reglas-visuales.md](diseno/reglas-visuales.md). Reglas de interfaz. Los bocetos están en [diseno/bocetos](diseno/bocetos).
 - [marca](marca). Logotipo oficial e icono. No se redibujan.
