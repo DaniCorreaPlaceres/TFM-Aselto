@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tu acceso{% endblock %}
+
+{% block body %}
+    <main class="panel">
+        <h1>Tu acceso</h1>
+        <p>Has entrado como {{ email }}.</p>
+        <p>Tu papel es {{ role }}.</p>
+
+        <form method="post" action="{{ path('logout') }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+            <button type="submit">Salir</button>
+        </form>
+    </main>
+{% endblock %}

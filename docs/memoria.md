@@ -21,7 +21,7 @@ Papeles:
 - Superadmin de la plataforma. Da de alta asesorías. No hay planes ni cobros.
 - Admin de una asesoría. Invita gestores y da de alta clientes.
 - Gestor. Revisa documentos, pide justificantes, valida y cierra el trimestre.
-- Cliente. Un acceso por autónomo o por sociedad. Sube documentos y consulta su actividad.
+- Cliente. Un acceso por autónomo o por sociedad. Puede usar la plataforma solo o vinculado a una asesoría. Sube documentos y consulta su actividad.
 
 Recorrido principal:
 
@@ -112,8 +112,8 @@ Cada módulo tiene cuatro carpetas: `Domain`, `Application`, `Infrastructure` y 
 
 - `Shared`. Reloj, identificadores, dinero, errores de dominio y puertos que usan varios módulos.
 - `Identidad`. Usuario, papel y acceso.
-- `Asesoria`. Asesoría y su equipo. Toda consulta de negocio lleva la asesoría del usuario.
-- `Cliente`. Ficha de autónomo o sociedad y gestor asignado.
+- `Asesoria`. Asesoría y su equipo. Una asesoría no ve datos de otra. Un cliente sin asesoría solo ve los suyos.
+- `Cliente`. Ficha de autónomo o sociedad. La asesoría y el gestor son opcionales.
 - `Documento`. Fichero, extracción y estados.
 - `Finanzas`. Movimiento validado, consulta del trimestre y cierre.
 - `Comunicacion`. Solicitudes y mensajes entre cliente y asesoría.
@@ -156,7 +156,7 @@ El inicio muestra el saludo, la acción de añadir un documento, los ingresos y 
 
 ### Reglas de negocio ya cerradas
 
-- Un cliente pertenece a una asesoría. Un gestor solo ve clientes de la suya.
+- Un cliente puede no pertenecer a ninguna asesoría. Si está vinculado, un gestor solo ve los clientes de la suya.
 - El cliente puede corregir el borrador. El gestor puede corregirlo al validar.
 - Si el trimestre de esa fecha está cerrado, no se valida otro movimiento dentro de él.
 - La foto en el móvil usa la cámara del dispositivo. En escritorio, el mismo paso admite un archivo.

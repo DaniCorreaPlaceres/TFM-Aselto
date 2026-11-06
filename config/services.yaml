@@ -26,6 +26,10 @@ services:
             - '../src/Documento/Domain/'
             - '../src/Finanzas/Domain/'
             - '../src/Comunicacion/Domain/'
+            - '../src/Identidad/Infrastructure/Persistence/DoctrineUser.php'
+
+    App\Identidad\Domain\UserRepository:
+        alias: App\Identidad\Infrastructure\Persistence\DoctrineUserRepository
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
