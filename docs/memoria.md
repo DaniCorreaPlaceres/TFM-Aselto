@@ -21,7 +21,7 @@ Papeles:
 - Superadmin de la plataforma. Da de alta asesorías. No hay planes ni cobros.
 - Admin de una asesoría. Invita gestores y da de alta clientes.
 - Gestor. Revisa documentos, pide justificantes, valida y cierra el trimestre.
-- Cliente. Un acceso por autónomo o por sociedad. Sube documentos y consulta su actividad.
+- Cliente. Un acceso por autónomo o por sociedad. Puede usar la plataforma solo o vinculado a una asesoría. Sube documentos y consulta su actividad.
 
 Recorrido principal:
 
@@ -112,8 +112,8 @@ Cada módulo tiene cuatro carpetas: `Domain`, `Application`, `Infrastructure` y 
 
 - `Shared`. Reloj, identificadores, dinero, errores de dominio y puertos que usan varios módulos.
 - `Identidad`. Usuario, papel y acceso.
-- `Asesoria`. Asesoría y su equipo. Toda consulta de negocio lleva la asesoría del usuario.
-- `Cliente`. Ficha de autónomo o sociedad y gestor asignado.
+- `Asesoria`. Asesoría y su equipo. Una asesoría no ve datos de otra. Un cliente sin asesoría solo ve los suyos.
+- `Cliente`. Ficha de autónomo o sociedad. La asesoría y el gestor son opcionales.
 - `Documento`. Fichero, extracción y estados.
 - `Finanzas`. Movimiento validado, consulta del trimestre y cierre.
 - `Comunicacion`. Solicitudes y mensajes entre cliente y asesoría.
@@ -123,7 +123,7 @@ Orden de construcción acordado:
 0. Esta memoria. Hecha.
 1. GitHub, ramas y Docker. Hecho. `main` está protegida, `develop` integra, y cada pull request ejecuta las cuatro comprobaciones. El entorno local arranca y `GET /salud` responde.
 2. Estructura Symfony. Hecha. Los siete módulos tienen `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
-3. A partir de aquí, la plataforma, tarea a tarea. El primer recorrido presentable es el de los bocetos: inicio del cliente, alta de documento, revisión humana y bandeja de la asesoría.
+3. A partir de aquí, la plataforma, tarea a tarea. El acceso ya está: la sesión entra por `/entrar` y `/cuenta` muestra el papel. El primer recorrido presentable sigue siendo el de los bocetos: inicio del cliente, alta de documento, revisión humana y bandeja de la asesoría.
 
 ## 6. Especificaciones de producto
 
@@ -156,7 +156,8 @@ El inicio muestra el saludo, la acción de añadir un documento, los ingresos y 
 
 ### Reglas de negocio ya cerradas
 
-- Un cliente pertenece a una asesoría. Un gestor solo ve clientes de la suya.
+- El superadmin no pertenece a una asesoría. El admin y el gestor sí.
+- Un cliente puede no pertenecer a ninguna asesoría. Si está vinculado, un gestor solo ve los clientes de la suya.
 - El cliente puede corregir el borrador. El gestor puede corregirlo al validar.
 - Si el trimestre de esa fecha está cerrado, no se valida otro movimiento dentro de él.
 - La foto en el móvil usa la cámara del dispositivo. En escritorio, el mismo paso admite un archivo.
@@ -194,6 +195,14 @@ La imagen de PHP instala `intl`, `pdo_mysql`, `zip` y `bcmath`. OPcache se activ
 
 `GET /salud` no forma parte del producto. Ya está comprobado: responde 200 con `{"estado":"ok","base_de_datos":"ok"}`. MySQL 8.4 queda sano en el puerto 3306. Mercure responde en el 9080.
 
+El acceso de la web es la sesión de Symfony. `GET /entrar` pide el correo y la contraseña. Si el acceso es correcto, `/cuenta` muestra el papel. Salir cierra la sesión. `GET /salud` sigue abierto sin entrar.
+
+Tras migrar, `php bin/console app:seed-dev-access` crea cuatro accesos locales. La contraseña es `aselto-dev` y solo vale en desarrollo:
+
+- `superadmin@example.test`, sin asesoría
+- `admin@example.test` y `gestor@example.test`, con una asesoría de prueba
+- `cliente@example.test`, sin asesoría
+
 ## 8. Documentación
 
 Todo el material escrito del proyecto está en `docs/`:
@@ -220,4 +229,6 @@ assets/
 docker/
 ```
 
-`GET /salud` vive en `src/Controller/HealthController.php`. Cada módulo tiene `Domain`, `Application`, `Infrastructure` y `Ui`. Esas carpetas existen y están vacías. El dominio no se registra como servicio. La plataforma no tiene pantallas, casos de uso ni tablas de negocio.
+`GET /salud` vive en `src/Controller/HealthController.php`. Cada módulo tiene `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
+
+Identidad ya tiene el usuario, el papel y el acceso. La tabla es `identity_user`. Las pantallas de esta tarea son entrar y ver el papel. El resto de módulos sigue vacío: no hay alta de asesorías ni de clientes, ni el inicio, los documentos o la bandeja.

@@ -1,3 +1,69 @@
 body {
-    background-color: skyblue;
+    margin: 0;
+    background: #F7F9FA;
+    color: #14243B;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 18px;
+    line-height: 1.5;
+}
+
+.panel {
+    box-sizing: border-box;
+    max-width: 32rem;
+    margin: 48px auto;
+    padding: 24px;
+    background: #FFFFFF;
+    border: 1px solid #64748B;
+}
+
+h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+    line-height: 1.3;
+}
+
+p {
+    margin: 0 0 16px;
+}
+
+label {
+    display: block;
+    margin: 16px 0 8px;
+}
+
+input {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 48px;
+    padding: 8px 12px;
+    border: 1px solid #64748B;
+    border-radius: 8px;
+    color: #14243B;
+    font: inherit;
+}
+
+input:focus {
+    outline: 3px solid #006B70;
+    outline-offset: 2px;
+}
+
+button {
+    min-height: 48px;
+    margin-top: 24px;
+    padding: 8px 16px;
+    border: 0;
+    border-radius: 8px;
+    background: #006B70;
+    color: #FFFFFF;
+    font: inherit;
+    cursor: pointer;
+}
+
+button:focus {
+    outline: 3px solid #14243B;
+    outline-offset: 2px;
+}
+
+.error {
+    color: #B42318;
 }
