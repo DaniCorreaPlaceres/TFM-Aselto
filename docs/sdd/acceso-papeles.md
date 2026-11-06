@@ -17,4 +17,5 @@ Alta de asesorías, invitar al equipo, alta de clientes, el inicio de producto, 
 
 ## Comprobado
 
-Pendiente.
+- `cliente@example.test` entra sin asesoría y `/cuenta` muestra el papel Cliente.
+- `GET /entrar` y `GET /salud` responden 200.
