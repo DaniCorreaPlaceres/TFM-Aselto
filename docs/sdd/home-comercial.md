@@ -17,6 +17,6 @@ El registro, los precios, el alta de asesorías y de clientes, el inicio del cli
 
 ## Comprobado
 
-- Sin sesión, `/` responde 200 y la acción es Entrar, hacia `/entrar`.
-- Con sesión, la misma acción es Tu acceso y abre `/cuenta`.
+- Sin sesión, `/` responde 200. Se ven el logotipo oficial, el titular, los tres públicos y los tres pasos. La acción es Entrar y abre `/entrar`.
+- Con sesión, la misma acción se llama Tu acceso y abre `/cuenta`.
 - En una anchura de móvil las tarjetas quedan una bajo otra.

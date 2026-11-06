@@ -12,7 +12,7 @@ Lista de lo que hay que hacer. El detalle de cada una se escribe en `docs/sdd/` 
 ## Plataforma
 
 5. Acceso y papeles: superadmin, admin, gestor y cliente. Hecha.
-6. Creamos una home comercial. Hecha.
+6. Home comercial pública en `/`. Hecha.
 7. Alta de asesorías y de su equipo.
 8. Alta de clientes, autónomo o sociedad.
 9. Inicio del cliente, con la marca y el menú.
