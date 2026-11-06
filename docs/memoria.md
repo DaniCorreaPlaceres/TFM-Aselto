@@ -122,7 +122,7 @@ Orden de construcción acordado:
 
 0. Esta memoria. Hecha.
 1. GitHub, ramas y Docker. Hecho. `main` está protegida, `develop` integra, y cada pull request ejecuta las cuatro comprobaciones. El entorno local arranca y `GET /salud` responde.
-2. Estructura Symfony.
+2. Estructura Symfony. Hecha. Los siete módulos tienen `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
 3. A partir de aquí, la plataforma, tarea a tarea. El primer recorrido presentable es el de los bocetos: inicio del cliente, alta de documento, revisión humana y bandeja de la asesoría.
 
 ## 6. Especificaciones de producto
@@ -220,4 +220,4 @@ assets/
 docker/
 ```
 
-`GET /salud` vive en `src/Controller/HealthController.php`. Cada módulo reservará `Domain`, `Application`, `Infrastructure` y `Ui`. Esas carpetas son el punto 2 y todavía no están creadas. La plataforma no tiene pantallas, casos de uso ni tablas de negocio.
+`GET /salud` vive en `src/Controller/HealthController.php`. Cada módulo tiene `Domain`, `Application`, `Infrastructure` y `Ui`. Esas carpetas existen y están vacías. El dominio no se registra como servicio. La plataforma no tiene pantallas, casos de uso ni tablas de negocio.
