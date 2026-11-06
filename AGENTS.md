@@ -13,6 +13,7 @@ No se adelanta un punto si el anterior no está cerrado.
 
 ## Cada tarea
 
+- Antes de tocar código, plantear los cambios que se van a hacer.
 - Antes de programar, crear `docs/sdd/<tarea>.md` con objetivo, fuera de alcance y criterios de aceptación.
 - La rama es `feature/<tarea>`, creada desde `develop`. El pull request vuelve a `develop`.
 - Si la tarea contradice la memoria, se para y se decide. No se reescribe la memoria para encajar el código.
@@ -35,10 +36,12 @@ No se adelanta un punto si el anterior no está cerrado.
 
 ## Código
 
+- Antes de tocar código, se plantean los cambios que se van a hacer.
 - Arquitectura de la memoria: monolito modular. El dominio no conoce Doctrine, HTTP ni el proveedor de IA.
 - La web y la API usan los mismos casos de uso.
 - La IA propone datos. Una persona los revisa y confirma. Un registro no queda fiscalmente cerrado por la extracción.
 - Cada consulta de negocio comprueba la asesoría y el permiso. Una asesoría no ve datos de otra.
+- Los nombres de clases, funciones, métodos, variables y archivos van en inglés.
 - Los textos de la interfaz van en español sencillo.
 - No se añaden secretos ni datos fiscales reales a ejemplos, seeds ni pruebas.
 
