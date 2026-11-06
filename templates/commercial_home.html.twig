@@ -1,0 +1,65 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Aselto. Tus finanzas bajo control{% endblock %}
+
+{% block body %}
+    {% set entryPath = signedIn ? path('account') : path('login') %}
+    {% set entryLabel = signedIn ? 'Tu acceso' : 'Entrar' %}
+
+    <header class="home-bar">
+        <div class="home-bar-inner">
+            <img class="home-logo" src="{{ asset('aselto-logo-eslogan-v2.png') }}" alt="Aselto. Tus finanzas bajo control" width="320" height="120">
+            <a class="action" href="{{ entryPath }}">{{ entryLabel }}</a>
+        </div>
+    </header>
+
+    <div class="home">
+        <section class="home-hero">
+            <h1>Tus finanzas, por fin en un solo sitio</h1>
+            <p>Aselto junta los ingresos, los gastos y los documentos de autónomos y sociedades. Proponemos los datos del documento y una persona los confirma. Úsalo por tu cuenta o con tu asesoría.</p>
+            <a class="action" href="{{ entryPath }}">{{ entryLabel }}</a>
+        </section>
+
+        <section class="home-grid" aria-label="A quién va dirigido">
+            <article class="home-card">
+                <h2>Autónomos</h2>
+                <p>Sube facturas y justificantes. Ves ingresos, gastos e IVA del trimestre sin una hoja de cálculo.</p>
+            </article>
+            <article class="home-card">
+                <h2>Sociedades</h2>
+                <p>Los documentos de la empresa quedan en el mismo sitio, listos para revisar y confirmar.</p>
+            </article>
+            <article class="home-card">
+                <h2>Asesorías</h2>
+                <p>Tus clientes llegan con la información ordenada. Tú validas, pides lo que falta y cierras el trimestre.</p>
+            </article>
+        </section>
+
+        <section class="home-steps">
+            <h2>Así de claro</h2>
+            <div class="home-step">
+                <span class="home-step-number" aria-hidden="true">1</span>
+                <p><strong>Añades el documento.</strong> Una foto desde el móvil o un archivo desde el ordenador.</p>
+            </div>
+            <div class="home-step">
+                <span class="home-step-number" aria-hidden="true">2</span>
+                <p><strong>Revisas los datos.</strong> La plataforma los propone. Tú los corriges antes de confirmar.</p>
+            </div>
+            <div class="home-step">
+                <span class="home-step-number" aria-hidden="true">3</span>
+                <p><strong>El trimestre se actualiza.</strong> Si trabajas con una asesoría, ella valida. Si no, lo llevas tú.</p>
+            </div>
+        </section>
+
+    </div>
+
+    <section class="home-close">
+        <div class="home-close-inner">
+            <h2>Ten el trimestre a la vista</h2>
+            <p>Menos papeles sueltos. Más tiempo para el trabajo de verdad.</p>
+            <a class="action" href="{{ entryPath }}">{{ entryLabel }}</a>
+        </div>
+    </section>
+
+    <p class="home-note">Aselto no presenta impuestos ni sustituye el criterio de tu asesoría.</p>
+{% endblock %}

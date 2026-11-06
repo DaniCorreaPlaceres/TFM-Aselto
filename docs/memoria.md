@@ -195,6 +195,8 @@ La imagen de PHP instala `intl`, `pdo_mysql`, `zip` y `bcmath`. OPcache se activ
 
 `GET /salud` no forma parte del producto. Ya está comprobado: responde 200 con `{"estado":"ok","base_de_datos":"ok"}`. MySQL 8.4 queda sano en el puerto 3306. Mercure responde en el 9080.
 
+`/` es la home comercial y es pública. Presenta Aselto a autónomos, sociedades y asesorías. La acción es entrar.
+
 El acceso de la web es la sesión de Symfony. `GET /entrar` pide el correo y la contraseña. Si el acceso es correcto, `/cuenta` muestra el papel. Salir cierra la sesión. `GET /salud` sigue abierto sin entrar.
 
 Tras migrar, `php bin/console app:seed-dev-access` crea cuatro accesos locales. La contraseña es `aselto-dev` y solo vale en desarrollo:
@@ -231,4 +233,4 @@ docker/
 
 `GET /salud` vive en `src/Controller/HealthController.php`. Cada módulo tiene `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
 
-Identidad ya tiene el usuario, el papel y el acceso. La tabla es `identity_user`. Las pantallas de esta tarea son entrar y ver el papel. El resto de módulos sigue vacío: no hay alta de asesorías ni de clientes, ni el inicio, los documentos o la bandeja.
+Identidad ya tiene el usuario, el papel y el acceso. La tabla es `identity_user`. Hay home comercial, entrar y ver el papel. El resto de módulos sigue vacío: no hay alta de asesorías ni de clientes, ni el inicio del cliente, los documentos o la bandeja.

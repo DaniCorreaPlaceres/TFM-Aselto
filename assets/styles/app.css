@@ -67,3 +67,163 @@ button:focus {
 .error {
     color: #B42318;
 }
+
+.action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 48px;
+    padding: 8px 24px;
+    border-radius: 8px;
+    background: #006B70;
+    color: #FFFFFF;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.action:focus {
+    outline: 3px solid #14243B;
+    outline-offset: 2px;
+}
+
+.home-bar {
+    background: #FFFFFF;
+}
+
+.home-bar-inner,
+.home,
+.home-close-inner,
+.home-note {
+    box-sizing: border-box;
+    max-width: 960px;
+    margin-right: auto;
+    margin-left: auto;
+    padding-right: 16px;
+    padding-left: 16px;
+}
+
+.home-bar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
+.home {
+    padding-top: 8px;
+    padding-bottom: 48px;
+}
+
+.home-logo {
+    width: min(100%, 280px);
+    height: auto;
+}
+
+.home-hero,
+.home-card {
+    box-sizing: border-box;
+    margin-top: 32px;
+    padding: 32px 24px;
+    border-radius: 16px;
+}
+
+.home-hero,
+.home-card {
+    background: #FFFFFF;
+}
+
+.home-hero h1 {
+    max-width: 16ch;
+    margin-bottom: 16px;
+}
+
+.home-hero p,
+.home-close p {
+    max-width: 38rem;
+    font-size: 20px;
+}
+
+.home-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.home-card {
+    margin-top: 16px;
+}
+
+.home-card h2,
+.home-steps h2,
+.home-close h2 {
+    margin: 0 0 8px;
+    font-size: 24px;
+    line-height: 1.3;
+}
+
+.home-steps {
+    margin-top: 48px;
+}
+
+.home-step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.home-step p {
+    margin: 8px 0 0;
+}
+
+.home-step-number {
+    display: grid;
+    flex: 0 0 48px;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: #E3F1F1;
+    color: #006B70;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.home-close {
+    background: #006B70;
+    color: #FFFFFF;
+}
+
+.home-close-inner {
+    padding-top: 48px;
+    padding-bottom: 48px;
+}
+
+.home-close .action {
+    background: #FFFFFF;
+    color: #006B70;
+}
+
+.home-close .action:focus {
+    outline-color: #FFFFFF;
+}
+
+.home-note {
+    margin-top: 24px;
+    color: #475569;
+    font-size: 16px;
+}
+
+@media (min-width: 800px) {
+    .home-grid {
+        grid-template-columns: repeat(3, 1fr);
+        margin-top: 32px;
+    }
+
+    .home-card {
+        margin-top: 32px;
+    }
+}
