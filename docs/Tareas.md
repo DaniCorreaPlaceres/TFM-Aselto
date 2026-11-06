@@ -7,7 +7,7 @@ Lista de lo que hay que hacer. El detalle de cada una se escribe en `docs/sdd/` 
 1. Memoria de producto, stack, arquitectura y especificaciones. Hecha.
 2. Ramas `main` y `develop`, con `main` protegida. Hecha.
 3. Entorno local en Docker, comprobado. Hecha.
-4. Estructura básica de Symfony.
+4. Estructura básica de Symfony. Hecha.
 
 ## Plataforma
 

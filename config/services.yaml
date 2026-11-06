@@ -18,6 +18,14 @@ services:
     # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/'
+        exclude:
+            - '../src/Shared/Domain/'
+            - '../src/Identidad/Domain/'
+            - '../src/Asesoria/Domain/'
+            - '../src/Cliente/Domain/'
+            - '../src/Documento/Domain/'
+            - '../src/Finanzas/Domain/'
+            - '../src/Comunicacion/Domain/'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
