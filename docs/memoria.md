@@ -123,7 +123,7 @@ Orden de construcción acordado:
 0. Esta memoria. Hecha.
 1. GitHub, ramas y Docker. Hecho. `main` está protegida, `develop` integra, y cada pull request ejecuta las cuatro comprobaciones. El entorno local arranca y `GET /salud` responde.
 2. Estructura Symfony. Hecha. Los siete módulos tienen `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
-3. A partir de aquí, la plataforma, tarea a tarea. El acceso ya está: la sesión entra por `/entrar` y `/cuenta` muestra el papel. El primer recorrido presentable sigue siendo el de los bocetos: inicio del cliente, alta de documento, revisión humana y bandeja de la asesoría.
+3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso y la home comercial. El primer recorrido presentable sigue siendo el de los bocetos: inicio del cliente, alta de documento, revisión humana y bandeja de la asesoría.
 
 ## 6. Especificaciones de producto
 
@@ -195,6 +195,8 @@ La imagen de PHP instala `intl`, `pdo_mysql`, `zip` y `bcmath`. OPcache se activ
 
 `GET /salud` no forma parte del producto. Ya está comprobado: responde 200 con `{"estado":"ok","base_de_datos":"ok"}`. MySQL 8.4 queda sano en el puerto 3306. Mercure responde en el 9080.
 
+`/` es la home comercial y es pública. Usa el logotipo oficial y se dirige a autónomos, sociedades y asesorías. Explica que el documento se añade, los datos se revisan y el trimestre se actualiza. La única acción es Entrar, hacia `/entrar`. Si ya hay sesión, esa acción se llama Tu acceso y abre `/cuenta`. No hay registro ni precios.
+
 El acceso de la web es la sesión de Symfony. `GET /entrar` pide el correo y la contraseña. Si el acceso es correcto, `/cuenta` muestra el papel. Salir cierra la sesión. `GET /salud` sigue abierto sin entrar.
 
 Tras migrar, `php bin/console app:seed-dev-access` crea cuatro accesos locales. La contraseña es `aselto-dev` y solo vale en desarrollo:
@@ -231,4 +233,4 @@ docker/
 
 `GET /salud` vive en `src/Controller/HealthController.php`. Cada módulo tiene `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
 
-Identidad ya tiene el usuario, el papel y el acceso. La tabla es `identity_user`. Las pantallas de esta tarea son entrar y ver el papel. El resto de módulos sigue vacío: no hay alta de asesorías ni de clientes, ni el inicio, los documentos o la bandeja.
+La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel y el acceso. La tabla es `identity_user`. El resto de módulos sigue vacío: no hay alta de asesorías ni de clientes, ni el inicio del cliente, los documentos o la bandeja.
