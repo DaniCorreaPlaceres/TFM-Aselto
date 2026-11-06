@@ -120,8 +120,8 @@ Cada módulo tiene cuatro carpetas: `Domain`, `Application`, `Infrastructure` y 
 
 Orden de construcción acordado:
 
-0. Esta memoria.
-1. GitHub, ramas y Docker.
+0. Esta memoria. Hecha.
+1. GitHub, ramas y Docker. Hecho. `main` está protegida, `develop` integra, y cada pull request ejecuta las cuatro comprobaciones. El entorno local arranca y `GET /salud` responde.
 2. Estructura Symfony.
 3. A partir de aquí, la plataforma, tarea a tarea. El primer recorrido presentable es el de los bocetos: inicio del cliente, alta de documento, revisión humana y bandeja de la asesoría.
 
@@ -190,13 +190,9 @@ La web queda en <http://localhost:8080>. MySQL publica el puerto 3306, con base 
 
 Dentro de los contenedores la base se llama `database`. Desde la máquina anfitriona, `127.0.0.1`.
 
-Comprobación:
+La imagen de PHP instala `intl`, `pdo_mysql`, `zip` y `bcmath`. OPcache se activa en `docker/php/php.ini`. El script `docker/php/entrada.sh` se guarda con finales de línea Unix; `.gitattributes` lo mantiene así.
 
-```bash
-curl http://localhost:8080/salud
-```
-
-La respuesta esperada es estado `ok` y base de datos `ok`.
+`GET /salud` no forma parte del producto. Ya está comprobado: responde 200 con `{"estado":"ok","base_de_datos":"ok"}`. MySQL 8.4 queda sano en el puerto 3306. Mercure responde en el 9080.
 
 ## 8. Documentación
 
@@ -224,4 +220,4 @@ assets/
 docker/
 ```
 
-Cada módulo reservará `Domain`, `Application`, `Infrastructure` y `Ui`. Esas carpetas son el punto 2 y todavía no están creadas. La plataforma no tiene pantallas, casos de uso ni tablas de negocio.
+`GET /salud` vive en `src/Controller/HealthController.php`. Cada módulo reservará `Domain`, `Application`, `Infrastructure` y `Ui`. Esas carpetas son el punto 2 y todavía no están creadas. La plataforma no tiene pantallas, casos de uso ni tablas de negocio.
