@@ -18,6 +18,8 @@
             <label for="email">Correo del admin</label>
             <input id="email" name="email" type="email" autocomplete="off" value="{{ email }}" required>
 
+            {{ include('_fiscal_contact.html.twig') }}
+
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('create_firm') }}">
             <button type="submit">Guardar</button>
         </form>

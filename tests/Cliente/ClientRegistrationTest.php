@@ -24,7 +24,9 @@ use App\Identidad\Domain\TokenGenerator;
 use App\Identidad\Domain\User;
 use App\Identidad\Domain\UserRepository;
 use App\Shared\Domain\Clock;
+use App\Shared\Domain\FiscalContact;
 use App\Shared\Domain\IdGenerator;
+use App\Shared\Domain\InvalidFiscalContact;
 use App\Shared\Domain\Transaction;
 use PHPUnit\Framework\TestCase;
 
@@ -36,9 +38,12 @@ final class ClientRegistrationTest extends TestCase
         $clients = new MemoryClientRepository();
 
         $client = $this->useCase(new MemoryFirmRepository(), $users, $clients)
-            ->execute('  Ana  ', ClientKind::SelfEmployed, 'Ana@Example.test', null);
+            ->execute('  Ana  ', ClientKind::SelfEmployed, 'Ana@Example.test', null, $this->contact());
 
         self::assertSame('Ana', $client->name());
+        self::assertSame('00000000T', $client->contact()->taxId());
+        self::assertSame('600000000', $client->contact()->phone());
+        self::assertSame('Madrid', $client->contact()->province());
         self::assertSame(ClientKind::SelfEmployed, $client->kind());
         self::assertNull($client->firmId());
         $user = $users->findByEmail('ana@example.test');
@@ -53,7 +58,7 @@ final class ClientRegistrationTest extends TestCase
         $this->expectException(InvalidClient::class);
 
         $this->useCase(new MemoryFirmRepository(), new MemoryUserRepository(), new MemoryClientRepository())
-            ->execute('   ', ClientKind::SelfEmployed, 'ana@example.test', null);
+            ->execute('   ', ClientKind::SelfEmployed, 'ana@example.test', null, $this->contact());
     }
 
     public function testARepeatedEmailIsRejected(): void
@@ -70,7 +75,7 @@ final class ClientRegistrationTest extends TestCase
         $this->expectException(EmailAlreadyUsed::class);
 
         $this->useCase(new MemoryFirmRepository(), $users, new MemoryClientRepository())
-            ->execute('Ana', ClientKind::SelfEmployed, 'ana@example.test', null);
+            ->execute('Ana', ClientKind::SelfEmployed, 'ana@example.test', null, $this->contact());
     }
 
     public function testAFirmAdminRegistersAClientOfThatFirm(): void
@@ -82,7 +87,7 @@ final class ClientRegistrationTest extends TestCase
         $clients = new MemoryClientRepository();
 
         $client = $this->useCase($firms, $users, $clients)
-            ->execute('Taller Sur', ClientKind::Company, 'sur@example.test', $firm->id());
+            ->execute('Taller Sur', ClientKind::Company, 'sur@example.test', $firm->id(), $this->contact('B12345674'));
 
         self::assertSame($firm->id(), $client->firmId());
         $listings = (new ListClients($clients, $users))->execute($firm->id());
@@ -96,7 +101,21 @@ final class ClientRegistrationTest extends TestCase
         $this->expectException(MissingFirm::class);
 
         $this->useCase(new MemoryFirmRepository(), new MemoryUserRepository(), new MemoryClientRepository())
-            ->execute('Ana', ClientKind::SelfEmployed, 'ana@example.test', '00000000-0000-4000-8000-000000000001');
+            ->execute('Ana', ClientKind::SelfEmployed, 'ana@example.test', '00000000-0000-4000-8000-000000000001', $this->contact());
+    }
+
+    public function testAnInvalidTaxIdIsRejectedBeforeCreatingTheAccount(): void
+    {
+        $users = new MemoryUserRepository();
+
+        try {
+            $this->useCase(new MemoryFirmRepository(), $users, new MemoryClientRepository())
+                ->execute('Ana', ClientKind::SelfEmployed, 'ana@example.test', null, $this->contact('00000000A'));
+            self::fail('An invalid tax id should not register the client.');
+        } catch (InvalidFiscalContact $exception) {
+            self::assertSame(InvalidFiscalContact::TAX_ID, $exception->field());
+            self::assertNull($users->findByEmail('ana@example.test'));
+        }
     }
 
     public function testAnotherFirmDoesNotSeeTheClient(): void
@@ -109,9 +128,14 @@ final class ClientRegistrationTest extends TestCase
         $users = new MemoryUserRepository();
         $clients = new MemoryClientRepository();
         $this->useCase($firms, $users, $clients)
-            ->execute('Ana', ClientKind::SelfEmployed, 'ana@example.test', $north->id());
+            ->execute('Ana', ClientKind::SelfEmployed, 'ana@example.test', $north->id(), $this->contact());
 
         self::assertSame([], (new ListClients($clients, $users))->execute($south->id()));
+    }
+
+    private function contact(string $taxId = '00000000T'): FiscalContact
+    {
+        return FiscalContact::required($taxId, '600 000 000', 'Calle Mayor 1', '28001', 'Madrid', 'Madrid');
     }
 
     private function useCase(FirmRepository $firms, UserRepository $users, ClientRepository $clients): RegisterClient

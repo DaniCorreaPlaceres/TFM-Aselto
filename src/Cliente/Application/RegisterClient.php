@@ -10,7 +10,9 @@ use App\Cliente\Domain\MissingFirm;
 use App\Identidad\Application\StartAccount;
 use App\Identidad\Domain\Role;
 use App\Identidad\Domain\User;
+use App\Shared\Domain\FiscalContact;
 use App\Shared\Domain\IdGenerator;
+use App\Shared\Domain\InvalidFiscalContact;
 
 final class RegisterClient
 {
@@ -22,15 +24,19 @@ final class RegisterClient
     ) {
     }
 
-    public function execute(string $name, ClientKind $kind, string $email, ?string $firmId): Client
+    public function execute(string $name, ClientKind $kind, string $email, ?string $firmId, FiscalContact $contact): Client
     {
+        if (!$contact->isComplete()) {
+            throw new InvalidFiscalContact(InvalidFiscalContact::TAX_ID_MISSING);
+        }
+
         if (null !== $firmId && null === $this->firms->find($firmId)) {
             throw new MissingFirm('The firm does not exist.');
         }
 
         $client = null;
-        $this->accounts->open($email, Role::Client, $firmId, function (User $user) use (&$client, $name, $kind, $firmId): void {
-            $client = new Client($this->ids->next(), $user->id(), $kind, $name, $firmId);
+        $this->accounts->open($email, Role::Client, $firmId, function (User $user) use (&$client, $name, $kind, $firmId, $contact): void {
+            $client = new Client($this->ids->next(), $user->id(), $kind, $name, $firmId, $contact);
             $this->clients->save($client);
         });
 

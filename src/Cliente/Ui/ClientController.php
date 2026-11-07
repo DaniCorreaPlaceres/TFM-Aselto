@@ -11,6 +11,9 @@ use App\Cliente\Domain\UnknownClientKind;
 use App\Identidad\Domain\EmailAlreadyUsed;
 use App\Identidad\Domain\Role;
 use App\Identidad\Infrastructure\Security\SecurityUser;
+use App\Shared\Domain\InvalidFiscalContact;
+use App\Shared\Domain\SpanishProvince;
+use App\Shared\Ui\FiscalContactForm;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -37,6 +40,12 @@ final class ClientController extends AbstractController
         $name = (string) $request->request->get('name', '');
         $email = (string) $request->request->get('email', '');
         $kind = (string) $request->request->get('kind', '');
+        $taxId = (string) $request->request->get('taxId', '');
+        $phone = (string) $request->request->get('phone', '');
+        $street = (string) $request->request->get('street', '');
+        $postalCode = (string) $request->request->get('postalCode', '');
+        $municipality = (string) $request->request->get('municipality', '');
+        $province = (string) $request->request->get('province', '');
         $error = null;
 
         if ($request->isMethod('POST')) {
@@ -48,7 +57,7 @@ final class ClientController extends AbstractController
                 $error = 'La sesión del formulario ha caducado. Vuelve a intentarlo.';
             } else {
                 try {
-                    $registerClient->execute($name, self::kind($kind), $email, $firmId);
+                    $registerClient->execute($name, self::kind($kind), $email, $firmId, FiscalContactForm::read($taxId, $phone, $street, $postalCode, $municipality, $province));
                     $this->addFlash('success', 'Le hemos enviado un correo para crear su contraseña.');
 
                     return $this->redirectToRoute('clients');
@@ -56,6 +65,8 @@ final class ClientController extends AbstractController
                     $error = 'Elige autónomo o sociedad.';
                 } catch (InvalidClient) {
                     $error = 'Escribe el nombre.';
+                } catch (InvalidFiscalContact $exception) {
+                    $error = FiscalContactForm::message($exception);
                 } catch (EmailAlreadyUsed) {
                     $error = 'Ese correo ya tiene acceso.';
                 } catch (MissingFirm) {
@@ -81,6 +92,13 @@ final class ClientController extends AbstractController
             'name' => $name,
             'email' => $email,
             'kind' => $kind,
+            'taxId' => $taxId,
+            'phone' => $phone,
+            'street' => $street,
+            'postalCode' => $postalCode,
+            'municipality' => $municipality,
+            'province' => $province,
+            'provinces' => SpanishProvince::names(),
             'error' => $error,
         ]);
     }
