@@ -293,3 +293,172 @@ button:focus {
         margin-top: 32px;
     }
 }
+
+.client-shell {
+    min-height: 100vh;
+}
+
+.client-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 24px;
+    background: #FFFFFF;
+}
+
+.client-logo {
+    width: min(100%, 200px);
+    height: auto;
+}
+
+.client-who {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.client-who p {
+    margin: 0;
+}
+
+.client-top button {
+    margin-top: 0;
+}
+
+.client-nav,
+.client-bottom {
+    display: flex;
+    background: #FFFFFF;
+}
+
+.client-nav a,
+.client-bottom a {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 8px 16px;
+    color: #14243B;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.client-nav a[aria-current="page"],
+.client-bottom a[aria-current="page"] {
+    background: #E3F1F1;
+}
+
+.client-nav a:focus,
+.client-bottom a:focus {
+    outline: 3px solid #006B70;
+    outline-offset: -3px;
+}
+
+.client-main {
+    box-sizing: border-box;
+    max-width: 48rem;
+    padding: 24px 24px 128px;
+}
+
+.client-main .action {
+    width: 100%;
+    margin-top: 8px;
+}
+
+.client-hint,
+.client-period {
+    color: #475569;
+}
+
+.client-period {
+    margin-top: 32px;
+    font-weight: 700;
+}
+
+.client-figures {
+    display: grid;
+    gap: 16px;
+}
+
+.client-figures section,
+.client-pending {
+    box-sizing: border-box;
+    padding: 16px;
+    background: #FFFFFF;
+    border: 1px solid #64748B;
+    border-radius: 8px;
+}
+
+.client-figures h2,
+.client-pending h2 {
+    margin: 0 0 8px;
+    color: #475569;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.client-figures p,
+.client-pending p {
+    margin: 0;
+    font-size: 24px;
+}
+
+.client-pending {
+    margin-top: 16px;
+}
+
+.client-pending p {
+    font-size: 18px;
+}
+
+.client-bottom {
+    position: sticky;
+    bottom: 0;
+    justify-content: space-between;
+    border-top: 1px solid #64748B;
+}
+
+.client-bottom a {
+    flex: 1 1 0;
+    flex-direction: column;
+    justify-content: center;
+    padding: 8px 4px;
+    font-size: 16px;
+    line-height: 1.2;
+    text-align: center;
+}
+
+.client-nav {
+    display: none;
+}
+
+@media (min-width: 800px) {
+    .client-body {
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .client-nav {
+        display: flex;
+        flex-direction: column;
+        flex: 0 0 240px;
+        min-height: calc(100vh - 114px);
+        border-right: 1px solid #64748B;
+    }
+
+    .client-bottom {
+        display: none;
+    }
+
+    .client-main {
+        padding-bottom: 24px;
+    }
+
+    .client-main .action {
+        width: auto;
+    }
+
+    .client-figures {
+        grid-template-columns: 1fr 1fr;
+    }
+}

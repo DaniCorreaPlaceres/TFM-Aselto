@@ -1,0 +1,28 @@
+{% extends 'client/_layout.html.twig' %}
+
+{% block client_title %}Inicio{% endblock %}
+
+{% block client_body %}
+    <h1>{% if name %}Hola, {{ name }}{% else %}Hola{% endif %}</h1>
+    <p>Este es el resumen de tu actividad.</p>
+
+    <a class="action" href="{{ path('client_documents') }}">Añadir documento</a>
+    <p class="client-hint">Tus facturas y justificantes se reúnen en Documentos.</p>
+
+    <p class="client-period">Este trimestre</p>
+    <div class="client-figures">
+        <section>
+            <h2>Ingresos registrados</h2>
+            <p>0,00 €</p>
+        </section>
+        <section>
+            <h2>Gastos registrados</h2>
+            <p>0,00 €</p>
+        </section>
+    </div>
+
+    <section class="client-pending">
+        <h2>Pendiente de revisión</h2>
+        <p>No hay nada pendiente de revisión.</p>
+    </section>
+{% endblock %}

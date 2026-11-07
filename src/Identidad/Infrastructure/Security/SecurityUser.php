@@ -13,6 +13,7 @@ final class SecurityUser implements UserInterface, PasswordAuthenticatedUserInte
      * @param list<string> $roles
      */
     private function __construct(
+        private readonly string $id,
         private readonly string $email,
         private readonly string $passwordHash,
         private readonly array $roles,
@@ -25,6 +26,7 @@ final class SecurityUser implements UserInterface, PasswordAuthenticatedUserInte
     public static function fromDomain(User $user): self
     {
         return new self(
+            $user->id(),
             $user->email(),
             $user->passwordHash(),
             ['ROLE_USER', self::securityRole($user->role())],
@@ -47,6 +49,11 @@ final class SecurityUser implements UserInterface, PasswordAuthenticatedUserInte
     public function getUserIdentifier(): string
     {
         return $this->email;
+    }
+
+    public function id(): string
+    {
+        return $this->id;
     }
 
     public function role(): Role
