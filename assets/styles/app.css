@@ -47,6 +47,37 @@ button.quiet {
     color: #006B70;
 }
 
+a.quiet-link {
+    display: inline-block;
+    margin-top: 16px;
+    color: #006B70;
+    font-weight: 700;
+}
+
+.panel a.quiet-link,
+.home-hero a.quiet-link {
+    display: block;
+}
+
+fieldset {
+    margin: 16px 0 0;
+    padding: 0;
+    border: 0;
+}
+
+.choice {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+}
+
+.choice input {
+    width: 24px;
+    min-height: 24px;
+    margin: 0;
+}
+
 h1 {
     margin: 0 0 8px;
     font-size: 32px;

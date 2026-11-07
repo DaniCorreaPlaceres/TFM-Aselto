@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Cliente\Infrastructure\Persistence;
+
+use App\Cliente\Domain\Client;
+use App\Cliente\Domain\ClientKind;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity]
+#[ORM\Table(name: 'client_profile')]
+class DoctrineClient
+{
+    #[ORM\Id]
+    #[ORM\Column(length: 36)]
+    private string $id;
+
+    #[ORM\Column(length: 36, unique: true)]
+    private string $userId;
+
+    #[ORM\Column(length: 32)]
+    private string $kind;
+
+    #[ORM\Column(length: 120)]
+    private string $name;
+
+    #[ORM\Column(length: 36, nullable: true)]
+    private ?string $firmId = null;
+
+    public function apply(Client $client): void
+    {
+        $this->id = $client->id();
+        $this->userId = $client->userId();
+        $this->kind = $client->kind()->value;
+        $this->name = $client->name();
+        $this->firmId = $client->firmId();
+    }
+
+    public function toDomain(): Client
+    {
+        return new Client($this->id, $this->userId, ClientKind::from($this->kind), $this->name, $this->firmId);
+    }
+}

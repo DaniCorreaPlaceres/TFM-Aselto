@@ -18,6 +18,9 @@
             <h1>Tus finanzas, por fin en un solo sitio</h1>
             <p>Aselto junta los ingresos, los gastos y los documentos de autónomos y sociedades. Proponemos los datos del documento y una persona los confirma. Úsalo por tu cuenta o con tu asesoría.</p>
             <a class="action" href="{{ entryPath }}">{{ entryLabel }}</a>
+            {% if not signedIn %}
+                <a class="quiet-link" href="{{ path('client_register') }}">Crear acceso</a>
+            {% endif %}
         </section>
 
         <section class="home-grid" aria-label="A quién va dirigido">

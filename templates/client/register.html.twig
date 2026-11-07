@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Crear acceso{% endblock %}
+
+{% block body %}
+    <main class="panel">
+        <h1>Crear acceso</h1>
+        <p>Te registras como cliente, sin asesoría. Luego podrás entrar con este correo y esta contraseña.</p>
+
+        {% if error %}
+            <p class="error" role="alert">{{ error }}</p>
+        {% endif %}
+
+        {{ include('client/_form.html.twig', {csrf: 'register_client', submit: 'Crear acceso'}) }}
+    </main>
+{% endblock %}

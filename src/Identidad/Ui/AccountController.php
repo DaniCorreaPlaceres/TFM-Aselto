@@ -19,16 +19,18 @@ final class AccountController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        $destination = match ($user->role()) {
-            Role::Superadmin => ['route' => 'firms', 'label' => 'Asesorías'],
-            Role::FirmAdmin => ['route' => 'team', 'label' => 'Equipo'],
-            default => null,
+        [$destination, $secondary] = match ($user->role()) {
+            Role::Superadmin => [['route' => 'firms', 'label' => 'Asesorías'], ['route' => 'clients', 'label' => 'Clientes']],
+            Role::FirmAdmin => [['route' => 'clients', 'label' => 'Clientes'], ['route' => 'team', 'label' => 'Equipo']],
+            Role::Advisor => [['route' => 'clients', 'label' => 'Clientes'], null],
+            Role::Client => [null, null],
         };
 
         return $this->render('identity/account.html.twig', [
             'email' => $user->getUserIdentifier(),
             'role' => RoleLabel::inSpanish($user->role()),
             'destination' => $destination,
+            'secondary' => $secondary,
         ]);
     }
 }
