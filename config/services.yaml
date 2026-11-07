@@ -27,9 +27,22 @@ services:
             - '../src/Finanzas/Domain/'
             - '../src/Comunicacion/Domain/'
             - '../src/Identidad/Infrastructure/Persistence/DoctrineUser.php'
+            - '../src/Asesoria/Infrastructure/Persistence/DoctrineFirm.php'
 
     App\Identidad\Domain\UserRepository:
         alias: App\Identidad\Infrastructure\Persistence\DoctrineUserRepository
+
+    App\Identidad\Domain\PasswordHasher:
+        alias: App\Identidad\Infrastructure\Security\SymfonyPasswordHasher
+
+    App\Asesoria\Domain\FirmRepository:
+        alias: App\Asesoria\Infrastructure\Persistence\DoctrineFirmRepository
+
+    App\Shared\Domain\IdGenerator:
+        alias: App\Shared\Infrastructure\SymfonyIdGenerator
+
+    App\Shared\Domain\Transaction:
+        alias: App\Shared\Infrastructure\DoctrineTransaction
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

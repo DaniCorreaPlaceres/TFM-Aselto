@@ -2,6 +2,8 @@
 
 namespace App\Identidad\Infrastructure\Command;
 
+use App\Asesoria\Domain\Firm;
+use App\Asesoria\Domain\FirmRepository;
 use App\Identidad\Domain\Role;
 use App\Identidad\Domain\User;
 use App\Identidad\Domain\UserRepository;
@@ -22,6 +24,7 @@ final class SeedDevAccessCommand extends Command
 
     public function __construct(
         private readonly UserRepository $users,
+        private readonly FirmRepository $firms,
         private readonly UserPasswordHasherInterface $hasher,
         #[Autowire('%kernel.environment%')]
         private readonly string $environment,
@@ -37,6 +40,10 @@ final class SeedDevAccessCommand extends Command
             $io->error('Este comando solo se ejecuta en desarrollo.');
 
             return Command::FAILURE;
+        }
+
+        if (null === $this->firms->find(self::FIRM_ID)) {
+            $this->firms->save(new Firm(self::FIRM_ID, 'Asesoría de prueba'));
         }
 
         foreach ($this->accounts() as $account) {

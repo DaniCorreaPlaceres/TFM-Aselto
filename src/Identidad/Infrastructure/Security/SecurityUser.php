@@ -17,6 +17,7 @@ final class SecurityUser implements UserInterface, PasswordAuthenticatedUserInte
         private readonly string $passwordHash,
         private readonly array $roles,
         private readonly Role $role,
+        private readonly ?string $firmId,
     ) {
     }
 
@@ -27,6 +28,7 @@ final class SecurityUser implements UserInterface, PasswordAuthenticatedUserInte
             $user->passwordHash(),
             ['ROLE_USER', self::securityRole($user->role())],
             $user->role(),
+            $user->firmId(),
         );
     }
 
@@ -48,6 +50,11 @@ final class SecurityUser implements UserInterface, PasswordAuthenticatedUserInte
     public function role(): Role
     {
         return $this->role;
+    }
+
+    public function firmId(): ?string
+    {
+        return $this->firmId;
     }
 
     public function eraseCredentials(): void

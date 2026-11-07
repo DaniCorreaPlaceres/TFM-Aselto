@@ -25,6 +25,17 @@ final class DoctrineUserRepository implements UserRepository
         return $record->toDomain();
     }
 
+    public function findByFirm(string $firmId): array
+    {
+        $users = [];
+
+        foreach ($this->entityManager->getRepository(DoctrineUser::class)->findBy(['firmId' => $firmId]) as $record) {
+            $users[] = $record->toDomain();
+        }
+
+        return $users;
+    }
+
     public function save(User $user): void
     {
         $record = $this->entityManager->find(DoctrineUser::class, $user->id());
