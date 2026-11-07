@@ -13,7 +13,14 @@
     {% endif %}
 
     {% if document.editable %}
-        <p>Escribe los datos y revísalos antes de confirmar. El total se calcula con la base y el IVA.</p>
+        {% if document.proposal == 'extracted' %}
+            <p>Hemos extraído estos datos. Revísalos antes de confirmar.</p>
+        {% elseif document.proposal == 'sample' %}
+            <p>No hay lectura automática. Estos datos son un ejemplo. Revísalos antes de confirmar.</p>
+        {% else %}
+            <p>Escribe los datos y revísalos antes de confirmar.</p>
+        {% endif %}
+        <p class="client-hint">El total se calcula con la base y el IVA.</p>
         <form method="post" novalidate data-controller="document-review" data-action="input->document-review#recalculate change->document-review#recalculate submit->document-review#submit">
             <fieldset data-field="direction" data-message="Indica si es un ingreso o un gasto.">
                 <legend>Tipo</legend>

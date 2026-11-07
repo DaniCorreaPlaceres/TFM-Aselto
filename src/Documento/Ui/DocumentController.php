@@ -16,6 +16,7 @@ use App\Documento\Domain\IncompleteDocument;
 use App\Documento\Domain\InvalidDocument;
 use App\Documento\Domain\MissingClientProfile;
 use App\Documento\Domain\MovementDirection;
+use App\Documento\Domain\ProposalOrigin;
 use App\Documento\Domain\UnsupportedFile;
 use App\Identidad\Domain\Role;
 use App\Identidad\Infrastructure\Security\SecurityUser;
@@ -73,6 +74,12 @@ final class DocumentController extends AbstractController
                         (string) $file->getMimeType(),
                         (string) file_get_contents($file->getPathname()),
                     );
+                    [$kind, $message] = match ($document->proposal()) {
+                        ProposalOrigin::Extracted => ['success', 'Hemos extraído estos datos. Revísalos antes de confirmar.'],
+                        ProposalOrigin::Sample => ['warning', 'No hay lectura automática. Estos datos son un ejemplo. Revísalos antes de confirmar.'],
+                        null => ['error', 'No hemos podido leer el documento. Escribe los datos.'],
+                    };
+                    $this->addFlash($kind, $message);
 
                     return $this->redirectToRoute('client_document', ['id' => $document->id()]);
                 } catch (UnsupportedFile) {
@@ -200,6 +207,7 @@ final class DocumentController extends AbstractController
             'originalName' => $document->originalName(),
             'image' => str_starts_with($document->mediaType(), 'image/'),
             'editable' => $document->isEditable(),
+            'proposal' => $document->proposal()?->value,
             'status' => DocumentLabel::status($document->status()),
             'quota' => DocumentLabel::euros($document->quotaCents()),
             'directionLabel' => DocumentLabel::direction($document->direction()),

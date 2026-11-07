@@ -5,6 +5,7 @@ namespace App\Documento\Infrastructure\Persistence;
 use App\Documento\Domain\Document;
 use App\Documento\Domain\DocumentStatus;
 use App\Documento\Domain\MovementDirection;
+use App\Documento\Domain\ProposalOrigin;
 use App\Documento\Domain\VatRate;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -58,6 +59,9 @@ class DoctrineDocument
     #[ORM\Column(nullable: true)]
     private ?int $totalCents = null;
 
+    #[ORM\Column(length: 16, nullable: true)]
+    private ?string $proposal = null;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -78,6 +82,7 @@ class DoctrineDocument
         $this->vatRate = $document->vatRate()?->value;
         $this->quotaCents = $document->quotaCents();
         $this->totalCents = $document->totalCents();
+        $this->proposal = $document->proposal()?->value;
         $this->createdAt = $document->createdAt();
     }
 
@@ -99,6 +104,7 @@ class DoctrineDocument
             null === $this->vatRate ? null : VatRate::from($this->vatRate),
             $this->quotaCents,
             $this->totalCents,
+            null === $this->proposal ? null : ProposalOrigin::from($this->proposal),
             $this->createdAt,
         );
     }

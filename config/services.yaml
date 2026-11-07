@@ -7,6 +7,8 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    env(OPENAI_API_KEY): ''
+    env(OPENAI_MODEL): 'gpt-4o-mini'
 
 services:
     # default configuration for services in *this* file
@@ -58,6 +60,9 @@ services:
 
     App\Documento\Domain\DocumentFileStore:
         alias: App\Documento\Infrastructure\Storage\LocalDocumentFileStore
+
+    App\Documento\Domain\DocumentExtractor:
+        alias: App\Documento\Infrastructure\Extraction\ConfiguredDocumentExtractor
 
     App\Shared\Domain\IdGenerator:
         alias: App\Shared\Infrastructure\SymfonyIdGenerator

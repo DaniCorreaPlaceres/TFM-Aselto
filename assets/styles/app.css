@@ -165,6 +165,10 @@ select[aria-invalid="true"] {
     border-color: #B42318;
 }
 
+.toast-warning {
+    border-color: #854D0E;
+}
+
 .toast button {
     margin-top: 0;
     flex: 0 0 auto;

@@ -29,6 +29,9 @@
             {% for message in app.flashes('success') %}
                 <p class="toast toast-success" role="status" data-toast-target="item">{{ message }}</p>
             {% endfor %}
+            {% for message in app.flashes('warning') %}
+                <p class="toast toast-warning" role="status" data-toast-target="item">{{ message }}</p>
+            {% endfor %}
             {% for message in app.flashes('error') %}
                 <p class="toast toast-error" role="alert" data-toast-target="item">{{ message }}</p>
             {% endfor %}
