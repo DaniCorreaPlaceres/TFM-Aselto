@@ -6,6 +6,9 @@ use App\Asesoria\Application\CreateFirm;
 use App\Asesoria\Application\ListFirms;
 use App\Asesoria\Domain\InvalidFirm;
 use App\Identidad\Domain\EmailAlreadyUsed;
+use App\Shared\Domain\InvalidFiscalContact;
+use App\Shared\Domain\SpanishProvince;
+use App\Shared\Ui\FiscalContactForm;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,6 +29,12 @@ final class FirmController extends AbstractController
     {
         $name = (string) $request->request->get('name', '');
         $email = (string) $request->request->get('email', '');
+        $taxId = (string) $request->request->get('taxId', '');
+        $phone = (string) $request->request->get('phone', '');
+        $street = (string) $request->request->get('street', '');
+        $postalCode = (string) $request->request->get('postalCode', '');
+        $municipality = (string) $request->request->get('municipality', '');
+        $province = (string) $request->request->get('province', '');
         $error = null;
 
         if ($request->isMethod('POST')) {
@@ -33,12 +42,14 @@ final class FirmController extends AbstractController
                 $error = 'La sesión del formulario ha caducado. Vuelve a intentarlo.';
             } else {
                 try {
-                    $createFirm->execute($name, $email);
+                    $createFirm->execute($name, $email, FiscalContactForm::read($taxId, $phone, $street, $postalCode, $municipality, $province));
                     $this->addFlash('success', 'Le hemos enviado un correo para crear su contraseña.');
 
                     return $this->redirectToRoute('firms');
                 } catch (InvalidFirm) {
                     $error = 'Escribe el nombre de la asesoría.';
+                } catch (InvalidFiscalContact $exception) {
+                    $error = FiscalContactForm::message($exception);
                 } catch (EmailAlreadyUsed) {
                     $error = 'Ese correo ya tiene acceso.';
                 }
@@ -48,6 +59,13 @@ final class FirmController extends AbstractController
         return $this->render('firm/new.html.twig', [
             'name' => $name,
             'email' => $email,
+            'taxId' => $taxId,
+            'phone' => $phone,
+            'street' => $street,
+            'postalCode' => $postalCode,
+            'municipality' => $municipality,
+            'province' => $province,
+            'provinces' => SpanishProvince::names(),
             'error' => $error,
         ]);
     }
