@@ -29,10 +29,10 @@ Recorrido principal:
 2. Un extractor propone fecha, tercero, NIF, base, tipo de IVA y si es ingreso o gasto. La cuota y el total se calculan.
 3. El cliente corrige, guarda un borrador o confirma el envío. La IA no confirma sola.
 4. El gestor valida, corrige, rechaza o pide otro documento.
-5. Solo lo validado entra en el trimestre.
-6. Cliente y gestor ven las cifras. El gestor puede cerrar el trimestre y dejarlas congeladas.
+5. Con asesoría, solo lo validado entra en las cifras validadas del trimestre. Sin asesoría, los documentos confirmados cuentan en las cifras personales, diferenciadas de una validación de asesoría.
+6. Cliente y gestor ven las cifras según su acceso. El gestor puede cerrar el trimestre de la asesoría y dejarlas congeladas. El cliente sin asesoría puede cerrar su trimestre para su control personal.
 
-Cifras, iguales para autónomo y sociedad, calculadas solo con movimientos validados:
+Cifras, iguales para autónomo y sociedad, calculadas con movimientos validados cuando hay asesoría y con documentos confirmados para el control personal cuando no la hay:
 
 - Ingresos: suma de bases de ingresos.
 - Gastos: suma de bases de gastos.
@@ -40,7 +40,7 @@ Cifras, iguales para autónomo y sociedad, calculadas solo con movimientos valid
 - Resultado: ingresos menos gastos.
 - IVA del periodo: repercutido menos soportado.
 
-Estados de un documento: `subido`, `extrayendo`, `borrador`, `enviado`, `validado`, `rechazado`. El cliente confirma y el documento pasa a `enviado`. La asesoría lo valida o lo rechaza después. Solo `validado` entra en el trimestre.
+Estados de un documento: `subido`, `extrayendo`, `borrador`, `enviado`, `validado`, `rechazado`. El cliente confirma y el documento pasa a `enviado`. La asesoría lo valida o lo rechaza después. Solo `validado` entra en las cifras validadas de la asesoría. Sin asesoría, la confirmación permite incluirlo en las cifras personales y no equivale a una validación de asesoría.
 
 Queda fuera: la app, los modelos oficiales de Hacienda, la presentación de impuestos, los bancos, el plan contable, el cobro y la factura de la licencia de Aselto, y la emisión de facturas. La licencia existe en el producto, pero aquí se supone que el cliente puede registrarse directamente.
 
@@ -162,6 +162,11 @@ El inicio muestra el saludo, la acción de añadir un documento, los ingresos y 
 - El admin de una asesoría da de alta a los clientes de la suya. Si un cliente está vinculado, un gestor solo ve los de esa asesoría.
 - El cliente puede corregir el borrador. El gestor puede corregirlo al validar.
 - Si el trimestre de esa fecha está cerrado, no se valida otro movimiento dentro de él.
+- Un cierre personal también congela sus cifras. Para incorporar una corrección que las cambie, primero se reabre el trimestre.
+- El cliente puede reabrir sus cierres personales. El admin o el gestor puede reabrir los cierres de su asesoría. Cada reapertura registra quién la realiza y cuándo.
+- Una asesoría invita a vincularse a un cliente que ya tiene cuenta. Solo al aceptar el cliente se da acceso a sus documentos e histórico.
+- Al vincularse, se conservan los cierres personales anteriores y se identifican como tales. La asesoría puede consultar ese histórico; no pasa a estar validado automáticamente.
+- Los documentos confirmados de trimestres todavía abiertos pasan a revisión de la asesoría al aceptar la vinculación. Conservan los datos y la confirmación original. Las cifras distinguen lo pendiente de lo validado.
 - La foto en el móvil usa la cámara del dispositivo. En escritorio, el mismo paso admite un archivo.
 - Tipos de IVA en Península y Baleares: 0, 4, 10 y 21. La cuota se calcula desde la base y el tipo cuando ambos están escritos. El total es la base más la cuota, y se rellena solo. La lectura propone el resto de campos y no cambia esos dos importes.
 - Si no hay clave de lectura, los datos propuestos son un ejemplo. La pantalla lo dice. Si la lectura falla, la persona escribe los datos.
@@ -169,6 +174,7 @@ El inicio muestra el saludo, la acción de añadir un documento, los ingresos y 
 - El alta de un cliente y el de una asesoría piden también NIF o CIF, teléfono, dirección, código postal, municipio y provincia. El formato del NIF, el CIF o el NIE se comprueba.
 - Esos datos se pueden editar en el perfil. Cada persona edita los suyos. El admin de una asesoría edita los de sus clientes. El gestor los ve y no los cambia.
 - La provincia fija el territorio. Península y Baleares usan IVA. Canarias usa el IGIC, con tipos 0, 3, 7, 9,5, 15 y 20. Ceuta y Melilla usan el IPSI. El documento propone el impuesto de ese territorio.
+- Para el IPSI, la persona introduce manualmente el porcentaje que figura en el documento. Aselto calcula la cuota desde la base y ese porcentaje, y el total como base más cuota. La persona revisa y confirma los datos; la plataforma no determina qué tipo de IPSI corresponde. Este comportamiento está acordado y pendiente de implementar.
 - Un gasto puede llevar recargo de equivalencia. Un ingreso de un autónomo puede llevar retención de IRPF.
 - La plataforma, incluida la home comercial, se maqueta con Bootstrap 5. Siguen mandando la marca y las reglas visuales.
 - Añadir un documento acaba en una sola zona: hacer una foto, elegir un archivo o arrastrarlo.
