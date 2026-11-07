@@ -40,7 +40,7 @@ Cifras, iguales para autónomo y sociedad, calculadas solo con movimientos valid
 - Resultado: ingresos menos gastos.
 - IVA del periodo: repercutido menos soportado.
 
-Estados de un documento: `subido`, `extrayendo`, `borrador`, `validado`, `rechazado`.
+Estados de un documento: `subido`, `extrayendo`, `borrador`, `enviado`, `validado`, `rechazado`. El cliente confirma y el documento pasa a `enviado`. La asesoría lo valida o lo rechaza después. Solo `validado` entra en el trimestre.
 
 Queda fuera: la app, los modelos oficiales de Hacienda, la presentación de impuestos, los bancos, el plan contable, el cobro y la factura de la licencia de Aselto, y la emisión de facturas. La licencia existe en el producto, pero aquí se supone que el cliente puede registrarse directamente.
 
@@ -123,7 +123,7 @@ Orden de construcción acordado:
 0. Esta memoria. Hecha.
 1. GitHub, ramas y Docker. Hecho. `main` está protegida, `develop` integra, y cada pull request ejecuta las cuatro comprobaciones. El entorno local arranca y `GET /salud` responde.
 2. Estructura Symfony. Hecha. Los siete módulos tienen `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
-3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso, la home comercial, el alta de asesorías y de su equipo, el alta de clientes y el inicio del cliente. El siguiente recorrido presentable es el alta de un documento, la revisión humana y la bandeja de la asesoría.
+3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso, la home comercial, el alta de asesorías y de su equipo, el alta de clientes, el inicio del cliente y el alta de un documento con revisión humana. El siguiente recorrido presentable es la lectura por IA y la bandeja de la asesoría.
 
 ## 6. Especificaciones de producto
 
@@ -163,7 +163,7 @@ El inicio muestra el saludo, la acción de añadir un documento, los ingresos y 
 - El cliente puede corregir el borrador. El gestor puede corregirlo al validar.
 - Si el trimestre de esa fecha está cerrado, no se valida otro movimiento dentro de él.
 - La foto en el móvil usa la cámara del dispositivo. En escritorio, el mismo paso admite un archivo.
-- Tipos de IVA previstos: 0, 4, 10 y 21. La cuota se calcula desde la base y el tipo cuando la persona confirma.
+- Tipos de IVA previstos: 0, 4, 10 y 21. La cuota se calcula desde la base y el tipo cuando ambos están escritos. El total es la base más la cuota, y se rellena solo.
 - Archivos admitidos: PDF, JPEG, PNG y WebP.
 
 ### API prevista
@@ -213,7 +213,9 @@ El superadmin abre `/asesorias` desde su acceso. Da de alta una asesoría con no
 
 En todos esos altas se envía un correo. El enlace confirma la dirección y permite crear la contraseña. Caduca a las 24 horas y vale una vez. Hasta entonces no se puede entrar. Quien olvida la contraseña pide otro enlace en `/recuperar`; ese caduca a las 2 horas. Si la cuenta aún no tiene contraseña, se reenvía el enlace de alta. El mensaje es el mismo aunque el correo no exista. La contraseña de desarrollo `aselto-dev` sigue valiendo para los cuatro accesos de prueba, que ya están confirmados.
 
-El cliente, en `/inicio`, ve el logotipo oficial y el menú: Inicio, Ingresos y gastos, Documentos, Mi asesoría y Ayuda. El saludo usa su nombre y la única acción principal es «Añadir documento». El periodo sale a cero y no hay nada pendiente de revisión, porque los movimientos y los documentos aún no existen. Los gastos no van en rojo. Si tiene asesoría, Mi asesoría muestra el nombre de la suya. Si no tiene, lo dice. Un admin o un gestor no abre ese inicio.
+El cliente, en `/inicio`, ve el logotipo oficial y el menú: Inicio, Ingresos y gastos, Documentos, Mi asesoría y Ayuda. El saludo usa su nombre y la única acción principal es «Añadir documento». Las cifras del periodo siguen a cero hasta que la asesoría valide movimientos. Los gastos no van en rojo. Si tiene asesoría, Mi asesoría muestra el nombre de la suya. Si no tiene, lo dice. Un admin o un gestor no abre ese inicio.
+
+«Añadir documento» deja elegir «Hacer una foto» o «Subir archivo». En la revisión el cliente ve el archivo y escribe fecha, tercero, NIF, base, tipo de IVA y si es ingreso o gasto. El total se calcula solo. Puede guardar un borrador o confirmar. Confirmar deja el registro enviado: no lo valida la asesoría y no cambia las cifras. Lo recién subido o en borrador aparece en el inicio como pendiente de su revisión. Solo ve sus documentos. Si tiene asesoría, el documento queda ligado a esa. Un archivo admitido ocupa menos de 8 MB y se guarda en `var/storage`.
 
 ## 8. Documentación
 
@@ -243,4 +245,4 @@ docker/
 
 `GET /salud` vive en `src/Controller/HealthController.php`. Cada módulo tiene `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
 
-La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel, el acceso y los enlaces de correo. Las tablas son `identity_user` y `access_token`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Cliente ya registra autónomos y sociedades, y el cliente entra por `/inicio`. La tabla es `client_profile`. Siguen sin hacerse los documentos y la bandeja.
+La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel, el acceso y los enlaces de correo. Las tablas son `identity_user` y `access_token`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Cliente ya registra autónomos y sociedades, y el cliente entra por `/inicio`. La tabla es `client_profile`. Documento ya guarda el archivo y los datos que escribe el cliente. La tabla es `client_document`. Siguen sin hacerse la lectura por IA y la bandeja.
