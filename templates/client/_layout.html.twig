@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{% block client_title %}Inicio{% endblock %}{% endblock %}
+
+{% block body %}
+    <div class="client-shell">
+        <header class="client-top">
+            <img class="client-logo" src="{{ asset('aselto-logo-eslogan-v2.png') }}" alt="Aselto. Tus finanzas bajo control" width="220" height="82">
+            <div class="client-who">
+                <p>{{ name ?: email }}</p>
+                <form method="post" action="{{ path('logout') }}">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+                    <button type="submit" class="quiet">Salir</button>
+                </form>
+            </div>
+        </header>
+
+        <div class="client-body">
+            <nav class="client-nav" aria-label="Secciones">
+                {{ include('client/_menu.html.twig') }}
+            </nav>
+
+            <main class="client-main">
+                {% block client_body %}{% endblock %}
+            </main>
+        </div>
+
+        <nav class="client-bottom" aria-label="Secciones">
+            {{ include('client/_menu.html.twig') }}
+        </nav>
+    </div>
+{% endblock %}

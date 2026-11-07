@@ -1,0 +1,5 @@
+<a href="{{ path('client_home') }}" {% if section == 'inicio' %}aria-current="page"{% endif %}>Inicio</a>
+<a href="{{ path('client_movements') }}" {% if section == 'movimientos' %}aria-current="page"{% endif %}>Ingresos y gastos</a>
+<a href="{{ path('client_documents') }}" {% if section == 'documentos' %}aria-current="page"{% endif %}>Documentos</a>
+<a href="{{ path('client_firm') }}" {% if section == 'asesoria' %}aria-current="page"{% endif %}>Mi asesoría</a>
+<a href="{{ path('client_help') }}" {% if section == 'ayuda' %}aria-current="page"{% endif %}>Ayuda</a>

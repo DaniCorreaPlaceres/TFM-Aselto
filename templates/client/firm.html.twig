@@ -1,0 +1,12 @@
+{% extends 'client/_layout.html.twig' %}
+
+{% block client_title %}Mi asesoría{% endblock %}
+
+{% block client_body %}
+    <h1>Mi asesoría</h1>
+    {% if firmName %}
+        <p>Tu asesoría es {{ firmName }}.</p>
+    {% else %}
+        <p>Todavía no tienes asesoría. Puedes usar Aselto por tu cuenta.</p>
+    {% endif %}
+{% endblock %}
