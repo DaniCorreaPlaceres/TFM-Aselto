@@ -10,6 +10,7 @@ final class User
         private readonly string $passwordHash,
         private readonly Role $role,
         private readonly ?string $firmId,
+        private readonly bool $activated = false,
     ) {
         if (1 !== preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $id)) {
             throw new InvalidUser('The id is not a valid UUID.');
@@ -61,5 +62,15 @@ final class User
     public function firmId(): ?string
     {
         return $this->firmId;
+    }
+
+    public function isActivated(): bool
+    {
+        return $this->activated;
+    }
+
+    public function withPassword(string $passwordHash): self
+    {
+        return new self($this->id, $this->email, $passwordHash, $this->role, $this->firmId, true);
     }
 }

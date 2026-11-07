@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Asesoria\Domain;
+namespace App\Identidad\Domain;
 
 final class EmailAlreadyUsed extends \DomainException
 {

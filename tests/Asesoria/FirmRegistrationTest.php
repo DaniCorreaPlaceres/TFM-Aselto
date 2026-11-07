@@ -4,15 +4,22 @@ namespace App\Tests\Asesoria;
 
 use App\Asesoria\Application\CreateFirm;
 use App\Asesoria\Application\InviteAdvisor;
-use App\Asesoria\Domain\EmailAlreadyUsed;
 use App\Asesoria\Domain\Firm;
 use App\Asesoria\Domain\FirmRepository;
 use App\Asesoria\Domain\InvalidFirm;
-use App\Asesoria\Domain\PasswordTooShort;
+use App\Identidad\Application\IssueAccessToken;
+use App\Identidad\Application\StartAccount;
+use App\Identidad\Domain\AccessPurpose;
+use App\Identidad\Domain\AccessToken;
+use App\Identidad\Domain\AccessTokenRepository;
+use App\Identidad\Domain\AccountNotifier;
+use App\Identidad\Domain\EmailAlreadyUsed;
 use App\Identidad\Domain\PasswordHasher;
 use App\Identidad\Domain\Role;
+use App\Identidad\Domain\TokenGenerator;
 use App\Identidad\Domain\User;
 use App\Identidad\Domain\UserRepository;
+use App\Shared\Domain\Clock;
 use App\Shared\Domain\IdGenerator;
 use App\Shared\Domain\Transaction;
 use PHPUnit\Framework\TestCase;
@@ -32,21 +39,14 @@ final class FirmRegistrationTest extends TestCase
         $users = new MemoryUserRepository();
         $useCase = $this->useCase($firms, $users);
 
-        $firm = $useCase->execute('  Norte  ', 'Admin@Example.test', 'asesoria1');
+        $firm = $useCase->execute('  Norte  ', 'Admin@Example.test');
 
         self::assertSame('Norte', $firm->name());
         $admin = $users->findByEmail('admin@example.test');
         self::assertInstanceOf(User::class, $admin);
         self::assertSame(Role::FirmAdmin, $admin->role());
         self::assertSame($firm->id(), $admin->firmId());
-    }
-
-    public function testAShortPasswordIsRejected(): void
-    {
-        $this->expectException(PasswordTooShort::class);
-
-        $this->useCase(new MemoryFirmRepository(), new MemoryUserRepository())
-            ->execute('Norte', 'admin@example.test', 'corta');
+        self::assertFalse($admin->isActivated());
     }
 
     public function testARepeatedEmailIsRejected(): void
@@ -63,7 +63,7 @@ final class FirmRegistrationTest extends TestCase
         $this->expectException(EmailAlreadyUsed::class);
 
         $this->useCase(new MemoryFirmRepository(), $users)
-            ->execute('Norte', 'admin@example.test', 'asesoria1');
+            ->execute('Norte', 'admin@example.test');
     }
 
     public function testFirmAdminInvitesAnAdvisorOfTheSameFirm(): void
@@ -73,31 +73,40 @@ final class FirmRegistrationTest extends TestCase
         $firms->save($firm);
         $users = new MemoryUserRepository();
 
-        (new InviteAdvisor($firms, $users, new FakePasswordHasher(), new FakeIdGenerator(), new ImmediateTransaction()))
-            ->execute($firm->id(), 'gestor@example.test', 'asesoria1');
+        (new InviteAdvisor($firms, $this->accounts($users)))
+            ->execute($firm->id(), 'gestor@example.test');
 
         $advisor = $users->findByEmail('gestor@example.test');
         self::assertInstanceOf(User::class, $advisor);
         self::assertSame(Role::Advisor, $advisor->role());
         self::assertSame($firm->id(), $advisor->firmId());
+        self::assertFalse($advisor->isActivated());
     }
 
     public function testAnAdvisorCannotBeInvitedToAMissingFirm(): void
     {
         $this->expectException(InvalidFirm::class);
 
-        (new InviteAdvisor(
-            new MemoryFirmRepository(),
-            new MemoryUserRepository(),
-            new FakePasswordHasher(),
-            new FakeIdGenerator(),
-            new ImmediateTransaction(),
-        ))->execute('00000000-0000-4000-8000-000000000001', 'gestor@example.test', 'asesoria1');
+        (new InviteAdvisor(new MemoryFirmRepository(), $this->accounts(new MemoryUserRepository())))
+            ->execute('00000000-0000-4000-8000-000000000001', 'gestor@example.test');
     }
 
     private function useCase(FirmRepository $firms, UserRepository $users): CreateFirm
     {
-        return new CreateFirm($firms, $users, new FakePasswordHasher(), new FakeIdGenerator(), new ImmediateTransaction());
+        return new CreateFirm($firms, new FakeIdGenerator(), $this->accounts($users));
+    }
+
+    private function accounts(UserRepository $users): StartAccount
+    {
+        return new StartAccount(
+            $users,
+            new FakePasswordHasher(),
+            new FakeIdGenerator(),
+            new FakeTokenGenerator(),
+            new IssueAccessToken(new MemoryAccessTokenRepository(), new FakeIdGenerator(), new FakeTokenGenerator(), new FixedClock()),
+            new ImmediateTransaction(),
+            new RecordingNotifier(),
+        );
     }
 }
 
@@ -180,5 +189,59 @@ final class ImmediateTransaction implements Transaction
     public function run(callable $operation): void
     {
         $operation();
+    }
+}
+
+final class MemoryAccessTokenRepository implements AccessTokenRepository
+{
+    /** @var array<string, AccessToken> */
+    private array $tokens = [];
+
+    public function findByHash(string $tokenHash): ?AccessToken
+    {
+        return $this->tokens[$tokenHash] ?? null;
+    }
+
+    public function discardOpen(string $userId, AccessPurpose $purpose): void
+    {
+        foreach ($this->tokens as $hash => $token) {
+            if ($token->userId() === $userId && $token->purpose() === $purpose && null === $token->usedAt()) {
+                unset($this->tokens[$hash]);
+            }
+        }
+    }
+
+    public function save(AccessToken $token): void
+    {
+        $this->tokens[$token->tokenHash()] = $token;
+    }
+}
+
+final class FakeTokenGenerator implements TokenGenerator
+{
+    private int $sequence = 1;
+
+    public function next(): string
+    {
+        return hash('sha256', 'token-'.$this->sequence++);
+    }
+}
+
+final class FixedClock implements Clock
+{
+    public function now(): \DateTimeImmutable
+    {
+        return new \DateTimeImmutable('2026-11-07 00:00:00 UTC');
+    }
+}
+
+final class RecordingNotifier implements AccountNotifier
+{
+    public function sendActivation(string $email, string $token): void
+    {
+    }
+
+    public function sendPasswordReset(string $email, string $token): void
+    {
     }
 }

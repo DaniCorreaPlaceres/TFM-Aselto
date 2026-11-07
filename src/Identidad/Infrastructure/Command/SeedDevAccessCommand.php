@@ -69,6 +69,7 @@ final class SeedDevAccessCommand extends Command
                 $this->hasher->hashPassword($placeholder, self::PASSWORD),
                 $account['role'],
                 $account['firmId'],
+                true,
             ));
         }
 

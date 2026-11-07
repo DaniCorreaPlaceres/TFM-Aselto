@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Cliente\Domain;
+namespace App\Identidad\Domain;
 
 final class PasswordTooShort extends \DomainException
 {

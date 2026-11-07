@@ -18,6 +18,7 @@ final class SecurityUser implements UserInterface, PasswordAuthenticatedUserInte
         private readonly array $roles,
         private readonly Role $role,
         private readonly ?string $firmId,
+        private readonly bool $activated,
     ) {
     }
 
@@ -29,6 +30,7 @@ final class SecurityUser implements UserInterface, PasswordAuthenticatedUserInte
             ['ROLE_USER', self::securityRole($user->role())],
             $user->role(),
             $user->firmId(),
+            $user->isActivated(),
         );
     }
 
@@ -55,6 +57,11 @@ final class SecurityUser implements UserInterface, PasswordAuthenticatedUserInte
     public function firmId(): ?string
     {
         return $this->firmId;
+    }
+
+    public function isActivated(): bool
+    {
+        return $this->activated;
     }
 
     public function eraseCredentials(): void

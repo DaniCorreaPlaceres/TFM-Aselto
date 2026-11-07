@@ -4,9 +4,8 @@ namespace App\Asesoria\Ui;
 
 use App\Asesoria\Application\InviteAdvisor;
 use App\Asesoria\Application\ListTeam;
-use App\Asesoria\Domain\EmailAlreadyUsed;
 use App\Asesoria\Domain\InvalidFirm;
-use App\Asesoria\Domain\PasswordTooShort;
+use App\Identidad\Domain\EmailAlreadyUsed;
 use App\Identidad\Domain\Role;
 use App\Identidad\Infrastructure\Security\SecurityUser;
 use App\Identidad\Ui\RoleLabel;
@@ -34,12 +33,10 @@ final class TeamController extends AbstractController
                 $error = 'La sesión del formulario ha caducado. Vuelve a intentarlo.';
             } else {
                 try {
-                    $inviteAdvisor->execute($current->firmId(), $email, (string) $request->request->get('password', ''));
-                    $this->addFlash('success', 'El gestor ya puede entrar.');
+                    $inviteAdvisor->execute($current->firmId(), $email);
+                    $this->addFlash('success', 'Le hemos enviado un correo para crear su contraseña.');
 
                     return $this->redirectToRoute('team');
-                } catch (PasswordTooShort) {
-                    $error = 'La contraseña debe tener al menos 8 caracteres.';
                 } catch (EmailAlreadyUsed) {
                     $error = 'Ese correo ya tiene acceso.';
                 } catch (InvalidFirm) {

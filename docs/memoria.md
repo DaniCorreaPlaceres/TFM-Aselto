@@ -158,6 +158,7 @@ El inicio muestra el saludo, la acción de añadir un documento, los ingresos y 
 
 - El superadmin no pertenece a una asesoría. El admin y el gestor sí.
 - Un cliente puede registrarse directamente, en principio sin asesoría. El superadmin también puede dar de alta un cliente sin asesoría.
+- Quien da de alta un acceso no escribe la contraseña. La persona la crea con un enlace de su correo, de un solo uso y con caducidad.
 - El admin de una asesoría da de alta a los clientes de la suya. Si un cliente está vinculado, un gestor solo ve los de esa asesoría.
 - El cliente puede corregir el borrador. El gestor puede corregirlo al validar.
 - Si el trimestre de esa fecha está cerrado, no se valida otro movimiento dentro de él.
@@ -188,7 +189,7 @@ Entorno local:
 docker compose up --build
 ```
 
-La web queda en <http://localhost:8080>. MySQL publica el puerto 3306, con base `aselto`, usuario `aselto` y contraseña `aselto`. Mercure publica el puerto 9080. Esas credenciales son solo de desarrollo.
+La web queda en <http://localhost:8080>. MySQL publica el puerto 3306, con base `aselto`, usuario `aselto` y contraseña `aselto`. Mercure publica el puerto 9080. El buzón local es Mailpit, en <http://localhost:8025>. Esas credenciales son solo de desarrollo.
 
 Dentro de los contenedores la base se llama `database`. Desde la máquina anfitriona, `127.0.0.1`.
 
@@ -206,9 +207,11 @@ Tras migrar, `php bin/console app:seed-dev-access` crea la asesoría de prueba y
 - `admin@example.test` y `gestor@example.test`, en «Asesoría de prueba»
 - `cliente@example.test`, sin asesoría
 
-El superadmin abre `/asesorias` desde su acceso. Da de alta una asesoría con nombre, correo del admin y contraseña inicial. No hay planes ni cobros, y no se envía ningún correo: esa persona entra con la contraseña que se le ha puesto. El admin abre `/equipo`, ve solo el equipo de la suya e invita a un gestor del mismo modo. Un gestor no abre esas pantallas. Una asesoría no ve el equipo de otra. La contraseña inicial tiene al menos 8 caracteres. Un correo que ya existe se rechaza.
+El superadmin abre `/asesorias` desde su acceso. Da de alta una asesoría con nombre y correo del admin. No hay planes ni cobros. El admin abre `/equipo`, ve solo el equipo de la suya e invita a un gestor con su correo. Un gestor no abre esas pantallas. Una asesoría no ve el equipo de otra. Un correo que ya existe se rechaza.
 
 `/registro` es público. Crea un cliente, autónomo o sociedad, sin asesoría. El superadmin, en `/clientes`, da de alta otro cliente sin asesoría y ve solo esos. El admin da de alta a los de su asesoría. El gestor ve los de la suya y no puede darlos de alta. Una asesoría no ve los clientes de otra.
+
+En todos esos altas se envía un correo. El enlace confirma la dirección y permite crear la contraseña. Caduca a las 24 horas y vale una vez. Hasta entonces no se puede entrar. Quien olvida la contraseña pide otro enlace en `/recuperar`; ese caduca a las 2 horas. Si la cuenta aún no tiene contraseña, se reenvía el enlace de alta. El mensaje es el mismo aunque el correo no exista. La contraseña de desarrollo `aselto-dev` sigue valiendo para los cuatro accesos de prueba, que ya están confirmados.
 
 ## 8. Documentación
 
@@ -238,4 +241,4 @@ docker/
 
 `GET /salud` vive en `src/Controller/HealthController.php`. Cada módulo tiene `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
 
-La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel y el acceso. La tabla es `identity_user`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Cliente ya registra autónomos y sociedades. La tabla es `client_profile`. Siguen sin hacerse el inicio del cliente, los documentos y la bandeja.
+La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel, el acceso y los enlaces de correo. Las tablas son `identity_user` y `access_token`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Cliente ya registra autónomos y sociedades. La tabla es `client_profile`. Siguen sin hacerse el inicio del cliente, los documentos y la bandeja.

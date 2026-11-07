@@ -5,11 +5,10 @@ namespace App\Cliente\Ui;
 use App\Cliente\Application\ListClients;
 use App\Cliente\Application\RegisterClient;
 use App\Cliente\Domain\ClientKind;
-use App\Cliente\Domain\EmailAlreadyUsed;
 use App\Cliente\Domain\InvalidClient;
 use App\Cliente\Domain\MissingFirm;
-use App\Cliente\Domain\PasswordTooShort;
 use App\Cliente\Domain\UnknownClientKind;
+use App\Identidad\Domain\EmailAlreadyUsed;
 use App\Identidad\Domain\Role;
 use App\Identidad\Infrastructure\Security\SecurityUser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -49,16 +48,14 @@ final class ClientController extends AbstractController
                 $error = 'La sesión del formulario ha caducado. Vuelve a intentarlo.';
             } else {
                 try {
-                    $registerClient->execute($name, self::kind($kind), $email, (string) $request->request->get('password', ''), $firmId);
-                    $this->addFlash('success', 'El cliente ya está dado de alta.');
+                    $registerClient->execute($name, self::kind($kind), $email, $firmId);
+                    $this->addFlash('success', 'Le hemos enviado un correo para crear su contraseña.');
 
                     return $this->redirectToRoute('clients');
                 } catch (UnknownClientKind) {
                     $error = 'Elige autónomo o sociedad.';
                 } catch (InvalidClient) {
                     $error = 'Escribe el nombre.';
-                } catch (PasswordTooShort) {
-                    $error = 'La contraseña debe tener al menos 8 caracteres.';
                 } catch (EmailAlreadyUsed) {
                     $error = 'Ese correo ya tiene acceso.';
                 } catch (MissingFirm) {

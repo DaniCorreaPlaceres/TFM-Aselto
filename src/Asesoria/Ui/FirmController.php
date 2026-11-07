@@ -4,9 +4,8 @@ namespace App\Asesoria\Ui;
 
 use App\Asesoria\Application\CreateFirm;
 use App\Asesoria\Application\ListFirms;
-use App\Asesoria\Domain\EmailAlreadyUsed;
 use App\Asesoria\Domain\InvalidFirm;
-use App\Asesoria\Domain\PasswordTooShort;
+use App\Identidad\Domain\EmailAlreadyUsed;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,14 +33,12 @@ final class FirmController extends AbstractController
                 $error = 'La sesión del formulario ha caducado. Vuelve a intentarlo.';
             } else {
                 try {
-                    $createFirm->execute($name, $email, (string) $request->request->get('password', ''));
-                    $this->addFlash('success', 'La asesoría ya está dada de alta.');
+                    $createFirm->execute($name, $email);
+                    $this->addFlash('success', 'Le hemos enviado un correo para crear su contraseña.');
 
                     return $this->redirectToRoute('firms');
                 } catch (InvalidFirm) {
                     $error = 'Escribe el nombre de la asesoría.';
-                } catch (PasswordTooShort) {
-                    $error = 'La contraseña debe tener al menos 8 caracteres.';
                 } catch (EmailAlreadyUsed) {
                     $error = 'Ese correo ya tiene acceso.';
                 }

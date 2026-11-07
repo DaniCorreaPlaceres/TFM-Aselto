@@ -9,14 +9,21 @@ use App\Cliente\Application\RegisterClient;
 use App\Cliente\Domain\Client;
 use App\Cliente\Domain\ClientKind;
 use App\Cliente\Domain\ClientRepository;
-use App\Cliente\Domain\EmailAlreadyUsed;
 use App\Cliente\Domain\InvalidClient;
 use App\Cliente\Domain\MissingFirm;
-use App\Cliente\Domain\PasswordTooShort;
+use App\Identidad\Application\IssueAccessToken;
+use App\Identidad\Application\StartAccount;
+use App\Identidad\Domain\AccessPurpose;
+use App\Identidad\Domain\AccessToken;
+use App\Identidad\Domain\AccessTokenRepository;
+use App\Identidad\Domain\AccountNotifier;
+use App\Identidad\Domain\EmailAlreadyUsed;
 use App\Identidad\Domain\PasswordHasher;
 use App\Identidad\Domain\Role;
+use App\Identidad\Domain\TokenGenerator;
 use App\Identidad\Domain\User;
 use App\Identidad\Domain\UserRepository;
+use App\Shared\Domain\Clock;
 use App\Shared\Domain\IdGenerator;
 use App\Shared\Domain\Transaction;
 use PHPUnit\Framework\TestCase;
@@ -29,7 +36,7 @@ final class ClientRegistrationTest extends TestCase
         $clients = new MemoryClientRepository();
 
         $client = $this->useCase(new MemoryFirmRepository(), $users, $clients)
-            ->execute('  Ana  ', ClientKind::SelfEmployed, 'Ana@Example.test', 'asesoria1', null);
+            ->execute('  Ana  ', ClientKind::SelfEmployed, 'Ana@Example.test', null);
 
         self::assertSame('Ana', $client->name());
         self::assertSame(ClientKind::SelfEmployed, $client->kind());
@@ -38,14 +45,7 @@ final class ClientRegistrationTest extends TestCase
         self::assertInstanceOf(User::class, $user);
         self::assertSame(Role::Client, $user->role());
         self::assertNull($user->firmId());
-    }
-
-    public function testAShortPasswordIsRejected(): void
-    {
-        $this->expectException(PasswordTooShort::class);
-
-        $this->useCase(new MemoryFirmRepository(), new MemoryUserRepository(), new MemoryClientRepository())
-            ->execute('Ana', ClientKind::Company, 'ana@example.test', 'corta', null);
+        self::assertFalse($user->isActivated());
     }
 
     public function testAnEmptyNameIsRejected(): void
@@ -53,7 +53,7 @@ final class ClientRegistrationTest extends TestCase
         $this->expectException(InvalidClient::class);
 
         $this->useCase(new MemoryFirmRepository(), new MemoryUserRepository(), new MemoryClientRepository())
-            ->execute('   ', ClientKind::SelfEmployed, 'ana@example.test', 'asesoria1', null);
+            ->execute('   ', ClientKind::SelfEmployed, 'ana@example.test', null);
     }
 
     public function testARepeatedEmailIsRejected(): void
@@ -70,7 +70,7 @@ final class ClientRegistrationTest extends TestCase
         $this->expectException(EmailAlreadyUsed::class);
 
         $this->useCase(new MemoryFirmRepository(), $users, new MemoryClientRepository())
-            ->execute('Ana', ClientKind::SelfEmployed, 'ana@example.test', 'asesoria1', null);
+            ->execute('Ana', ClientKind::SelfEmployed, 'ana@example.test', null);
     }
 
     public function testAFirmAdminRegistersAClientOfThatFirm(): void
@@ -82,7 +82,7 @@ final class ClientRegistrationTest extends TestCase
         $clients = new MemoryClientRepository();
 
         $client = $this->useCase($firms, $users, $clients)
-            ->execute('Taller Sur', ClientKind::Company, 'sur@example.test', 'asesoria1', $firm->id());
+            ->execute('Taller Sur', ClientKind::Company, 'sur@example.test', $firm->id());
 
         self::assertSame($firm->id(), $client->firmId());
         $listings = (new ListClients($clients, $users))->execute($firm->id());
@@ -96,7 +96,7 @@ final class ClientRegistrationTest extends TestCase
         $this->expectException(MissingFirm::class);
 
         $this->useCase(new MemoryFirmRepository(), new MemoryUserRepository(), new MemoryClientRepository())
-            ->execute('Ana', ClientKind::SelfEmployed, 'ana@example.test', 'asesoria1', '00000000-0000-4000-8000-000000000001');
+            ->execute('Ana', ClientKind::SelfEmployed, 'ana@example.test', '00000000-0000-4000-8000-000000000001');
     }
 
     public function testAnotherFirmDoesNotSeeTheClient(): void
@@ -109,14 +109,25 @@ final class ClientRegistrationTest extends TestCase
         $users = new MemoryUserRepository();
         $clients = new MemoryClientRepository();
         $this->useCase($firms, $users, $clients)
-            ->execute('Ana', ClientKind::SelfEmployed, 'ana@example.test', 'asesoria1', $north->id());
+            ->execute('Ana', ClientKind::SelfEmployed, 'ana@example.test', $north->id());
 
         self::assertSame([], (new ListClients($clients, $users))->execute($south->id()));
     }
 
     private function useCase(FirmRepository $firms, UserRepository $users, ClientRepository $clients): RegisterClient
     {
-        return new RegisterClient($clients, $users, $firms, new FakePasswordHasher(), new FakeIdGenerator(), new ImmediateTransaction());
+        $tokens = new MemoryAccessTokenRepository();
+        $accounts = new StartAccount(
+            $users,
+            new FakePasswordHasher(),
+            new FakeIdGenerator(),
+            new FakeTokenGenerator(),
+            new IssueAccessToken($tokens, new FakeIdGenerator(), new FakeTokenGenerator(), new FixedClock()),
+            new ImmediateTransaction(),
+            new RecordingNotifier(),
+        );
+
+        return new RegisterClient($clients, $firms, new FakeIdGenerator(), $accounts);
     }
 }
 
@@ -237,5 +248,59 @@ final class ImmediateTransaction implements Transaction
     public function run(callable $operation): void
     {
         $operation();
+    }
+}
+
+final class MemoryAccessTokenRepository implements AccessTokenRepository
+{
+    /** @var array<string, AccessToken> */
+    private array $tokens = [];
+
+    public function findByHash(string $tokenHash): ?AccessToken
+    {
+        return $this->tokens[$tokenHash] ?? null;
+    }
+
+    public function discardOpen(string $userId, AccessPurpose $purpose): void
+    {
+        foreach ($this->tokens as $hash => $token) {
+            if ($token->userId() === $userId && $token->purpose() === $purpose && null === $token->usedAt()) {
+                unset($this->tokens[$hash]);
+            }
+        }
+    }
+
+    public function save(AccessToken $token): void
+    {
+        $this->tokens[$token->tokenHash()] = $token;
+    }
+}
+
+final class FakeTokenGenerator implements TokenGenerator
+{
+    private int $sequence = 1;
+
+    public function next(): string
+    {
+        return hash('sha256', 'token-'.$this->sequence++);
+    }
+}
+
+final class FixedClock implements Clock
+{
+    public function now(): \DateTimeImmutable
+    {
+        return new \DateTimeImmutable('2026-11-07 00:00:00 UTC');
+    }
+}
+
+final class RecordingNotifier implements AccountNotifier
+{
+    public function sendActivation(string $email, string $token): void
+    {
+    }
+
+    public function sendPasswordReset(string $email, string $token): void
+    {
     }
 }

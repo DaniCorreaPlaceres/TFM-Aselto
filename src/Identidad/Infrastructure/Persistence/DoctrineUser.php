@@ -26,6 +26,9 @@ class DoctrineUser
     #[ORM\Column(length: 36, nullable: true)]
     private ?string $firmId = null;
 
+    #[ORM\Column]
+    private bool $activated = false;
+
     public function apply(User $user): void
     {
         $this->id = $user->id();
@@ -33,10 +36,11 @@ class DoctrineUser
         $this->passwordHash = $user->passwordHash();
         $this->role = $user->role();
         $this->firmId = $user->firmId();
+        $this->activated = $user->isActivated();
     }
 
     public function toDomain(): User
     {
-        return new User($this->id, $this->email, $this->passwordHash, $this->role, $this->firmId);
+        return new User($this->id, $this->email, $this->passwordHash, $this->role, $this->firmId, $this->activated);
     }
 }
