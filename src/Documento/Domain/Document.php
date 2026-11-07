@@ -27,6 +27,7 @@ final class Document
         private readonly ?VatRate $vatRate,
         private readonly ?int $quotaCents,
         private readonly ?int $totalCents,
+        private readonly ?ProposalOrigin $proposal,
         private readonly \DateTimeImmutable $createdAt,
     ) {
         if (1 !== preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $id)) {
@@ -79,7 +80,35 @@ final class Document
             null,
             null,
             null,
+            null,
             $createdAt,
+        );
+    }
+
+    public function propose(DocumentDetails $details, ProposalOrigin $origin): self
+    {
+        if (DocumentStatus::Uploaded !== $this->status && DocumentStatus::Extracting !== $this->status) {
+            throw new InvalidDocument('The document can no longer be read.');
+        }
+
+        return new self(
+            $this->id,
+            $this->clientUserId,
+            $this->firmId,
+            $this->originalName,
+            $this->storedPath,
+            $this->mediaType,
+            DocumentStatus::Draft,
+            $details->direction(),
+            $details->issuedOn(),
+            $details->partyName(),
+            $details->taxId(),
+            $details->baseCents(),
+            $details->vatRate(),
+            $details->quotaCents(),
+            $details->totalCents(),
+            $origin,
+            $this->createdAt,
         );
     }
 
@@ -129,7 +158,9 @@ final class Document
 
     public function isEditable(): bool
     {
-        return DocumentStatus::Uploaded === $this->status || DocumentStatus::Draft === $this->status;
+        return DocumentStatus::Uploaded === $this->status
+            || DocumentStatus::Extracting === $this->status
+            || DocumentStatus::Draft === $this->status;
     }
 
     public function needsReview(): bool
@@ -212,6 +243,11 @@ final class Document
         return $this->totalCents;
     }
 
+    public function proposal(): ?ProposalOrigin
+    {
+        return $this->proposal;
+    }
+
     public function createdAt(): \DateTimeImmutable
     {
         return $this->createdAt;
@@ -242,6 +278,7 @@ final class Document
             $details->vatRate(),
             $details->quotaCents(),
             $details->totalCents(),
+            $this->proposal,
             $this->createdAt,
         );
     }

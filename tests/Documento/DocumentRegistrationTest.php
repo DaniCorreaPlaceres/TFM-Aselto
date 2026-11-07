@@ -12,13 +12,17 @@ use App\Documento\Application\OpenClientDocument;
 use App\Documento\Application\SaveDocumentDraft;
 use App\Documento\Application\StoreClientDocument;
 use App\Documento\Domain\Document;
+use App\Documento\Domain\DocumentExtractor;
 use App\Documento\Domain\DocumentFileStore;
 use App\Documento\Domain\DocumentNotFound;
 use App\Documento\Domain\DocumentRepository;
 use App\Documento\Domain\DocumentStatus;
+use App\Documento\Domain\ExtractionFailed;
 use App\Documento\Domain\IncompleteDocument;
 use App\Documento\Domain\InvalidDocument;
 use App\Documento\Domain\MovementDirection;
+use App\Documento\Domain\Proposal;
+use App\Documento\Domain\ProposalOrigin;
 use App\Documento\Domain\UnsupportedFile;
 use App\Documento\Domain\VatRate;
 use App\Documento\Infrastructure\Storage\LocalDocumentFileStore;
@@ -194,6 +198,40 @@ final class DocumentRegistrationTest extends TestCase
         self::assertSame(self::FIRM, $document->firmId());
     }
 
+    public function testAProposalBecomesADraftAndKeepsTheClientFirm(): void
+    {
+        $clients = new RegistrationClientRepository();
+        $clients->save(new Client(
+            '00000000-0000-4000-8000-000000000021',
+            self::CLIENT,
+            ClientKind::SelfEmployed,
+            'Mesa',
+            self::FIRM,
+        ));
+
+        $document = $this->store($clients, new FixedDocumentExtractor())->execute(self::CLIENT, 'ticket.png', 'image/png', 'png');
+
+        self::assertSame(DocumentStatus::Draft, $document->status());
+        self::assertSame(ProposalOrigin::Sample, $document->proposal());
+        self::assertSame(MovementDirection::Expense, $document->direction());
+        self::assertSame(10000, $document->baseCents());
+        self::assertSame(2100, $document->quotaCents());
+        self::assertSame(12100, $document->totalCents());
+        self::assertSame('00000000T', $document->taxId());
+        self::assertSame(self::FIRM, $document->firmId());
+    }
+
+    public function testAFailedReadLeavesTheDocumentUploadedAndEmpty(): void
+    {
+        $document = $this->store()->execute(self::CLIENT, 'ticket.png', 'image/png', 'png');
+
+        self::assertSame(DocumentStatus::Uploaded, $document->status());
+        self::assertNull($document->proposal());
+        self::assertNull($document->direction());
+        self::assertNull($document->baseCents());
+        self::assertNull($document->totalCents());
+    }
+
     public function testSpanishAmountsAndTheVatRounding(): void
     {
         $grouped = DocumentForm::read('', '', '', '', '1.250,50', '');
@@ -224,12 +262,13 @@ final class DocumentRegistrationTest extends TestCase
         }
     }
 
-    private function store(?RegistrationClientRepository $clients = null): StoreClientDocument
+    private function store(?RegistrationClientRepository $clients = null, ?DocumentExtractor $extractor = null): StoreClientDocument
     {
         return new StoreClientDocument(
             $clients ?? $this->clients(),
             new RegistrationDocumentRepository(),
             new RegistrationFileStore(),
+            $extractor ?? new FailingDocumentExtractor(),
             new RegistrationIds(self::DOCUMENT),
             new RegistrationClock(),
             new RegistrationTransaction(),
@@ -397,6 +436,25 @@ final class RegistrationClock implements Clock
     public function now(): \DateTimeImmutable
     {
         return new \DateTimeImmutable('2026-11-07 02:00:00 UTC');
+    }
+}
+
+final class FailingDocumentExtractor implements DocumentExtractor
+{
+    public function propose(string $mediaType, string $contents): Proposal
+    {
+        throw new ExtractionFailed('The document could not be read.');
+    }
+}
+
+final class FixedDocumentExtractor implements DocumentExtractor
+{
+    public function propose(string $mediaType, string $contents): Proposal
+    {
+        return new Proposal(
+            DocumentForm::read('gasto', '2026-03-12', 'Proveedor de ejemplo', '00000000T', '100,00', '21'),
+            ProposalOrigin::Sample,
+        );
     }
 }
 

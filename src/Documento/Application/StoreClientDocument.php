@@ -4,8 +4,10 @@ namespace App\Documento\Application;
 
 use App\Cliente\Domain\ClientRepository;
 use App\Documento\Domain\Document;
+use App\Documento\Domain\DocumentExtractor;
 use App\Documento\Domain\DocumentFileStore;
 use App\Documento\Domain\DocumentRepository;
+use App\Documento\Domain\ExtractionFailed;
 use App\Documento\Domain\MissingClientProfile;
 use App\Documento\Domain\UnsupportedFile;
 use App\Shared\Domain\Clock;
@@ -29,6 +31,7 @@ final class StoreClientDocument
         private readonly ClientRepository $clients,
         private readonly DocumentRepository $documents,
         private readonly DocumentFileStore $files,
+        private readonly DocumentExtractor $extractor,
         private readonly IdGenerator $ids,
         private readonly Clock $clock,
         private readonly Transaction $transaction,
@@ -65,6 +68,12 @@ final class StoreClientDocument
             $storedType,
             $this->clock->now(),
         );
+
+        try {
+            $proposal = $this->extractor->propose($storedType, $contents);
+            $document = $document->propose($proposal->details(), $proposal->origin());
+        } catch (ExtractionFailed) {
+        }
 
         $this->transaction->run(function () use ($document): void {
             $this->documents->save($document);

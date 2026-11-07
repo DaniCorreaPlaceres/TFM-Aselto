@@ -26,7 +26,7 @@ Papeles:
 Recorrido principal:
 
 1. El cliente elige hacer una foto o subir un archivo.
-2. Un extractor propone fecha, tercero, NIF, base, tipo de IVA, cuota, total y si es ingreso o gasto.
+2. Un extractor propone fecha, tercero, NIF, base, tipo de IVA y si es ingreso o gasto. La cuota y el total se calculan.
 3. El cliente corrige, guarda un borrador o confirma el envío. La IA no confirma sola.
 4. El gestor valida, corrige, rechaza o pide otro documento.
 5. Solo lo validado entra en el trimestre.
@@ -59,7 +59,7 @@ Queda fuera: la app, los modelos oficiales de Hacienda, la presentación de impu
 | API | JSON en `/api/v1`, misma lógica que la web, autenticación JWT |
 | Web | Sesión de Symfony |
 | Ficheros | Disco local en `var/storage`, detrás de un puerto sustituible |
-| Lectura de documentos | Puerto `ExtractorDocumentos`. Adaptador de visión si hay clave. Adaptador de ejemplo si no la hay. |
+| Lectura de documentos | Puerto `DocumentExtractor`. Adaptador de visión si `OPENAI_API_KEY` tiene valor. Si no la hay, un adaptador de ejemplo rellena datos de prueba y la pantalla lo dice. La cuota y el total se calculan. |
 
 La web y la API llaman a los mismos casos de uso. La app futura solo tendrá que consumir la API.
 
@@ -123,7 +123,7 @@ Orden de construcción acordado:
 0. Esta memoria. Hecha.
 1. GitHub, ramas y Docker. Hecho. `main` está protegida, `develop` integra, y cada pull request ejecuta las cuatro comprobaciones. El entorno local arranca y `GET /salud` responde.
 2. Estructura Symfony. Hecha. Los siete módulos tienen `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
-3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso, la home comercial, el alta de asesorías y de su equipo, el alta de clientes, el inicio del cliente y el alta de un documento con revisión humana. El siguiente recorrido presentable es la lectura por IA y la bandeja de la asesoría.
+3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso, la home comercial, el alta de asesorías y de su equipo, el alta de clientes, el inicio del cliente, el alta de un documento y su lectura con revisión humana. El siguiente recorrido presentable es la bandeja de la asesoría.
 
 ## 6. Especificaciones de producto
 
@@ -163,7 +163,8 @@ El inicio muestra el saludo, la acción de añadir un documento, los ingresos y 
 - El cliente puede corregir el borrador. El gestor puede corregirlo al validar.
 - Si el trimestre de esa fecha está cerrado, no se valida otro movimiento dentro de él.
 - La foto en el móvil usa la cámara del dispositivo. En escritorio, el mismo paso admite un archivo.
-- Tipos de IVA previstos: 0, 4, 10 y 21. La cuota se calcula desde la base y el tipo cuando ambos están escritos. El total es la base más la cuota, y se rellena solo.
+- Tipos de IVA previstos: 0, 4, 10 y 21. La cuota se calcula desde la base y el tipo cuando ambos están escritos. El total es la base más la cuota, y se rellena solo. La lectura propone el resto de campos y no cambia esos dos importes.
+- Si no hay clave de lectura, los datos propuestos son un ejemplo. La pantalla lo dice. Si la lectura falla, la persona escribe los datos.
 - Archivos admitidos: PDF, JPEG, PNG y WebP.
 
 ### API prevista
@@ -215,7 +216,7 @@ En todos esos altas se envía un correo. El enlace confirma la dirección y perm
 
 El cliente, en `/inicio`, ve el logotipo oficial y el menú: Inicio, Ingresos y gastos, Documentos, Mi asesoría y Ayuda. El saludo usa su nombre y la única acción principal es «Añadir documento». Las cifras del periodo siguen a cero hasta que la asesoría valide movimientos. Los gastos no van en rojo. Si tiene asesoría, Mi asesoría muestra el nombre de la suya. Si no tiene, lo dice. Un admin o un gestor no abre ese inicio.
 
-«Añadir documento» deja elegir «Hacer una foto» o «Subir archivo». En la revisión el cliente ve el archivo y escribe fecha, tercero, NIF, base, tipo de IVA y si es ingreso o gasto. El total se calcula solo. Puede guardar un borrador o confirmar. Confirmar deja el registro enviado: no lo valida la asesoría y no cambia las cifras. Lo recién subido o en borrador aparece en el inicio como pendiente de su revisión. Solo ve sus documentos. Si tiene asesoría, el documento queda ligado a esa. Un archivo admitido ocupa menos de 8 MB y se guarda en `var/storage`.
+«Añadir documento» deja elegir «Hacer una foto» o «Subir archivo». Al subirlo, el extractor propone los datos y el cliente los revisa junto al archivo. Puede corregirlos, guardar un borrador o confirmar. Si no hay clave, los datos son un ejemplo y la pantalla lo dice. Si la lectura falla, el documento queda subido y la persona escribe los datos. El total se calcula solo. Confirmar deja el registro enviado: no lo valida la asesoría y no cambia las cifras. Lo recién subido o en borrador aparece en el inicio como pendiente de su revisión. Solo ve sus documentos. Si tiene asesoría, el documento queda ligado a esa. Un archivo admitido ocupa menos de 8 MB y se guarda en `var/storage`.
 
 ## 8. Documentación
 
@@ -245,4 +246,4 @@ docker/
 
 `GET /salud` vive en `src/Controller/HealthController.php`. Cada módulo tiene `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
 
-La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel, el acceso y los enlaces de correo. Las tablas son `identity_user` y `access_token`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Cliente ya registra autónomos y sociedades, y el cliente entra por `/inicio`. La tabla es `client_profile`. Documento ya guarda el archivo y los datos que escribe el cliente. La tabla es `client_document`. Siguen sin hacerse la lectura por IA y la bandeja.
+La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel, el acceso y los enlaces de correo. Las tablas son `identity_user` y `access_token`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Cliente ya registra autónomos y sociedades, y el cliente entra por `/inicio`. La tabla es `client_profile`. Documento ya guarda el archivo y, al subirlo, propone los datos. La tabla es `client_document`. La clave de lectura, si se usa, va en `.env.local` y no en el repositorio. Sigue sin hacerse la bandeja.

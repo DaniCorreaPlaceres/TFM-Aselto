@@ -6,7 +6,8 @@ export default class extends Controller {
     connect() {
         this.onToast = (event) => {
             const detail = event.detail ?? {};
-            this.add(String(detail.message ?? ''), detail.kind === 'error' ? 'error' : 'success');
+            const kind = detail.kind === 'error' ? 'error' : detail.kind === 'warning' ? 'warning' : 'success';
+            this.add(String(detail.message ?? ''), kind);
         };
         window.addEventListener('aselto:toast', this.onToast);
         this.itemTargets.forEach((item) => this.present(item));
@@ -23,7 +24,7 @@ export default class extends Controller {
 
         this.element.replaceChildren();
         const item = document.createElement('p');
-        item.className = 'error' === kind ? 'toast toast-error' : 'toast toast-success';
+        item.className = 'error' === kind ? 'toast toast-error' : 'warning' === kind ? 'toast toast-warning' : 'toast toast-success';
         item.setAttribute('role', 'error' === kind ? 'alert' : 'status');
         item.textContent = message;
         this.element.append(item);
