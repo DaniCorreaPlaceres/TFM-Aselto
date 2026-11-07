@@ -21,10 +21,17 @@ Lista de lo que hay que hacer. El detalle de cada una se escribe en `docs/sdd/` 
 12. Inicio del cliente, con la marca y el menú. Hecha.
 13. Añadir un documento, revisar los datos y confirmarlo. Hecha.
 14. Lectura del documento por IA, con revisión humana. Hecha.
-15. Bandeja de la asesoría: validar, rechazar o pedir otro documento.
-16. Trimestre: cifras, cierre y consulta del histórico.
-17. Mensajes y solicitudes entre cliente y asesoría.
-18. Actualización en vivo del trimestre.
-19. API `/api/v1` con los mismos casos de uso.
-20. Datos de demostración de dos asesorías.
-21. Entrega del máster: README, despliegue, usuarios de prueba, presentación y vídeo.
+15. Alta de clientes y de asesorías con NIF o CIF, teléfono y dirección. Validar el formato del NIF, CIF o NIE.
+16. Perfil editable con los datos fiscales. Cada persona edita los suyos. El admin de la asesoría edita los de sus clientes. El gestor los ve y no los cambia.
+17. El territorio sale de la provincia. Península y Baleares usan IVA. Canarias usa IGIC: 0, 3, 7, 9,5, 15 y 20. Ceuta y Melilla usan IPSI. El documento usa el impuesto de ese territorio.
+18. Recargo de equivalencia en los gastos.
+19. Retención de IRPF en los ingresos de un autónomo.
+20. Bandeja de la asesoría: validar, rechazar o pedir otro documento.
+21. Trimestre: cifras, cierre y consulta del histórico.
+22. Mensajes y solicitudes entre cliente y asesoría.
+23. Actualización en vivo del trimestre.
+24. API `/api/v1` con los mismos casos de uso.
+25. Datos de demostración de dos asesorías.
+26. Maquetar toda la plataforma con Bootstrap 5, incluida la home comercial, manteniendo la marca y las reglas visuales.
+27. Una sola zona para añadir el documento: foto, archivo o arrastrar y soltar.
+28. Entrega del máster: README, despliegue, usuarios de prueba, presentación y vídeo.

@@ -123,7 +123,7 @@ Orden de construcción acordado:
 0. Esta memoria. Hecha.
 1. GitHub, ramas y Docker. Hecho. `main` está protegida, `develop` integra, y cada pull request ejecuta las cuatro comprobaciones. El entorno local arranca y `GET /salud` responde.
 2. Estructura Symfony. Hecha. Los siete módulos tienen `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
-3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso, la home comercial, el alta de asesorías y de su equipo, el alta de clientes, el inicio del cliente, el alta de un documento y su lectura con revisión humana. El siguiente recorrido presentable es la bandeja de la asesoría.
+3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso, la home comercial, el alta de asesorías y de su equipo, el alta de clientes, el inicio del cliente, el alta de un documento y su lectura con revisión humana. Lo siguiente es completar el perfil fiscal y los impuestos del territorio. Después va la bandeja de la asesoría.
 
 ## 6. Especificaciones de producto
 
@@ -163,9 +163,15 @@ El inicio muestra el saludo, la acción de añadir un documento, los ingresos y 
 - El cliente puede corregir el borrador. El gestor puede corregirlo al validar.
 - Si el trimestre de esa fecha está cerrado, no se valida otro movimiento dentro de él.
 - La foto en el móvil usa la cámara del dispositivo. En escritorio, el mismo paso admite un archivo.
-- Tipos de IVA previstos: 0, 4, 10 y 21. La cuota se calcula desde la base y el tipo cuando ambos están escritos. El total es la base más la cuota, y se rellena solo. La lectura propone el resto de campos y no cambia esos dos importes.
+- Tipos de IVA en Península y Baleares: 0, 4, 10 y 21. La cuota se calcula desde la base y el tipo cuando ambos están escritos. El total es la base más la cuota, y se rellena solo. La lectura propone el resto de campos y no cambia esos dos importes.
 - Si no hay clave de lectura, los datos propuestos son un ejemplo. La pantalla lo dice. Si la lectura falla, la persona escribe los datos.
 - Archivos admitidos: PDF, JPEG, PNG y WebP.
+- El alta de un cliente y el de una asesoría piden también NIF o CIF, teléfono, dirección, código postal, municipio y provincia. El formato del NIF, el CIF o el NIE se comprueba.
+- Esos datos se pueden editar en el perfil. Cada persona edita los suyos. El admin de una asesoría edita los de sus clientes. El gestor los ve y no los cambia.
+- La provincia fija el territorio. Península y Baleares usan IVA. Canarias usa el IGIC, con tipos 0, 3, 7, 9,5, 15 y 20. Ceuta y Melilla usan el IPSI. El documento propone el impuesto de ese territorio.
+- Un gasto puede llevar recargo de equivalencia. Un ingreso de un autónomo puede llevar retención de IRPF.
+- La plataforma, incluida la home comercial, se maqueta con Bootstrap 5. Siguen mandando la marca y las reglas visuales.
+- Añadir un documento acaba en una sola zona: hacer una foto, elegir un archivo o arrastrarlo.
 
 ### API prevista
 
@@ -246,4 +252,4 @@ docker/
 
 `GET /salud` vive en `src/Controller/HealthController.php`. Cada módulo tiene `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
 
-La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel, el acceso y los enlaces de correo. Las tablas son `identity_user` y `access_token`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Cliente ya registra autónomos y sociedades, y el cliente entra por `/inicio`. La tabla es `client_profile`. Documento ya guarda el archivo y, al subirlo, propone los datos. La tabla es `client_document`. La clave de lectura, si se usa, va en `.env.local` y no en el repositorio. Sigue sin hacerse la bandeja.
+La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel, el acceso y los enlaces de correo. Las tablas son `identity_user` y `access_token`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Cliente ya registra autónomos y sociedades, y el cliente entra por `/inicio`. La tabla es `client_profile`. Documento ya guarda el archivo y, al subirlo, propone los datos. La tabla es `client_document`. La clave de lectura, si se usa, va en `.env.local` y no en el repositorio. Siguen sin hacerse el perfil fiscal ampliado, los impuestos de Canarias, Ceuta y Melilla, y la bandeja.
