@@ -6,13 +6,18 @@ use App\Documento\Application\DocumentForm;
 use App\Documento\Domain\DocumentExtractor;
 use App\Documento\Domain\Proposal;
 use App\Documento\Domain\ProposalOrigin;
+use App\Documento\Domain\Tax;
 
 final class SampleDocumentExtractor implements DocumentExtractor
 {
-    public function propose(string $mediaType, string $contents): Proposal
+    public function propose(string $mediaType, string $contents, Tax $tax = Tax::Vat): Proposal
     {
         return new Proposal(
-            DocumentForm::read('gasto', '2026-03-12', 'Proveedor de ejemplo', '00000000T', '100,00', '21'),
+            DocumentForm::read('gasto', '2026-03-12', 'Proveedor de ejemplo', '00000000T', '100,00', match ($tax) {
+                Tax::Vat => '21',
+                Tax::Igic => '7',
+                Tax::Ipsi => '',
+            }, $tax),
             ProposalOrigin::Sample,
         );
     }

@@ -26,7 +26,7 @@ Papeles:
 Recorrido principal:
 
 1. El cliente elige hacer una foto o subir un archivo.
-2. Un extractor propone fecha, tercero, NIF, base, tipo de IVA y si es ingreso o gasto. La cuota y el total se calculan.
+2. Un extractor propone fecha, tercero, NIF, base, impuesto y su tipo, y si es ingreso o gasto. La cuota y el total se calculan.
 3. El cliente corrige, guarda un borrador o confirma el envío. La IA no confirma sola.
 4. El gestor valida, corrige, rechaza o pide otro documento.
 5. Con asesoría, solo lo validado entra en las cifras validadas del trimestre. Sin asesoría, los documentos confirmados cuentan en las cifras personales, diferenciadas de una validación de asesoría.
@@ -123,7 +123,7 @@ Orden de construcción acordado:
 0. Esta memoria. Hecha.
 1. GitHub, ramas y Docker. Hecho. `main` está protegida, `develop` integra, y cada pull request ejecuta las cuatro comprobaciones. El entorno local arranca y `GET /salud` responde.
 2. Estructura Symfony. Hecha. Los siete módulos tienen `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
-3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso, la home comercial, el alta de asesorías y de su equipo, el alta de clientes, el inicio del cliente, el alta de un documento, su lectura y el perfil fiscal editable. Lo siguiente son los impuestos del territorio. Después va la bandeja de la asesoría.
+3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso, la home comercial, el alta de asesorías y de su equipo, el alta de clientes, el inicio del cliente, el alta de un documento, su lectura y el perfil fiscal editable. Los documentos ya usan el impuesto del territorio del cliente. Lo siguiente es el recargo de equivalencia, después la retención de IRPF y la bandeja de la asesoría.
 
 ## 6. Especificaciones de producto
 
@@ -174,7 +174,7 @@ El inicio muestra el saludo, la acción de añadir un documento, los ingresos y 
 - El alta de un cliente y el de una asesoría piden también NIF o CIF, teléfono, dirección, código postal, municipio y provincia. El formato del NIF, el CIF o el NIE se comprueba.
 - Esos datos se pueden editar en el perfil. Cada persona edita los suyos. El admin de una asesoría edita los de sus clientes. El gestor los ve y no los cambia.
 - La provincia fija el territorio. Península y Baleares usan IVA. Canarias usa el IGIC, con tipos 0, 3, 7, 9,5, 15 y 20. Ceuta y Melilla usan el IPSI. El documento propone el impuesto de ese territorio.
-- Para el IPSI, la persona introduce manualmente el porcentaje que figura en el documento. Aselto calcula la cuota desde la base y ese porcentaje, y el total como base más cuota. La persona revisa y confirma los datos; la plataforma no determina qué tipo de IPSI corresponde. Este comportamiento está acordado y pendiente de implementar.
+- Para el IPSI, la persona introduce manualmente el porcentaje que figura en el documento. Aselto calcula la cuota desde la base y ese porcentaje, y el total como base más cuota. La persona revisa y confirma los datos; la plataforma no determina qué tipo de IPSI corresponde.
 - Un gasto puede llevar recargo de equivalencia. Un ingreso de un autónomo puede llevar retención de IRPF.
 - La plataforma, incluida la home comercial, se maqueta con Bootstrap 5. Siguen mandando la marca y las reglas visuales.
 - Añadir un documento acaba en una sola zona: hacer una foto, elegir un archivo o arrastrarlo.
@@ -258,4 +258,4 @@ docker/
 
 `GET /salud` vive en `src/Controller/HealthController.php`. Cada módulo tiene `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
 
-La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel, el acceso y los enlaces de correo. Las tablas son `identity_user` y `access_token`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Cliente ya registra autónomos y sociedades, y el cliente entra por `/inicio`. La tabla es `client_profile`. Documento ya guarda el archivo y, al subirlo, propone los datos. La tabla es `client_document`. La clave de lectura, si se usa, va en `.env.local` y no en el repositorio. El cliente edita sus datos en `/perfil`. El admin edita los de la asesoría en `/asesoria/datos` y los de un cliente de la suya desde la lista. El gestor los consulta y no los cambia. Siguen sin hacerse los impuestos de Canarias, Ceuta y Melilla, y la bandeja.
+La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel, el acceso y los enlaces de correo. Las tablas son `identity_user` y `access_token`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Cliente ya registra autónomos y sociedades, y el cliente entra por `/inicio`. La tabla es `client_profile`. Documento ya guarda el archivo y, al subirlo, propone los datos. La tabla es `client_document`. La clave de lectura, si se usa, va en `.env.local` y no en el repositorio. El cliente edita sus datos en `/perfil`. El admin edita los de la asesoría en `/asesoria/datos` y los de un cliente de la suya desde la lista. El gestor los consulta y no los cambia. Los documentos nuevos guardan IVA, IGIC o IPSI según la provincia del cliente al subirlos. Los anteriores conservan IVA. Cambiar la provincia no cambia el impuesto de un documento ya guardado. Si falta la provincia, se pide completar el perfil antes de guardar el archivo. Siguen pendientes el recargo de equivalencia, la retención de IRPF y la bandeja.

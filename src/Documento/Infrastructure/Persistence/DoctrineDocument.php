@@ -6,7 +6,8 @@ use App\Documento\Domain\Document;
 use App\Documento\Domain\DocumentStatus;
 use App\Documento\Domain\MovementDirection;
 use App\Documento\Domain\ProposalOrigin;
-use App\Documento\Domain\VatRate;
+use App\Documento\Domain\Tax;
+use App\Documento\Domain\TaxRate;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -51,7 +52,10 @@ class DoctrineDocument
     private ?int $baseCents = null;
 
     #[ORM\Column(nullable: true)]
-    private ?int $vatRate = null;
+    private ?int $taxRate = null;
+
+    #[ORM\Column(length: 4, options: ['default' => 'iva'])]
+    private string $tax = 'iva';
 
     #[ORM\Column(nullable: true)]
     private ?int $quotaCents = null;
@@ -79,7 +83,8 @@ class DoctrineDocument
         $this->partyName = $document->partyName();
         $this->taxId = $document->taxId();
         $this->baseCents = $document->baseCents();
-        $this->vatRate = $document->vatRate()?->value;
+        $this->taxRate = $document->taxRate()?->basisPoints();
+        $this->tax = $document->tax()->value;
         $this->quotaCents = $document->quotaCents();
         $this->totalCents = $document->totalCents();
         $this->proposal = $document->proposal()?->value;
@@ -101,11 +106,12 @@ class DoctrineDocument
             $this->partyName,
             $this->taxId,
             $this->baseCents,
-            null === $this->vatRate ? null : VatRate::from($this->vatRate),
+            null === $this->taxRate ? null : TaxRate::fromBasisPoints(Tax::from($this->tax), $this->taxRate),
             $this->quotaCents,
             $this->totalCents,
             null === $this->proposal ? null : ProposalOrigin::from($this->proposal),
             $this->createdAt,
+            Tax::from($this->tax),
         );
     }
 }

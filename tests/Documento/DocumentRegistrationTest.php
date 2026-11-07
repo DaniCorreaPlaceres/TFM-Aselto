@@ -20,14 +20,19 @@ use App\Documento\Domain\DocumentStatus;
 use App\Documento\Domain\ExtractionFailed;
 use App\Documento\Domain\IncompleteDocument;
 use App\Documento\Domain\InvalidDocument;
+use App\Documento\Domain\InvalidTaxRate;
+use App\Documento\Domain\MissingFiscalProvince;
 use App\Documento\Domain\MovementDirection;
 use App\Documento\Domain\Proposal;
 use App\Documento\Domain\ProposalOrigin;
+use App\Documento\Domain\Tax;
+use App\Documento\Domain\TaxRate;
 use App\Documento\Domain\UnsupportedFile;
-use App\Documento\Domain\VatRate;
 use App\Documento\Infrastructure\Storage\LocalDocumentFileStore;
 use App\Shared\Domain\Clock;
+use App\Shared\Domain\FiscalContact;
 use App\Shared\Domain\IdGenerator;
+use App\Shared\Domain\SpanishProvince;
 use App\Shared\Domain\Transaction;
 use PHPUnit\Framework\TestCase;
 
@@ -84,7 +89,7 @@ final class DocumentRegistrationTest extends TestCase
             self::fail('The incomplete document was accepted.');
         } catch (IncompleteDocument $exception) {
             self::assertSame(
-                ['direction', 'issuedOn', 'partyName', 'taxId', 'base', 'vatRate'],
+                ['direction', 'issuedOn', 'partyName', 'taxId', 'base', 'taxRate'],
                 $exception->fields(),
             );
         }
@@ -107,7 +112,7 @@ final class DocumentRegistrationTest extends TestCase
         self::assertSame(12100, $saved->totalCents());
     }
 
-    public function testAZeroVatRateKeepsTheTotalEqualToTheBase(): void
+    public function testAZeroTaxRateKeepsTheTotalEqualToTheBase(): void
     {
         $saved = $this->draft($this->stored())->execute(
             self::CLIENT,
@@ -191,6 +196,7 @@ final class DocumentRegistrationTest extends TestCase
             ClientKind::SelfEmployed,
             'Mesa',
             self::FIRM,
+            FiscalContact::required('00000000T', '600000000', 'Calle Ejemplo 1', '28001', 'Madrid', 'Madrid'),
         ));
 
         $document = $this->store($clients)->execute(self::CLIENT, 'ticket.png', 'image/png', 'png');
@@ -207,6 +213,7 @@ final class DocumentRegistrationTest extends TestCase
             ClientKind::SelfEmployed,
             'Mesa',
             self::FIRM,
+            FiscalContact::required('00000000T', '600000000', 'Calle Ejemplo 1', '28001', 'Madrid', 'Madrid'),
         ));
 
         $document = $this->store($clients, new FixedDocumentExtractor())->execute(self::CLIENT, 'ticket.png', 'image/png', 'png');
@@ -239,8 +246,8 @@ final class DocumentRegistrationTest extends TestCase
 
         self::assertSame(125050, $grouped->baseCents());
         self::assertSame(125050, $dotted->baseCents());
-        self::assertSame(2100, VatRate::General->quotaFor(10000));
-        self::assertSame(210, VatRate::General->quotaFor(1001));
+        self::assertSame(2100, TaxRate::fromPercentage(Tax::Vat, '21')->quotaFor(10000));
+        self::assertSame(210, TaxRate::fromPercentage(Tax::Vat, '21')->quotaFor(1001));
     }
 
     public function testTheFileStoreDoesNotReadOutsideItsFolder(): void
@@ -260,6 +267,70 @@ final class DocumentRegistrationTest extends TestCase
         } finally {
             $this->removeTree($root);
         }
+    }
+
+    public function testTheProvinceSelectsTheDocumentTaxAndTheExampleRate(): void
+    {
+        foreach (['Madrid' => Tax::Vat, 'Illes Balears' => Tax::Vat, 'Las Palmas' => Tax::Igic, 'Santa Cruz de Tenerife' => Tax::Igic, 'Ceuta' => Tax::Ipsi, 'Melilla' => Tax::Ipsi] as $province => $tax) {
+            $document = $this->store($this->clients($province), new \App\Documento\Infrastructure\Extraction\SampleDocumentExtractor())->execute(self::CLIENT, 'ticket.png', 'image/png', 'png');
+            self::assertSame($tax, $document->tax());
+            self::assertSame(ProposalOrigin::Sample, $document->proposal());
+            self::assertSame(match ($tax) {
+                Tax::Vat => '21',
+                Tax::Igic => '7',
+                Tax::Ipsi => null,
+            }, $document->taxRate()?->percentage());
+        }
+    }
+
+    public function testMissingProvinceDoesNotWriteTheFileOrCallTheExtractor(): void
+    {
+        $clients = new RegistrationClientRepository();
+        $clients->save(new Client('00000000-0000-4000-8000-000000000021', self::CLIENT, ClientKind::SelfEmployed, 'Ana', null));
+        $files = $this->createMock(DocumentFileStore::class);
+        $files->expects($this->never())->method('write');
+        $extractor = $this->createMock(DocumentExtractor::class);
+        $extractor->expects($this->never())->method('propose');
+        $store = new StoreClientDocument($clients, new RegistrationDocumentRepository(), $files, $extractor, new RegistrationIds(self::DOCUMENT), new RegistrationClock(), new RegistrationTransaction());
+        $this->expectException(MissingFiscalProvince::class);
+        $store->execute(self::CLIENT, 'ticket.png', 'image/png', 'png');
+    }
+
+    public function testIgicSurvivesAProfileChangeAndConfirmationUsesTheStoredTax(): void
+    {
+        $clients = $this->clients('Las Palmas');
+        $document = $this->store($clients)->execute(self::CLIENT, 'ticket.png', 'image/png', 'png');
+        self::assertSame(Tax::Igic, $document->tax());
+        self::assertSame(DocumentStatus::Uploaded, $document->status());
+        $clients->save($this->clients('Madrid')->findByUserId(self::CLIENT));
+        $documents = new RegistrationDocumentRepository([$document]);
+        $saved = $this->draft($documents)->execute(self::CLIENT, self::DOCUMENT, 'gasto', '2026-03-12', 'Ejemplo', '00000000T', '100,00', '9,5');
+        self::assertSame(Tax::Igic, $saved->tax());
+        self::assertSame(950, $saved->quotaCents());
+        self::assertSame(10950, $saved->totalCents());
+        $saved = $this->confirm($documents)->execute(self::CLIENT, self::DOCUMENT, 'gasto', '2026-03-12', 'Ejemplo', '00000000T', '100,00', '9.5');
+        self::assertSame(DocumentStatus::Submitted, $saved->status());
+        self::assertSame(10950, $saved->totalCents());
+        $this->expectException(InvalidTaxRate::class);
+        $this->draft(new RegistrationDocumentRepository([$document]))->execute(self::CLIENT, self::DOCUMENT, '', '', '', '', '100', '21');
+    }
+
+    public function testIpsiNeedsAManualRateAndCanBeConfirmed(): void
+    {
+        $document = $this->store($this->clients('Ceuta'), new \App\Documento\Infrastructure\Extraction\SampleDocumentExtractor())->execute(self::CLIENT, 'ticket.png', 'image/png', 'png');
+        self::assertNull($document->taxRate());
+        self::assertNull($document->totalCents());
+        $documents = new RegistrationDocumentRepository([$document]);
+        try {
+            $this->confirm($documents)->execute(self::CLIENT, self::DOCUMENT, 'gasto', '2026-03-12', 'Ejemplo', '00000000T', '100', '');
+            self::fail('IPSI requires a manual rate.');
+        } catch (IncompleteDocument $exception) {
+            self::assertSame(['taxRate'], $exception->fields());
+        }
+        $saved = $this->confirm($documents)->execute(self::CLIENT, self::DOCUMENT, 'gasto', '2026-03-12', 'Ejemplo', '00000000T', '100', '2,35');
+        self::assertSame(Tax::Ipsi, $saved->tax());
+        self::assertSame(235, $saved->quotaCents());
+        self::assertSame(10235, $saved->totalCents());
     }
 
     private function store(?RegistrationClientRepository $clients = null, ?DocumentExtractor $extractor = null): StoreClientDocument
@@ -306,7 +377,7 @@ final class DocumentRegistrationTest extends TestCase
         return new ConfirmDocument(new OpenClientDocument($documents), $documents, new RegistrationTransaction());
     }
 
-    private function clients(): RegistrationClientRepository
+    private function clients(string $province = 'Madrid'): RegistrationClientRepository
     {
         $clients = new RegistrationClientRepository();
         $clients->save(new Client(
@@ -315,6 +386,7 @@ final class DocumentRegistrationTest extends TestCase
             ClientKind::SelfEmployed,
             'Ana',
             null,
+            FiscalContact::required('00000000T', '600000000', 'Calle Ejemplo 1', SpanishProvince::codeFor($province).'001', 'Municipio de ejemplo', $province),
         ));
 
         return $clients;
@@ -452,7 +524,7 @@ final class RegistrationClock implements Clock
 
 final class FailingDocumentExtractor implements DocumentExtractor
 {
-    public function propose(string $mediaType, string $contents): Proposal
+    public function propose(string $mediaType, string $contents, Tax $tax = Tax::Vat): Proposal
     {
         throw new ExtractionFailed('The document could not be read.');
     }
@@ -460,7 +532,7 @@ final class FailingDocumentExtractor implements DocumentExtractor
 
 final class FixedDocumentExtractor implements DocumentExtractor
 {
-    public function propose(string $mediaType, string $contents): Proposal
+    public function propose(string $mediaType, string $contents, Tax $tax = Tax::Vat): Proposal
     {
         return new Proposal(
             DocumentForm::read('gasto', '2026-03-12', 'Proveedor de ejemplo', '00000000T', '100,00', '21'),

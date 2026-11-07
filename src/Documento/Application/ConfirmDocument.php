@@ -23,15 +23,17 @@ final class ConfirmDocument
         string $partyName,
         string $taxId,
         string $base,
-        string $vatRate,
+        string $taxRate,
     ): Document {
-        $document = $this->documents->execute($userId, $documentId)->confirm(DocumentForm::read(
+        $document = $this->documents->execute($userId, $documentId);
+        $document = $document->confirm(DocumentForm::read(
             $direction,
             $issuedOn,
             $partyName,
             $taxId,
             $base,
-            $vatRate,
+            $taxRate,
+            $document->tax(),
         ));
 
         $this->transaction->run(function () use ($document): void {

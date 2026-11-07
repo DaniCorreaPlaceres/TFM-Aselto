@@ -24,12 +24,17 @@ final class Document
         private readonly ?string $partyName,
         private readonly ?string $taxId,
         private readonly ?int $baseCents,
-        private readonly ?VatRate $vatRate,
+        private readonly ?TaxRate $taxRate,
         private readonly ?int $quotaCents,
         private readonly ?int $totalCents,
         private readonly ?ProposalOrigin $proposal,
         private readonly \DateTimeImmutable $createdAt,
+        private readonly Tax $tax = Tax::Vat,
     ) {
+        if (null !== $taxRate && !$tax->accepts($taxRate)) {
+            throw new InvalidTaxRate('The rate does not belong to the document tax.');
+        }
+
         if (1 !== preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $id)) {
             throw new InvalidDocument('The id is not a valid UUID.');
         }
@@ -63,6 +68,7 @@ final class Document
         string $storedPath,
         string $mediaType,
         \DateTimeImmutable $createdAt,
+        Tax $tax = Tax::Vat,
     ): self {
         return new self(
             $id,
@@ -82,11 +88,14 @@ final class Document
             null,
             null,
             $createdAt,
+            $tax,
         );
     }
 
     public function propose(DocumentDetails $details, ProposalOrigin $origin): self
     {
+        $this->assertTax($details);
+
         if (DocumentStatus::Uploaded !== $this->status && DocumentStatus::Extracting !== $this->status) {
             throw new InvalidDocument('The document can no longer be read.');
         }
@@ -104,11 +113,12 @@ final class Document
             $details->partyName(),
             $details->taxId(),
             $details->baseCents(),
-            $details->vatRate(),
+            $details->taxRate(),
             $details->quotaCents(),
             $details->totalCents(),
             $origin,
             $this->createdAt,
+            $this->tax,
         );
     }
 
@@ -145,8 +155,8 @@ final class Document
             $missing[] = 'base';
         }
 
-        if (null === $details->vatRate()) {
-            $missing[] = 'vatRate';
+        if (null === $details->taxRate()) {
+            $missing[] = 'taxRate';
         }
 
         if ([] !== $missing) {
@@ -228,9 +238,14 @@ final class Document
         return $this->baseCents;
     }
 
-    public function vatRate(): ?VatRate
+    public function taxRate(): ?TaxRate
     {
-        return $this->vatRate;
+        return $this->taxRate;
+    }
+
+    public function tax(): Tax
+    {
+        return $this->tax;
     }
 
     public function quotaCents(): ?int
@@ -262,6 +277,8 @@ final class Document
 
     private function with(DocumentDetails $details, DocumentStatus $status): self
     {
+        $this->assertTax($details);
+
         return new self(
             $this->id,
             $this->clientUserId,
@@ -275,11 +292,19 @@ final class Document
             $details->partyName(),
             $details->taxId(),
             $details->baseCents(),
-            $details->vatRate(),
+            $details->taxRate(),
             $details->quotaCents(),
             $details->totalCents(),
             $this->proposal,
             $this->createdAt,
+            $this->tax,
         );
+    }
+
+    private function assertTax(DocumentDetails $details): void
+    {
+        if ($details->tax() !== $this->tax || (null !== $details->taxRate() && !$this->tax->accepts($details->taxRate()))) {
+            throw new InvalidTaxRate('The details do not match the document tax.');
+        }
     }
 }

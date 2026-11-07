@@ -10,8 +10,13 @@ final class DocumentDetails
         private readonly ?string $partyName,
         private readonly ?string $taxId,
         private readonly ?int $baseCents,
-        private readonly ?VatRate $vatRate,
+        private readonly ?TaxRate $taxRate,
+        private readonly Tax $tax = Tax::Vat,
     ) {
+        if (null !== $taxRate && !$tax->accepts($taxRate)) {
+            throw new InvalidTaxRate('The rate does not belong to the document tax.');
+        }
+
         if (null !== $partyName && mb_strlen($partyName) > 120) {
             throw new InvalidDocument('The party name is too long.');
         }
@@ -50,18 +55,23 @@ final class DocumentDetails
         return $this->baseCents;
     }
 
-    public function vatRate(): ?VatRate
+    public function taxRate(): ?TaxRate
     {
-        return $this->vatRate;
+        return $this->taxRate;
+    }
+
+    public function tax(): Tax
+    {
+        return $this->tax;
     }
 
     public function quotaCents(): ?int
     {
-        if (null === $this->baseCents || null === $this->vatRate) {
+        if (null === $this->baseCents || null === $this->taxRate) {
             return null;
         }
 
-        return $this->vatRate->quotaFor($this->baseCents);
+        return $this->taxRate->quotaFor($this->baseCents);
     }
 
     public function totalCents(): ?int
