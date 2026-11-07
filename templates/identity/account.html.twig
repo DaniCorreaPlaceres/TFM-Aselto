@@ -8,9 +8,13 @@
         <p>Has entrado como {{ email }}.</p>
         <p>Tu papel es {{ role }}.</p>
 
+        {% if destination %}
+            <a class="action" href="{{ path(destination.route) }}">{{ destination.label }}</a>
+        {% endif %}
+
         <form method="post" action="{{ path('logout') }}">
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
-            <button type="submit">Salir</button>
+            <button type="submit" class="{{ destination ? 'quiet' : '' }}">Salir</button>
         </form>
     </main>
 {% endblock %}

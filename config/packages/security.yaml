@@ -28,6 +28,8 @@ security:
         - { path: ^/salud, roles: PUBLIC_ACCESS }
         - { path: ^/entrar, roles: PUBLIC_ACCESS }
         - { path: ^/$, roles: PUBLIC_ACCESS }
+        - { path: ^/asesorias, roles: ROLE_SUPERADMIN }
+        - { path: ^/equipo, roles: ROLE_FIRM_ADMIN }
         - { path: ^/, roles: ROLE_USER }
 
 when@test:

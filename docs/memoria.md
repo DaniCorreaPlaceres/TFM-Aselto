@@ -123,7 +123,7 @@ Orden de construcción acordado:
 0. Esta memoria. Hecha.
 1. GitHub, ramas y Docker. Hecho. `main` está protegida, `develop` integra, y cada pull request ejecuta las cuatro comprobaciones. El entorno local arranca y `GET /salud` responde.
 2. Estructura Symfony. Hecha. Los siete módulos tienen `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
-3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso y la home comercial. El primer recorrido presentable sigue siendo el de los bocetos: inicio del cliente, alta de documento, revisión humana y bandeja de la asesoría.
+3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso, la home comercial y el alta de asesorías y de su equipo. El primer recorrido presentable sigue siendo el de los bocetos: inicio del cliente, alta de documento, revisión humana y bandeja de la asesoría.
 
 ## 6. Especificaciones de producto
 
@@ -199,11 +199,13 @@ La imagen de PHP instala `intl`, `pdo_mysql`, `zip` y `bcmath`. OPcache se activ
 
 El acceso de la web es la sesión de Symfony. `GET /entrar` pide el correo y la contraseña. Si el acceso es correcto, `/cuenta` muestra el papel. Salir cierra la sesión. `GET /salud` sigue abierto sin entrar.
 
-Tras migrar, `php bin/console app:seed-dev-access` crea cuatro accesos locales. La contraseña es `aselto-dev` y solo vale en desarrollo:
+Tras migrar, `php bin/console app:seed-dev-access` crea la asesoría de prueba y cuatro accesos locales. La contraseña es `aselto-dev` y solo vale en desarrollo:
 
 - `superadmin@example.test`, sin asesoría
-- `admin@example.test` y `gestor@example.test`, con una asesoría de prueba
+- `admin@example.test` y `gestor@example.test`, en «Asesoría de prueba»
 - `cliente@example.test`, sin asesoría
+
+El superadmin abre `/asesorias` desde su acceso. Da de alta una asesoría con nombre, correo del admin y contraseña inicial. No hay planes ni cobros, y no se envía ningún correo: esa persona entra con la contraseña que se le ha puesto. El admin abre `/equipo`, ve solo el equipo de la suya e invita a un gestor del mismo modo. Un gestor no abre esas pantallas. Una asesoría no ve el equipo de otra. La contraseña inicial tiene al menos 8 caracteres. Un correo que ya existe se rechaza.
 
 ## 8. Documentación
 
@@ -233,4 +235,4 @@ docker/
 
 `GET /salud` vive en `src/Controller/HealthController.php`. Cada módulo tiene `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
 
-La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel y el acceso. La tabla es `identity_user`. El resto de módulos sigue vacío: no hay alta de asesorías ni de clientes, ni el inicio del cliente, los documentos o la bandeja.
+La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel y el acceso. La tabla es `identity_user`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Siguen sin hacerse el alta de clientes, el inicio del cliente, los documentos y la bandeja.

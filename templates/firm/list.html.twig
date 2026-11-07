@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Asesorías{% endblock %}
+
+{% block body %}
+    <main class="panel wide">
+        <h1>Asesorías</h1>
+
+        {% for message in app.flashes('success') %}
+            <p class="success">{{ message }}</p>
+        {% endfor %}
+
+        {% if firms is empty %}
+            <p>Todavía no hay asesorías.</p>
+        {% else %}
+            <ul class="plain-list">
+                {% for firm in firms %}
+                    <li>
+                        <strong>{{ firm.name }}</strong>
+                        <span>{{ firm.adminEmail }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <a class="action" href="{{ path('firm_new') }}">Dar de alta una asesoría</a>
+    </main>
+{% endblock %}

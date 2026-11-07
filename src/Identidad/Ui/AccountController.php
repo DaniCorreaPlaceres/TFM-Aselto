@@ -2,6 +2,7 @@
 
 namespace App\Identidad\Ui;
 
+use App\Identidad\Domain\Role;
 use App\Identidad\Infrastructure\Security\SecurityUser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,9 +19,16 @@ final class AccountController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
+        $destination = match ($user->role()) {
+            Role::Superadmin => ['route' => 'firms', 'label' => 'Asesorías'],
+            Role::FirmAdmin => ['route' => 'team', 'label' => 'Equipo'],
+            default => null,
+        };
+
         return $this->render('identity/account.html.twig', [
             'email' => $user->getUserIdentifier(),
             'role' => RoleLabel::inSpanish($user->role()),
+            'destination' => $destination,
         ]);
     }
 }

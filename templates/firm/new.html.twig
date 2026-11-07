@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dar de alta una asesoría{% endblock %}
+
+{% block body %}
+    <main class="panel">
+        <h1>Dar de alta una asesoría</h1>
+        <p>El admin podrá entrar con este correo y esta contraseña.</p>
+
+        {% if error %}
+            <p class="error" role="alert">{{ error }}</p>
+        {% endif %}
+
+        <form method="post">
+            <label for="name">Nombre</label>
+            <input id="name" name="name" type="text" value="{{ name }}" required maxlength="120">
+
+            <label for="email">Correo del admin</label>
+            <input id="email" name="email" type="email" autocomplete="off" value="{{ email }}" required>
+
+            <label for="password">Contraseña inicial</label>
+            <input id="password" name="password" type="password" autocomplete="new-password" required>
+
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('create_firm') }}">
+            <button type="submit">Guardar</button>
+        </form>
+    </main>
+{% endblock %}
