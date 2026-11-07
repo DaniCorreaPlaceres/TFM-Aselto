@@ -3,6 +3,7 @@
 namespace App\Asesoria\Domain;
 
 use App\Shared\Domain\FiscalContact;
+use App\Shared\Domain\InvalidFiscalContact;
 
 final class Firm
 {
@@ -40,5 +41,14 @@ final class Firm
     public function contact(): FiscalContact
     {
         return $this->contact;
+    }
+
+    public function changeContact(FiscalContact $contact): self
+    {
+        if (!$contact->isComplete()) {
+            throw new InvalidFiscalContact(InvalidFiscalContact::TAX_ID_MISSING);
+        }
+
+        return new self($this->id, $this->name, $contact);
     }
 }

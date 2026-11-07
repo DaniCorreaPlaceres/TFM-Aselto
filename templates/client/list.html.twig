@@ -19,7 +19,7 @@
             <ul class="plain-list">
                 {% for client in clients %}
                     <li>
-                        <strong>{{ client.name }}</strong>
+                        <strong><a href="{{ path('client_fiscal', {id: client.id}) }}">{{ client.name }}</a></strong>
                         <span>{{ client.kind }}</span>
                         <span>{{ client.email }}</span>
                     </li>

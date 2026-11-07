@@ -8,6 +8,7 @@
             <img class="client-logo" src="{{ asset('aselto-logo-eslogan-v2.png') }}" alt="Aselto. Tus finanzas bajo control" width="220" height="82">
             <div class="client-who">
                 <p>{{ name ?: email }}</p>
+                <p><a href="{{ path('client_profile') }}">Datos fiscales</a></p>
                 <form method="post" action="{{ path('logout') }}">
                     <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
                     <button type="submit" class="quiet">Salir</button>

@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Datos fiscales{% endblock %}
+
+{% block body %}
+    <main class="panel">
+        <h1>Datos fiscales</h1>
+        <p>{{ clientName }} · {{ email }}</p>
+
+        {% for message in app.flashes('success') %}
+            <p class="success">{{ message }}</p>
+        {% endfor %}
+
+        {% if error %}
+            <p class="error" role="alert">{{ error }}</p>
+        {% endif %}
+
+        {% if editable %}
+            <form method="post">
+                {{ include('_fiscal_contact.html.twig') }}
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token(csrf) }}">
+                <button type="submit">Guardar</button>
+            </form>
+        {% else %}
+            <p>Puedes consultar estos datos. Solo el admin puede cambiarlos.</p>
+            <ul class="plain-list">
+                <li>NIF {{ taxId ?: 'Sin indicar' }}</li>
+                <li>Teléfono {{ phone ?: 'Sin indicar' }}</li>
+                <li>Dirección {{ street ?: 'Sin indicar' }}</li>
+                <li>Código postal {{ postalCode ?: 'Sin indicar' }}</li>
+                <li>Municipio {{ municipality ?: 'Sin indicar' }}</li>
+                <li>Provincia {{ province ?: 'Sin indicar' }}</li>
+            </ul>
+        {% endif %}
+
+        <p><a class="quiet-link" href="{{ path('clients') }}">Volver a clientes</a></p>
+    </main>
+{% endblock %}

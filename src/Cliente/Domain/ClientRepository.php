@@ -4,6 +4,8 @@ namespace App\Cliente\Domain;
 
 interface ClientRepository
 {
+    public function find(string $id): ?Client;
+
     public function findByUserId(string $userId): ?Client;
 
     /**

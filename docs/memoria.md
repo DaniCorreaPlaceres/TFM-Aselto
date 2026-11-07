@@ -123,7 +123,7 @@ Orden de construcción acordado:
 0. Esta memoria. Hecha.
 1. GitHub, ramas y Docker. Hecho. `main` está protegida, `develop` integra, y cada pull request ejecuta las cuatro comprobaciones. El entorno local arranca y `GET /salud` responde.
 2. Estructura Symfony. Hecha. Los siete módulos tienen `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
-3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso, la home comercial, el alta de asesorías y de su equipo, el alta de clientes, el inicio del cliente, el alta de un documento y su lectura con revisión humana. Lo siguiente es completar el perfil fiscal y los impuestos del territorio. Después va la bandeja de la asesoría.
+3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso, la home comercial, el alta de asesorías y de su equipo, el alta de clientes, el inicio del cliente, el alta de un documento, su lectura y el perfil fiscal editable. Lo siguiente son los impuestos del territorio. Después va la bandeja de la asesoría.
 
 ## 6. Especificaciones de producto
 
@@ -252,4 +252,4 @@ docker/
 
 `GET /salud` vive en `src/Controller/HealthController.php`. Cada módulo tiene `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
 
-La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel, el acceso y los enlaces de correo. Las tablas son `identity_user` y `access_token`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Cliente ya registra autónomos y sociedades, y el cliente entra por `/inicio`. La tabla es `client_profile`. Documento ya guarda el archivo y, al subirlo, propone los datos. La tabla es `client_document`. La clave de lectura, si se usa, va en `.env.local` y no en el repositorio. Siguen sin hacerse el perfil fiscal ampliado, los impuestos de Canarias, Ceuta y Melilla, y la bandeja.
+La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel, el acceso y los enlaces de correo. Las tablas son `identity_user` y `access_token`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Cliente ya registra autónomos y sociedades, y el cliente entra por `/inicio`. La tabla es `client_profile`. Documento ya guarda el archivo y, al subirlo, propone los datos. La tabla es `client_document`. La clave de lectura, si se usa, va en `.env.local` y no en el repositorio. El cliente edita sus datos en `/perfil`. El admin edita los de la asesoría en `/asesoria/datos` y los de un cliente de la suya desde la lista. El gestor los consulta y no los cambia. Siguen sin hacerse los impuestos de Canarias, Ceuta y Melilla, y la bandeja.

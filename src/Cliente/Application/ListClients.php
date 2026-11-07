@@ -30,7 +30,7 @@ final class ListClients
                 continue;
             }
 
-            $listings[] = new ClientListing($client->name(), $client->kind(), $user->email());
+            $listings[] = new ClientListing($client->id(), $client->name(), $client->kind(), $user->email());
         }
 
         return $listings;

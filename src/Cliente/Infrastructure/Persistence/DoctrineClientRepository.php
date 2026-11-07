@@ -12,6 +12,13 @@ final class DoctrineClientRepository implements ClientRepository
     {
     }
 
+    public function find(string $id): ?Client
+    {
+        $record = $this->entityManager->find(DoctrineClient::class, $id);
+
+        return $record instanceof DoctrineClient ? $record->toDomain() : null;
+    }
+
     public function findByUserId(string $userId): ?Client
     {
         $record = $this->entityManager->getRepository(DoctrineClient::class)->findOneBy([

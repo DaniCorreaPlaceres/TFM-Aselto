@@ -1,0 +1,18 @@
+{% extends 'client/_layout.html.twig' %}
+
+{% block client_title %}Datos fiscales{% endblock %}
+
+{% block client_body %}
+    <h1>Datos fiscales</h1>
+    <p>Estos datos identifican tu actividad. Revísalos y guárdalos cuando estén bien.</p>
+
+    {% if error %}
+        <p class="error" role="alert">{{ error }}</p>
+    {% endif %}
+
+    <form method="post">
+        {{ include('_fiscal_contact.html.twig') }}
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token(csrf) }}">
+        <button type="submit">Guardar</button>
+    </form>
+{% endblock %}

@@ -79,6 +79,7 @@ final class ClientController extends AbstractController
 
         foreach ($listClients->execute($firmId) as $client) {
             $clients[] = [
+                'id' => $client->id(),
                 'name' => $client->name(),
                 'kind' => ClientKindLabel::inSpanish($client->kind()),
                 'email' => $client->email(),
