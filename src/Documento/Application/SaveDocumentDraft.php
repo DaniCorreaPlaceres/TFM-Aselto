@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Documento\Application;
+
+use App\Documento\Domain\Document;
+use App\Documento\Domain\DocumentRepository;
+use App\Shared\Domain\Transaction;
+
+final class SaveDocumentDraft
+{
+    public function __construct(
+        private readonly OpenClientDocument $documents,
+        private readonly DocumentRepository $repository,
+        private readonly Transaction $transaction,
+    ) {
+    }
+
+    public function execute(
+        string $userId,
+        string $documentId,
+        string $direction,
+        string $issuedOn,
+        string $partyName,
+        string $taxId,
+        string $base,
+        string $vatRate,
+    ): Document {
+        $document = $this->documents->execute($userId, $documentId)->saveDraft(DocumentForm::read(
+            $direction,
+            $issuedOn,
+            $partyName,
+            $taxId,
+            $base,
+            $vatRate,
+        ));
+
+        $this->transaction->run(function () use ($document): void {
+            $this->repository->save($document);
+        });
+
+        return $document;
+    }
+}

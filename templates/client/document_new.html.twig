@@ -1,0 +1,24 @@
+{% extends 'client/_layout.html.twig' %}
+
+{% block client_title %}Añadir documento{% endblock %}
+
+{% block client_body %}
+    <h1>Añadir documento</h1>
+    <p>Elige una foto o un archivo. Admitimos PDF, JPEG, PNG y WebP.</p>
+
+    <form method="post" enctype="multipart/form-data" novalidate data-controller="required-submit" data-required-submit-message-value="Elige un archivo. Admitimos PDF, JPEG, PNG y WebP." data-action="submit->required-submit#guard">
+        <label for="file">Archivo</label>
+        <input id="file" name="file" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" data-required-submit-target="field">
+        <p class="field-error" data-required-submit-target="error" hidden></p>
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('upload_document') }}">
+        <button type="submit">Subir archivo</button>
+    </form>
+
+    <form method="post" enctype="multipart/form-data" novalidate data-controller="required-submit" data-required-submit-message-value="Elige una foto." data-action="submit->required-submit#guard">
+        <label for="photo">Foto</label>
+        <input id="photo" name="file" type="file" accept="image/*" capture="environment" data-required-submit-target="field">
+        <p class="field-error" data-required-submit-target="error" hidden></p>
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('upload_document') }}">
+        <button type="submit" class="quiet">Hacer una foto</button>
+    </form>
+{% endblock %}

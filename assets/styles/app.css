@@ -93,20 +93,89 @@ label {
     margin: 16px 0 8px;
 }
 
-input {
+input,
+select {
     box-sizing: border-box;
     width: 100%;
     min-height: 48px;
     padding: 8px 12px;
     border: 1px solid #64748B;
     border-radius: 8px;
+    background: #FFFFFF;
     color: #14243B;
     font: inherit;
 }
 
-input:focus {
+input:focus,
+select:focus {
     outline: 3px solid #006B70;
     outline-offset: 2px;
+}
+
+.document-preview {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 16px;
+}
+
+.field-error {
+    margin: 8px 0 0;
+    color: #B42318;
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"] {
+    border-color: #B42318;
+}
+
+.client-main input[readonly] {
+    background: #F7F9FA;
+}
+
+.toasts {
+    position: fixed;
+    z-index: 30;
+    right: 16px;
+    bottom: 112px;
+    left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0;
+    padding: 16px;
+    background: #FFFFFF;
+    border: 1px solid #64748B;
+    border-radius: 8px;
+    color: #14243B;
+}
+
+.toast-success {
+    border-color: #166534;
+}
+
+.toast-error {
+    border-color: #B42318;
+}
+
+.toast button {
+    margin-top: 0;
+    flex: 0 0 auto;
+}
+
+@media (min-width: 800px) {
+    .toasts {
+        bottom: 24px;
+        left: auto;
+        width: 22rem;
+    }
 }
 
 button {

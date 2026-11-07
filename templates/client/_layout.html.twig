@@ -25,6 +25,15 @@
             </main>
         </div>
 
+        <div class="toasts" data-controller="toast">
+            {% for message in app.flashes('success') %}
+                <p class="toast toast-success" role="status" data-toast-target="item">{{ message }}</p>
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                <p class="toast toast-error" role="alert" data-toast-target="item">{{ message }}</p>
+            {% endfor %}
+        </div>
+
         <nav class="client-bottom" aria-label="Secciones">
             {{ include('client/_menu.html.twig') }}
         </nav>

@@ -19,7 +19,7 @@ Lista de lo que hay que hacer. El detalle de cada una se escribe en `docs/sdd/` 
 10. Cuando una asesoría da de alta a su equipo, email con enlace para registrarse. Token de tiempo limitado. Hecha.
 11. Hay que añadir un sistema de recuperación de contraseña en el login. Hecha.
 12. Inicio del cliente, con la marca y el menú. Hecha.
-13. Añadir un documento, revisar los datos y confirmarlo.
+13. Añadir un documento, revisar los datos y confirmarlo. Hecha.
 14. Lectura del documento por IA, con revisión humana.
 15. Bandeja de la asesoría: validar, rechazar o pedir otro documento.
 16. Trimestre: cifras, cierre y consulta del histórico.

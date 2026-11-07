@@ -4,5 +4,19 @@
 
 {% block client_body %}
     <h1>Documentos</h1>
-    <p>Todavía no hay documentos.</p>
+    <a class="action" href="{{ path('client_document_new') }}">Añadir documento</a>
+
+    {% if documents is empty %}
+        <p>Todavía no hay documentos.</p>
+    {% else %}
+        <ul class="plain-list">
+            {% for document in documents %}
+                <li>
+                    <a href="{{ path('client_document', {id: document.id}) }}">{{ document.name }}</a>
+                    <span>{{ document.direction }}</span>
+                    <span>{{ document.status }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 {% endblock %}

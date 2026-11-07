@@ -6,7 +6,7 @@
     <h1>{% if name %}Hola, {{ name }}{% else %}Hola{% endif %}</h1>
     <p>Este es el resumen de tu actividad.</p>
 
-    <a class="action" href="{{ path('client_documents') }}">Añadir documento</a>
+    <a class="action" href="{{ path('client_document_new') }}">Añadir documento</a>
     <p class="client-hint">Tus facturas y justificantes se reúnen en Documentos.</p>
 
     <p class="client-period">Este trimestre</p>
@@ -20,9 +20,18 @@
             <p>0,00 €</p>
         </section>
     </div>
+    <p class="client-hint">Las cifras cuentan solo lo que tu asesoría ha validado.</p>
 
     <section class="client-pending">
         <h2>Pendiente de revisión</h2>
-        <p>No hay nada pendiente de revisión.</p>
+        {% if pending is empty %}
+            <p>No hay nada pendiente de revisión.</p>
+        {% else %}
+            <ul class="plain-list">
+                {% for item in pending %}
+                    <li><a href="{{ item.href }}">{{ item.name }}</a> <span>Por revisar</span></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
     </section>
 {% endblock %}

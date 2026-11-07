@@ -30,6 +30,7 @@ services:
             - '../src/Identidad/Infrastructure/Persistence/DoctrineAccessToken.php'
             - '../src/Asesoria/Infrastructure/Persistence/DoctrineFirm.php'
             - '../src/Cliente/Infrastructure/Persistence/DoctrineClient.php'
+            - '../src/Documento/Infrastructure/Persistence/DoctrineDocument.php'
 
     App\Identidad\Domain\UserRepository:
         alias: App\Identidad\Infrastructure\Persistence\DoctrineUserRepository
@@ -51,6 +52,12 @@ services:
 
     App\Cliente\Domain\ClientRepository:
         alias: App\Cliente\Infrastructure\Persistence\DoctrineClientRepository
+
+    App\Documento\Domain\DocumentRepository:
+        alias: App\Documento\Infrastructure\Persistence\DoctrineDocumentRepository
+
+    App\Documento\Domain\DocumentFileStore:
+        alias: App\Documento\Infrastructure\Storage\LocalDocumentFileStore
 
     App\Shared\Domain\IdGenerator:
         alias: App\Shared\Infrastructure\SymfonyIdGenerator
