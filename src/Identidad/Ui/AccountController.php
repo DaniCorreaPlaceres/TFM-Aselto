@@ -34,6 +34,7 @@ final class AccountController extends AbstractController
             'role' => RoleLabel::inSpanish($user->role()),
             'destination' => $destination,
             'secondary' => $secondary,
+            'fiscal' => Role::FirmAdmin === $user->role() ? ['route' => 'firm_profile', 'label' => 'Datos fiscales'] : null,
         ]);
     }
 }

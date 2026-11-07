@@ -345,6 +345,17 @@ final class RegistrationClientRepository implements ClientRepository
     /** @var array<string, Client> */
     private array $clients = [];
 
+    public function find(string $id): ?Client
+    {
+        foreach ($this->clients as $client) {
+            if ($client->id() === $id) {
+                return $client;
+            }
+        }
+
+        return null;
+    }
+
     public function findByUserId(string $userId): ?Client
     {
         return $this->clients[$userId] ?? null;
