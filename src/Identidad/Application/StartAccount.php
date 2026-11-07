@@ -27,7 +27,7 @@ final class StartAccount
     }
 
     /**
-     * @param null|callable(User): void $afterUser
+     * @param callable(User): void|null $afterUser
      */
     public function open(string $email, Role $role, ?string $firmId, ?callable $afterUser = null): User
     {
