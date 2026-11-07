@@ -4,10 +4,9 @@ namespace App\Cliente\Ui;
 
 use App\Cliente\Application\RegisterClient;
 use App\Cliente\Domain\ClientKind;
-use App\Cliente\Domain\EmailAlreadyUsed;
 use App\Cliente\Domain\InvalidClient;
-use App\Cliente\Domain\PasswordTooShort;
 use App\Cliente\Domain\UnknownClientKind;
+use App\Identidad\Domain\EmailAlreadyUsed;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,16 +27,14 @@ final class RegistrationController extends AbstractController
                 $error = 'La sesión del formulario ha caducado. Vuelve a intentarlo.';
             } else {
                 try {
-                    $registerClient->execute($name, self::kind($kind), $email, (string) $request->request->get('password', ''), null);
-                    $this->addFlash('success', 'Ya puedes entrar.');
+                    $registerClient->execute($name, self::kind($kind), $email, null);
+                    $this->addFlash('success', 'Te hemos enviado un correo para crear tu contraseña.');
 
                     return $this->redirectToRoute('login');
                 } catch (UnknownClientKind) {
                     $error = 'Elige autónomo o sociedad.';
                 } catch (InvalidClient) {
                     $error = 'Escribe el nombre.';
-                } catch (PasswordTooShort) {
-                    $error = 'La contraseña debe tener al menos 8 caracteres.';
                 } catch (EmailAlreadyUsed) {
                     $error = 'Ese correo ya tiene acceso.';
                 }

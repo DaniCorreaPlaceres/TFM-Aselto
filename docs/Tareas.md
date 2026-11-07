@@ -15,9 +15,9 @@ Lista de lo que hay que hacer. El detalle de cada una se escribe en `docs/sdd/` 
 6. Home comercial pública en `/`. Hecha.
 7. Alta de asesorías y de su equipo.
 8. Alta de clientes, autónomo o sociedad.
-9. Cuando un superadmin da de alta una asesoría, el alta se hace mediante un email que le llega y con un enlace tiene que crear la cuenta. El enlace va con toke y tiene tiempo limitado.
-10. Cuando una asesoria da de alta a su equipo, email con enlace para registrarse. Token de tiempo limitado.
-11. Hay que añadir un sistema de recuperacion de contraseña en el login
+9. Cuando un superadmin da de alta una asesoría, el alta se hace mediante un email que le llega y con un enlace tiene que crear la cuenta. El enlace va con token y tiene tiempo limitado. Hecha.
+10. Cuando una asesoría da de alta a su equipo, email con enlace para registrarse. Token de tiempo limitado. Hecha.
+11. Hay que añadir un sistema de recuperación de contraseña en el login. Hecha.
 12. Inicio del cliente, con la marca y el menú.
 13. Añadir un documento, revisar los datos y confirmarlo.
 14. Lectura del documento por IA, con revisión humana.

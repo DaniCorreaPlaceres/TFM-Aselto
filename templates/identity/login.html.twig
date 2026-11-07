@@ -11,8 +11,8 @@
             <p class="success">{{ message }}</p>
         {% endfor %}
 
-        {% if hasError %}
-            <p class="error" role="alert">El correo o la contraseña no son correctos.</p>
+        {% if errorMessage %}
+            <p class="error" role="alert">{{ errorMessage }}</p>
         {% endif %}
 
         <form method="post" action="{{ path('login') }}">
@@ -26,6 +26,7 @@
 
             <button type="submit">Entrar</button>
         </form>
+        <a class="quiet-link" href="{{ path('password_reset_request') }}">He olvidado mi contraseña</a>
         <a class="quiet-link" href="{{ path('client_register') }}">Crear acceso</a>
     </main>
 {% endblock %}

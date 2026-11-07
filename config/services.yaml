@@ -27,6 +27,7 @@ services:
             - '../src/Finanzas/Domain/'
             - '../src/Comunicacion/Domain/'
             - '../src/Identidad/Infrastructure/Persistence/DoctrineUser.php'
+            - '../src/Identidad/Infrastructure/Persistence/DoctrineAccessToken.php'
             - '../src/Asesoria/Infrastructure/Persistence/DoctrineFirm.php'
             - '../src/Cliente/Infrastructure/Persistence/DoctrineClient.php'
 
@@ -36,6 +37,15 @@ services:
     App\Identidad\Domain\PasswordHasher:
         alias: App\Identidad\Infrastructure\Security\SymfonyPasswordHasher
 
+    App\Identidad\Domain\AccessTokenRepository:
+        alias: App\Identidad\Infrastructure\Persistence\DoctrineAccessTokenRepository
+
+    App\Identidad\Domain\AccountNotifier:
+        alias: App\Identidad\Infrastructure\Mail\SymfonyAccountNotifier
+
+    App\Identidad\Domain\TokenGenerator:
+        alias: App\Identidad\Infrastructure\Security\RandomTokenGenerator
+
     App\Asesoria\Domain\FirmRepository:
         alias: App\Asesoria\Infrastructure\Persistence\DoctrineFirmRepository
 
@@ -44,6 +54,9 @@ services:
 
     App\Shared\Domain\IdGenerator:
         alias: App\Shared\Infrastructure\SymfonyIdGenerator
+
+    App\Shared\Domain\Clock:
+        alias: App\Shared\Infrastructure\SystemClock
 
     App\Shared\Domain\Transaction:
         alias: App\Shared\Infrastructure\DoctrineTransaction

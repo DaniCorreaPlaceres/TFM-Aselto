@@ -9,11 +9,14 @@ services:
       MERCURE_PUBLIC_URL: http://127.0.0.1:9080/.well-known/mercure
       MERCURE_JWT_SECRET: "!ChangeThisMercureHubJWTSecretKey!"
       DEFAULT_URI: http://localhost:8080
+      MAILER_DSN: smtp://mailpit:1025
     volumes:
       - .:/var/www/html
     depends_on:
       database:
         condition: service_healthy
+      mailpit:
+        condition: service_started
 
   web:
     image: nginx:1.28-alpine
@@ -44,6 +47,13 @@ services:
       start_period: 30s
     volumes:
       - database_data:/var/lib/mysql
+
+  mailpit:
+    image: axllent/mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
 
   mercure:
     image: dunglas/mercure

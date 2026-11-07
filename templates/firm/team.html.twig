@@ -24,7 +24,7 @@
         {% endif %}
 
         <h2>Invitar a un gestor</h2>
-        <p>Podrá entrar con este correo y esta contraseña.</p>
+        <p>Le enviaremos un correo para confirmar su dirección y crear su contraseña.</p>
 
         {% if error %}
             <p class="error" role="alert">{{ error }}</p>
@@ -33,9 +33,6 @@
         <form method="post">
             <label for="email">Correo</label>
             <input id="email" name="email" type="email" autocomplete="off" value="{{ email }}" required>
-
-            <label for="password">Contraseña inicial</label>
-            <input id="password" name="password" type="password" autocomplete="new-password" required>
 
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('invite_advisor') }}">
             <button type="submit">Invitar a un gestor</button>

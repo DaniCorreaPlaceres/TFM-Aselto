@@ -23,11 +23,14 @@ security:
             logout:
                 path: /salir
                 target: /entrar
+            user_checker: App\Identidad\Infrastructure\Security\ActivatedUserChecker
 
     access_control:
         - { path: ^/salud, roles: PUBLIC_ACCESS }
         - { path: ^/entrar, roles: PUBLIC_ACCESS }
         - { path: ^/registro, roles: PUBLIC_ACCESS }
+        - { path: ^/activar, roles: PUBLIC_ACCESS }
+        - { path: ^/recuperar, roles: PUBLIC_ACCESS }
         - { path: ^/$, roles: PUBLIC_ACCESS }
         - { path: ^/asesorias, roles: ROLE_SUPERADMIN }
         - { path: ^/equipo, roles: ROLE_FIRM_ADMIN }
