@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Clientes{% endblock %}
+
+{% block body %}
+    <main class="panel wide">
+        <h1>Clientes</h1>
+        {% if unlinked %}
+            <p>Sin asesoría.</p>
+        {% endif %}
+
+        {% for message in app.flashes('success') %}
+            <p class="success">{{ message }}</p>
+        {% endfor %}
+
+        {% if clients is empty %}
+            <p>Todavía no hay clientes.</p>
+        {% else %}
+            <ul class="plain-list">
+                {% for client in clients %}
+                    <li>
+                        <strong>{{ client.name }}</strong>
+                        <span>{{ client.kind }}</span>
+                        <span>{{ client.email }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% if canCreate %}
+            <h2>Dar de alta un cliente</h2>
+
+            {% if error %}
+                <p class="error" role="alert">{{ error }}</p>
+            {% endif %}
+
+            {{ include('client/_form.html.twig', {csrf: 'create_client', submit: 'Guardar'}) }}
+        {% endif %}
+    </main>
+{% endblock %}

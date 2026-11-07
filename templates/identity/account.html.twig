@@ -11,6 +11,9 @@
         {% if destination %}
             <a class="action" href="{{ path(destination.route) }}">{{ destination.label }}</a>
         {% endif %}
+        {% if secondary %}
+            <a class="quiet-link" href="{{ path(secondary.route) }}">{{ secondary.label }}</a>
+        {% endif %}
 
         <form method="post" action="{{ path('logout') }}">
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">

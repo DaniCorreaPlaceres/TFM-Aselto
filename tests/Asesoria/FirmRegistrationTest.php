@@ -127,6 +127,17 @@ final class MemoryUserRepository implements UserRepository
     /** @var array<string, User> */
     private array $users = [];
 
+    public function find(string $id): ?User
+    {
+        foreach ($this->users as $user) {
+            if ($user->id() === $id) {
+                return $user;
+            }
+        }
+
+        return null;
+    }
+
     public function findByEmail(string $email): ?User
     {
         return $this->users[mb_strtolower(trim($email))] ?? null;

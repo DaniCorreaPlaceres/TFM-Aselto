@@ -4,6 +4,9 @@ namespace App\Identidad\Infrastructure\Command;
 
 use App\Asesoria\Domain\Firm;
 use App\Asesoria\Domain\FirmRepository;
+use App\Cliente\Domain\Client;
+use App\Cliente\Domain\ClientKind;
+use App\Cliente\Domain\ClientRepository;
 use App\Identidad\Domain\Role;
 use App\Identidad\Domain\User;
 use App\Identidad\Domain\UserRepository;
@@ -25,6 +28,7 @@ final class SeedDevAccessCommand extends Command
     public function __construct(
         private readonly UserRepository $users,
         private readonly FirmRepository $firms,
+        private readonly ClientRepository $clients,
         private readonly UserPasswordHasherInterface $hasher,
         #[Autowire('%kernel.environment%')]
         private readonly string $environment,
@@ -65,6 +69,18 @@ final class SeedDevAccessCommand extends Command
                 $this->hasher->hashPassword($placeholder, self::PASSWORD),
                 $account['role'],
                 $account['firmId'],
+            ));
+        }
+
+        $client = $this->users->findByEmail('cliente@example.test');
+
+        if (null !== $client && null === $this->clients->findByUserId($client->id())) {
+            $this->clients->save(new Client(
+                '00000000-0000-4000-8000-000000000021',
+                $client->id(),
+                ClientKind::SelfEmployed,
+                'Cliente de prueba',
+                null,
             ));
         }
 

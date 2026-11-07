@@ -27,6 +27,7 @@ security:
     access_control:
         - { path: ^/salud, roles: PUBLIC_ACCESS }
         - { path: ^/entrar, roles: PUBLIC_ACCESS }
+        - { path: ^/registro, roles: PUBLIC_ACCESS }
         - { path: ^/$, roles: PUBLIC_ACCESS }
         - { path: ^/asesorias, roles: ROLE_SUPERADMIN }
         - { path: ^/equipo, roles: ROLE_FIRM_ADMIN }

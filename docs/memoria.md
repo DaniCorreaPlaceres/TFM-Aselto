@@ -18,7 +18,7 @@ Entra una web en la que conviven varias asesorías, aisladas entre sí.
 
 Papeles:
 
-- Superadmin de la plataforma. Da de alta asesorías. No hay planes ni cobros.
+- Superadmin de la plataforma. Da de alta asesorías y también un cliente sin asesoría. No hay planes ni cobros.
 - Admin de una asesoría. Invita gestores y da de alta clientes.
 - Gestor. Revisa documentos, pide justificantes, valida y cierra el trimestre.
 - Cliente. Un acceso por autónomo o por sociedad. Puede usar la plataforma solo o vinculado a una asesoría. Sube documentos y consulta su actividad.
@@ -42,7 +42,7 @@ Cifras, iguales para autónomo y sociedad, calculadas solo con movimientos valid
 
 Estados de un documento: `subido`, `extrayendo`, `borrador`, `validado`, `rechazado`.
 
-Queda fuera: la app, los modelos oficiales de Hacienda, la presentación de impuestos, los bancos, el plan contable, la facturación de la propia plataforma y la emisión de facturas.
+Queda fuera: la app, los modelos oficiales de Hacienda, la presentación de impuestos, los bancos, el plan contable, el cobro y la factura de la licencia de Aselto, y la emisión de facturas. La licencia existe en el producto, pero aquí se supone que el cliente puede registrarse directamente.
 
 ## 3. Stack
 
@@ -123,7 +123,7 @@ Orden de construcción acordado:
 0. Esta memoria. Hecha.
 1. GitHub, ramas y Docker. Hecho. `main` está protegida, `develop` integra, y cada pull request ejecuta las cuatro comprobaciones. El entorno local arranca y `GET /salud` responde.
 2. Estructura Symfony. Hecha. Los siete módulos tienen `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
-3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso, la home comercial y el alta de asesorías y de su equipo. El primer recorrido presentable sigue siendo el de los bocetos: inicio del cliente, alta de documento, revisión humana y bandeja de la asesoría.
+3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso, la home comercial, el alta de asesorías y de su equipo, y el alta de clientes. El primer recorrido presentable sigue siendo el de los bocetos: inicio del cliente, alta de documento, revisión humana y bandeja de la asesoría.
 
 ## 6. Especificaciones de producto
 
@@ -157,7 +157,8 @@ El inicio muestra el saludo, la acción de añadir un documento, los ingresos y 
 ### Reglas de negocio ya cerradas
 
 - El superadmin no pertenece a una asesoría. El admin y el gestor sí.
-- Un cliente puede no pertenecer a ninguna asesoría. Si está vinculado, un gestor solo ve los clientes de la suya.
+- Un cliente puede registrarse directamente, en principio sin asesoría. El superadmin también puede dar de alta un cliente sin asesoría.
+- El admin de una asesoría da de alta a los clientes de la suya. Si un cliente está vinculado, un gestor solo ve los de esa asesoría.
 - El cliente puede corregir el borrador. El gestor puede corregirlo al validar.
 - Si el trimestre de esa fecha está cerrado, no se valida otro movimiento dentro de él.
 - La foto en el móvil usa la cámara del dispositivo. En escritorio, el mismo paso admite un archivo.
@@ -195,7 +196,7 @@ La imagen de PHP instala `intl`, `pdo_mysql`, `zip` y `bcmath`. OPcache se activ
 
 `GET /salud` no forma parte del producto. Ya está comprobado: responde 200 con `{"estado":"ok","base_de_datos":"ok"}`. MySQL 8.4 queda sano en el puerto 3306. Mercure responde en el 9080.
 
-`/` es la home comercial y es pública. Usa el logotipo oficial y se dirige a autónomos, sociedades y asesorías. Explica que el documento se añade, los datos se revisan y el trimestre se actualiza. La única acción es Entrar, hacia `/entrar`. Si ya hay sesión, esa acción se llama Tu acceso y abre `/cuenta`. No hay registro ni precios.
+`/` es la home comercial y es pública. Usa el logotipo oficial y se dirige a autónomos, sociedades y asesorías. Explica que el documento se añade, los datos se revisan y el trimestre se actualiza. La única acción es Entrar, hacia `/entrar`. Si ya hay sesión, esa acción se llama Tu acceso y abre `/cuenta`. No hay precios en esta página. Quien no tiene sesión ve también «Crear acceso», hacia `/registro`.
 
 El acceso de la web es la sesión de Symfony. `GET /entrar` pide el correo y la contraseña. Si el acceso es correcto, `/cuenta` muestra el papel. Salir cierra la sesión. `GET /salud` sigue abierto sin entrar.
 
@@ -206,6 +207,8 @@ Tras migrar, `php bin/console app:seed-dev-access` crea la asesoría de prueba y
 - `cliente@example.test`, sin asesoría
 
 El superadmin abre `/asesorias` desde su acceso. Da de alta una asesoría con nombre, correo del admin y contraseña inicial. No hay planes ni cobros, y no se envía ningún correo: esa persona entra con la contraseña que se le ha puesto. El admin abre `/equipo`, ve solo el equipo de la suya e invita a un gestor del mismo modo. Un gestor no abre esas pantallas. Una asesoría no ve el equipo de otra. La contraseña inicial tiene al menos 8 caracteres. Un correo que ya existe se rechaza.
+
+`/registro` es público. Crea un cliente, autónomo o sociedad, sin asesoría. El superadmin, en `/clientes`, da de alta otro cliente sin asesoría y ve solo esos. El admin da de alta a los de su asesoría. El gestor ve los de la suya y no puede darlos de alta. Una asesoría no ve los clientes de otra.
 
 ## 8. Documentación
 
@@ -235,4 +238,4 @@ docker/
 
 `GET /salud` vive en `src/Controller/HealthController.php`. Cada módulo tiene `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
 
-La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel y el acceso. La tabla es `identity_user`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Siguen sin hacerse el alta de clientes, el inicio del cliente, los documentos y la bandeja.
+La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel y el acceso. La tabla es `identity_user`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Cliente ya registra autónomos y sociedades. La tabla es `client_profile`. Siguen sin hacerse el inicio del cliente, los documentos y la bandeja.
