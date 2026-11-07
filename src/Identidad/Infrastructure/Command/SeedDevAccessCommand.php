@@ -11,6 +11,7 @@ use App\Identidad\Domain\Role;
 use App\Identidad\Domain\User;
 use App\Identidad\Domain\UserRepository;
 use App\Identidad\Infrastructure\Security\SecurityUser;
+use App\Shared\Domain\FiscalContact;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -47,7 +48,11 @@ final class SeedDevAccessCommand extends Command
         }
 
         if (null === $this->firms->find(self::FIRM_ID)) {
-            $this->firms->save(new Firm(self::FIRM_ID, 'Asesoría de prueba'));
+            $this->firms->save(new Firm(
+                self::FIRM_ID,
+                'Asesoría de prueba',
+                FiscalContact::required('B12345674', '910000000', 'Calle Mayor 1', '28013', 'Madrid', 'Madrid'),
+            ));
         }
 
         foreach ($this->accounts() as $account) {
@@ -82,6 +87,7 @@ final class SeedDevAccessCommand extends Command
                 ClientKind::SelfEmployed,
                 'Cliente de prueba',
                 null,
+                FiscalContact::required('00000000T', '600000000', 'Calle Mayor 1', '28001', 'Madrid', 'Madrid'),
             ));
         }
 

@@ -20,7 +20,9 @@ use App\Identidad\Domain\TokenGenerator;
 use App\Identidad\Domain\User;
 use App\Identidad\Domain\UserRepository;
 use App\Shared\Domain\Clock;
+use App\Shared\Domain\FiscalContact;
 use App\Shared\Domain\IdGenerator;
+use App\Shared\Domain\InvalidFiscalContact;
 use App\Shared\Domain\Transaction;
 use PHPUnit\Framework\TestCase;
 
@@ -39,9 +41,12 @@ final class FirmRegistrationTest extends TestCase
         $users = new MemoryUserRepository();
         $useCase = $this->useCase($firms, $users);
 
-        $firm = $useCase->execute('  Norte  ', 'Admin@Example.test');
+        $firm = $useCase->execute('  Norte  ', 'Admin@Example.test', $this->contact());
 
         self::assertSame('Norte', $firm->name());
+        self::assertSame('B12345674', $firm->contact()->taxId());
+        self::assertSame('35001', $firm->contact()->postalCode());
+        self::assertSame('Las Palmas', $firm->contact()->province());
         $admin = $users->findByEmail('admin@example.test');
         self::assertInstanceOf(User::class, $admin);
         self::assertSame(Role::FirmAdmin, $admin->role());
@@ -63,7 +68,14 @@ final class FirmRegistrationTest extends TestCase
         $this->expectException(EmailAlreadyUsed::class);
 
         $this->useCase(new MemoryFirmRepository(), $users)
-            ->execute('Norte', 'admin@example.test');
+            ->execute('Norte', 'admin@example.test', $this->contact());
+    }
+
+    public function testAPostalCodeFromAnotherProvinceIsRejected(): void
+    {
+        $this->expectException(InvalidFiscalContact::class);
+
+        FiscalContact::required('B12345674', '910000000', 'Calle Mayor 1', '28013', 'Madrid', 'Las Palmas');
     }
 
     public function testFirmAdminInvitesAnAdvisorOfTheSameFirm(): void
@@ -89,6 +101,11 @@ final class FirmRegistrationTest extends TestCase
 
         (new InviteAdvisor(new MemoryFirmRepository(), $this->accounts(new MemoryUserRepository())))
             ->execute('00000000-0000-4000-8000-000000000001', 'gestor@example.test');
+    }
+
+    private function contact(): FiscalContact
+    {
+        return FiscalContact::required('B12345674', '+34 928 000 000', 'Calle Mayor 1', '35001', 'Las Palmas de Gran Canaria', 'Las Palmas');
     }
 
     private function useCase(FirmRepository $firms, UserRepository $users): CreateFirm

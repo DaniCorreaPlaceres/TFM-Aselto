@@ -2,14 +2,19 @@
 
 namespace App\Cliente\Domain;
 
+use App\Shared\Domain\FiscalContact;
+
 final class Client
 {
+    private readonly FiscalContact $contact;
+
     public function __construct(
         private readonly string $id,
         private readonly string $userId,
         private readonly ClientKind $kind,
         private string $name,
         private readonly ?string $firmId,
+        ?FiscalContact $contact = null,
     ) {
         if (1 !== preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $id)) {
             throw new InvalidClient('The id is not a valid UUID.');
@@ -30,6 +35,7 @@ final class Client
         }
 
         $this->name = $name;
+        $this->contact = $contact ?? FiscalContact::blank();
     }
 
     public function id(): string
@@ -55,5 +61,10 @@ final class Client
     public function firmId(): ?string
     {
         return $this->firmId;
+    }
+
+    public function contact(): FiscalContact
+    {
+        return $this->contact;
     }
 }
