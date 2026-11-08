@@ -6,6 +6,7 @@ use App\Documento\Domain\DocumentExtractor;
 use App\Documento\Domain\ExtractionFailed;
 use App\Documento\Domain\Proposal;
 use App\Documento\Domain\ProposalOrigin;
+use App\Documento\Domain\Tax;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -21,7 +22,7 @@ final class OpenAiDocumentExtractor implements DocumentExtractor
     ) {
     }
 
-    public function propose(string $mediaType, string $contents): Proposal
+    public function propose(string $mediaType, string $contents, Tax $tax = Tax::Vat): Proposal
     {
         if ('' === trim($this->apiKey)) {
             throw new ExtractionFailed('The extractor is not configured.');
@@ -38,7 +39,7 @@ final class OpenAiDocumentExtractor implements DocumentExtractor
                     'messages' => [[
                         'role' => 'user',
                         'content' => [
-                            ['type' => 'text', 'text' => self::instructions()],
+                            ['type' => 'text', 'text' => self::instructions($tax)],
                             $this->file($mediaType, $contents),
                         ],
                     ]],
@@ -50,7 +51,7 @@ final class OpenAiDocumentExtractor implements DocumentExtractor
             throw new ExtractionFailed('The document could not be read.');
         }
 
-        return new Proposal($this->reader->read(is_string($content) ? $content : ''), ProposalOrigin::Extracted);
+        return new Proposal($this->reader->read(is_string($content) ? $content : '', $tax), ProposalOrigin::Extracted);
     }
 
     /**
@@ -78,11 +79,17 @@ final class OpenAiDocumentExtractor implements DocumentExtractor
         ];
     }
 
-    private static function instructions(): string
+    private static function instructions(Tax $tax): string
     {
+        $rateInstructions = match ($tax) {
+            Tax::Vat => 'The client territory uses IVA. tax_rate must be 0, 4, 10, 21 or null.',
+            Tax::Igic => 'The client territory uses IGIC. tax_rate must be 0, 3, 7, 9.5, 15, 20 or null.',
+            Tax::Ipsi => 'The client territory uses IPSI. Always return null for tax_rate; the person enters it manually.',
+        };
+
         return 'Read this Spanish invoice or receipt. Reply with JSON only, using these keys: '
             .'direction (income, expense or null), issued_on (YYYY-MM-DD or null), party_name, tax_id, '
-            .'base as a decimal string, and vat_rate as 0, 4, 10, 21 or null. '
+            .'base as a decimal string, and tax_rate. '.$rateInstructions.' '
             .'Use expense when the document is a purchase and income when the client issued it. '
             .'Do not invent missing fields.';
     }

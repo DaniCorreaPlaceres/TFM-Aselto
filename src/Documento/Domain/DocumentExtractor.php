@@ -7,5 +7,5 @@ interface DocumentExtractor
     /**
      * @throws ExtractionFailed
      */
-    public function propose(string $mediaType, string $contents): Proposal;
+    public function propose(string $mediaType, string $contents, Tax $tax = Tax::Vat): Proposal;
 }

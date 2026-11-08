@@ -14,9 +14,13 @@ use App\Documento\Domain\DocumentFileStore;
 use App\Documento\Domain\DocumentNotFound;
 use App\Documento\Domain\IncompleteDocument;
 use App\Documento\Domain\InvalidDocument;
+use App\Documento\Domain\InvalidTaxRate;
 use App\Documento\Domain\MissingClientProfile;
+use App\Documento\Domain\MissingFiscalProvince;
 use App\Documento\Domain\MovementDirection;
 use App\Documento\Domain\ProposalOrigin;
+use App\Documento\Domain\Tax;
+use App\Documento\Domain\TaxRate;
 use App\Documento\Domain\UnsupportedFile;
 use App\Identidad\Domain\Role;
 use App\Identidad\Infrastructure\Security\SecurityUser;
@@ -84,6 +88,10 @@ final class DocumentController extends AbstractController
                     return $this->redirectToRoute('client_document', ['id' => $document->id()]);
                 } catch (UnsupportedFile) {
                     $this->addFlash('error', 'El archivo tiene que ser PDF, JPEG, PNG o WebP, y ocupar menos de 8 MB.');
+                } catch (MissingFiscalProvince) {
+                    $this->addFlash('error', 'Completa la provincia en tus datos fiscales antes de añadir un documento.');
+
+                    return $this->redirectToRoute('client_profile');
                 } catch (MissingClientProfile) {
                     $this->addFlash('error', 'No encontramos tu ficha de cliente.');
                 }
@@ -129,8 +137,11 @@ final class DocumentController extends AbstractController
 
                     return $this->redirectToRoute('client_document', ['id' => $id]);
                 } catch (IncompleteDocument $exception) {
-                    $fieldErrors = $this->fieldErrors($exception);
+                    $fieldErrors = $this->fieldErrors($exception, $document->tax());
                     $this->addFlash('error', 'Revisa los campos marcados.');
+                } catch (InvalidTaxRate) {
+                    $fieldErrors['taxRate'] = $this->rateError($document->tax());
+                    $this->addFlash('error', 'Revisa el porcentaje del impuesto.');
                 } catch (InvalidDocument) {
                     $this->addFlash('error', 'Revisa los importes. Usa la coma para los céntimos, por ejemplo 1250,50.');
                 } catch (DocumentNotFound) {
@@ -169,6 +180,18 @@ final class DocumentController extends AbstractController
         return $response;
     }
 
+    private function rateMessage(Tax $tax): string
+    {
+        return Tax::Ipsi === $tax ? 'Indica el porcentaje de IPSI.' : 'Elige el tipo de '.mb_strtoupper($tax->value).'.';
+    }
+
+    private function rateError(Tax $tax): string
+    {
+        return Tax::Ipsi === $tax
+            ? 'Escribe un porcentaje entre 0 y 100, con hasta dos decimales.'
+            : 'Elige uno de los tipos de '.mb_strtoupper($tax->value).' de la lista.';
+    }
+
     private function client(): SecurityUser
     {
         $user = $this->getUser();
@@ -196,7 +219,7 @@ final class DocumentController extends AbstractController
     }
 
     /**
-     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, vatRate: string} $input
+     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string} $input
      *
      * @return array<string, mixed>
      */
@@ -209,6 +232,11 @@ final class DocumentController extends AbstractController
             'editable' => $document->isEditable(),
             'proposal' => $document->proposal()?->value,
             'status' => DocumentLabel::status($document->status()),
+            'taxName' => mb_strtoupper($document->tax()->value),
+            'manualTaxRate' => Tax::Ipsi === $document->tax(),
+            'taxRates' => array_map(static fn (int $rate): string => TaxRate::fromBasisPoints($document->tax(), $rate)->percentage(), $document->tax()->allowedBasisPoints()),
+            'rateMessage' => $this->rateMessage($document->tax()),
+            'rateError' => $this->rateError($document->tax()),
             'quota' => DocumentLabel::euros($document->quotaCents()),
             'directionLabel' => DocumentLabel::direction($document->direction()),
             'issuedOnLabel' => $document->issuedOn()?->format('d/m/Y') ?? '',
@@ -216,18 +244,18 @@ final class DocumentController extends AbstractController
             'totalLabel' => DocumentLabel::euros($document->totalCents()),
             'partyName' => $document->partyName() ?? '',
             'taxId' => $document->taxId() ?? '',
-            'vatRate' => null === $document->vatRate() ? '' : (string) $document->vatRate()->value,
+            'taxRate' => $document->taxRate()?->percentage() ?? '',
             ...$input,
-            ...$this->amounts($input),
+            ...$this->amounts($input, $document->tax()),
         ];
     }
 
     /**
-     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, vatRate: string} $input
+     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string} $input
      *
      * @return array{quota: string, total: string}
      */
-    private function amounts(array $input): array
+    private function amounts(array $input, Tax $tax): array
     {
         try {
             $details = DocumentForm::read(
@@ -236,9 +264,10 @@ final class DocumentController extends AbstractController
                 $input['partyName'],
                 $input['taxId'],
                 $input['base'],
-                $input['vatRate'],
+                $input['taxRate'],
+                $tax,
             );
-        } catch (InvalidDocument) {
+        } catch (InvalidDocument|InvalidTaxRate) {
             return ['quota' => '', 'total' => ''];
         }
 
@@ -251,7 +280,7 @@ final class DocumentController extends AbstractController
     /**
      * @return array<string, string>
      */
-    private function fieldErrors(IncompleteDocument $exception): array
+    private function fieldErrors(IncompleteDocument $exception, Tax $tax): array
     {
         $messages = [
             'direction' => 'Indica si es un ingreso o un gasto.',
@@ -259,7 +288,7 @@ final class DocumentController extends AbstractController
             'partyName' => 'Indica el tercero.',
             'taxId' => 'Indica el NIF.',
             'base' => 'Indica la base.',
-            'vatRate' => 'Elige el tipo de IVA.',
+            'taxRate' => $this->rateMessage($tax),
         ];
         $errors = [];
 
@@ -273,7 +302,7 @@ final class DocumentController extends AbstractController
     }
 
     /**
-     * @return array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, vatRate: string}
+     * @return array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string}
      */
     private function inputFromDocument(Document $document): array
     {
@@ -287,12 +316,12 @@ final class DocumentController extends AbstractController
             'partyName' => $document->partyName() ?? '',
             'taxId' => $document->taxId() ?? '',
             'base' => DocumentLabel::euros($document->baseCents()),
-            'vatRate' => null === $document->vatRate() ? '' : (string) $document->vatRate()->value,
+            'taxRate' => $document->taxRate()?->percentage() ?? '',
         ];
     }
 
     /**
-     * @return array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, vatRate: string}
+     * @return array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string}
      */
     private function inputFromRequest(Request $request): array
     {
@@ -302,12 +331,12 @@ final class DocumentController extends AbstractController
             'partyName' => (string) $request->request->get('party_name', ''),
             'taxId' => (string) $request->request->get('tax_id', ''),
             'base' => (string) $request->request->get('base', ''),
-            'vatRate' => (string) $request->request->get('vat_rate', ''),
+            'taxRate' => (string) $request->request->get('tax_rate', ''),
         ];
     }
 
     /**
-     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, vatRate: string} $input
+     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string} $input
      *
      * @return array{string, string, string, string, string, string}
      */
@@ -319,7 +348,7 @@ final class DocumentController extends AbstractController
             $input['partyName'],
             $input['taxId'],
             $input['base'],
-            $input['vatRate'],
+            $input['taxRate'],
         ];
     }
 }

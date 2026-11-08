@@ -1,7 +1,8 @@
 import { Controller } from '@hotwired/stimulus';
 
 export default class extends Controller {
-    static targets = ['base', 'vat', 'total', 'quota'];
+    static targets = ['base', 'rate', 'total', 'quota'];
+    static values = { taxName: String };
 
     connect() {
         this.recalculate();
@@ -10,33 +11,38 @@ export default class extends Controller {
     recalculate(event) {
         const edited = event?.target instanceof HTMLElement ? event.target.closest('[data-field]') : null;
 
-        if (edited instanceof HTMLElement && !this.isEmpty(edited) && !(edited.contains(this.baseTarget) && this.invalidBase())) {
+        if (edited instanceof HTMLElement && !this.isEmpty(edited) && !(edited.contains(this.baseTarget) && this.invalidBase()) && !(edited.contains(this.rateTarget) && this.invalidRate())) {
             this.clearGroup(edited);
         }
 
         const base = this.cents(this.baseTarget.value);
-        const rate = this.vatTarget.value;
+        const rate = this.rateBasisPoints();
 
-        if (null === base || '' === rate || undefined === base) {
+        if (null === base || null === rate || undefined === rate || undefined === base) {
             this.totalTarget.value = '';
-            this.quotaTarget.textContent = 'Cuota de IVA: se calcula con la base y el IVA';
+            this.quotaTarget.textContent = `Cuota de ${this.taxNameValue}: se calcula con la base y ${this.taxNameValue}`;
 
             return;
         }
 
-        const quota = Math.round(base * Number(rate) / 100);
-        this.quotaTarget.textContent = `Cuota de IVA: ${this.euros(quota)} €`;
+        const quota = Math.floor((base * rate + 5000) / 10000);
+        this.quotaTarget.textContent = `Cuota de ${this.taxNameValue}: ${this.euros(quota)} €`;
         this.totalTarget.value = this.euros(base + quota);
     }
 
     submit(event) {
         const invalidBase = this.invalidBase();
+        const invalidRate = this.invalidRate();
         const missing = 'confirm' === event.submitter?.value ? this.missingFields() : [];
 
         this.clearErrors();
 
         if (invalidBase) {
             missing.push(this.baseTarget.closest('[data-field]'));
+        }
+
+        if (invalidRate) {
+            missing.push(this.rateTarget.closest('[data-field]'));
         }
 
         const groups = missing.filter((group) => group instanceof HTMLElement);
@@ -46,7 +52,7 @@ export default class extends Controller {
         }
 
         event.preventDefault();
-        groups.forEach((group) => this.showError(group, invalidBase && group === this.baseTarget.closest('[data-field]')
+        groups.forEach((group) => this.showError(group, (invalidBase && group === this.baseTarget.closest('[data-field]')) || (invalidRate && group === this.rateTarget.closest('[data-field]'))
             ? group.dataset.invalid
             : group.dataset.message));
         groups[0].querySelector('input, select')?.focus();
@@ -64,6 +70,27 @@ export default class extends Controller {
 
     invalidBase() {
         return undefined === this.cents(this.baseTarget.value);
+    }
+
+    invalidRate() {
+        return undefined === this.rateBasisPoints();
+    }
+
+    rateBasisPoints() {
+        const text = this.rateTarget.value.trim().replace(',', '.');
+
+        if ('' === text) {
+            return null;
+        }
+
+        if (!/^\d{1,3}(\.\d{1,2})?$/.test(text)) {
+            return undefined;
+        }
+
+        const [whole, fraction = '0'] = text.split('.');
+        const rate = Number(whole) * 100 + Number(fraction.padEnd(2, '0'));
+
+        return rate <= 10000 ? rate : undefined;
     }
 
     isEmpty(group) {

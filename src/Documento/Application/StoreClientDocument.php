@@ -9,6 +9,7 @@ use App\Documento\Domain\DocumentFileStore;
 use App\Documento\Domain\DocumentRepository;
 use App\Documento\Domain\ExtractionFailed;
 use App\Documento\Domain\MissingClientProfile;
+use App\Documento\Domain\Tax;
 use App\Documento\Domain\UnsupportedFile;
 use App\Shared\Domain\Clock;
 use App\Shared\Domain\IdGenerator;
@@ -46,6 +47,8 @@ final class StoreClientDocument
             throw new MissingClientProfile('The client profile does not exist.');
         }
 
+        $tax = Tax::forProvince($client->contact()->province());
+
         if ('' === $contents || strlen($contents) > self::MAX_BYTES) {
             throw new UnsupportedFile('The file is empty or too large.');
         }
@@ -67,10 +70,11 @@ final class StoreClientDocument
             $path,
             $storedType,
             $this->clock->now(),
+            $tax,
         );
 
         try {
-            $proposal = $this->extractor->propose($storedType, $contents);
+            $proposal = $this->extractor->propose($storedType, $contents, $tax);
             $document = $document->propose($proposal->details(), $proposal->origin());
         } catch (ExtractionFailed) {
         }

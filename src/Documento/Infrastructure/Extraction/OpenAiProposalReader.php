@@ -6,10 +6,13 @@ use App\Documento\Application\DocumentForm;
 use App\Documento\Domain\DocumentDetails;
 use App\Documento\Domain\ExtractionFailed;
 use App\Documento\Domain\InvalidDocument;
+use App\Documento\Domain\InvalidTaxRate;
+use App\Documento\Domain\Tax;
+use App\Documento\Domain\TaxRate;
 
 final class OpenAiProposalReader
 {
-    public function read(string $payload): DocumentDetails
+    public function read(string $payload, Tax $tax = Tax::Vat): DocumentDetails
     {
         $payload = trim($payload);
         $payload = preg_replace('/^```(?:json)?\s*|\s*```$/', '', $payload) ?? $payload;
@@ -26,7 +29,8 @@ final class OpenAiProposalReader
                 self::text($data['party_name'] ?? null, 120),
                 self::text($data['tax_id'] ?? null, 20),
                 self::money($data['base'] ?? null),
-                self::vatRate($data['vat_rate'] ?? null),
+                self::taxRate($data['tax_rate'] ?? null, $tax),
+                $tax,
             );
         } catch (InvalidDocument) {
             throw new ExtractionFailed('The document could not be read.');
@@ -38,7 +42,7 @@ final class OpenAiProposalReader
             && null === $details->partyName()
             && null === $details->taxId()
             && null === $details->baseCents()
-            && null === $details->vatRate()
+            && null === $details->taxRate()
         ) {
             throw new ExtractionFailed('The document could not be read.');
         }
@@ -102,20 +106,16 @@ final class OpenAiProposalReader
         return 1 === preg_match('/^\d{1,9}(\.\d{1,2})?$/', $normalized) ? $value : '';
     }
 
-    private static function vatRate(mixed $value): string
+    private static function taxRate(mixed $value, Tax $tax): string
     {
-        if (is_float($value) && $value === (float) (int) $value) {
-            $value = (int) $value;
-        }
-
-        if (is_string($value) && 1 === preg_match('/^\d+$/', trim($value))) {
-            $value = (int) trim($value);
-        }
-
-        if (!is_int($value) || !in_array($value, [0, 4, 10, 21], true)) {
+        if (Tax::Ipsi === $tax || (!is_int($value) && !is_float($value) && !is_string($value))) {
             return '';
         }
 
-        return (string) $value;
+        try {
+            return TaxRate::fromPercentage($tax, (string) $value)->percentage();
+        } catch (InvalidTaxRate) {
+            return '';
+        }
     }
 }

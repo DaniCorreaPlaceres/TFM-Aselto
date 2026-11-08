@@ -23,7 +23,7 @@ Lista de lo que hay que hacer. El detalle de cada una se escribe en `docs/sdd/` 
 14. Lectura del documento por IA, con revisión humana. Hecha.
 15. Alta de clientes y de asesorías con NIF o CIF, teléfono y dirección. Validar el formato del NIF, CIF o NIE. Hecha.
 16. Perfil editable con los datos fiscales. Cada persona edita los suyos. El admin de la asesoría edita los de sus clientes. El gestor los ve y no los cambia. Hecha.
-17. El territorio sale de la provincia. Península y Baleares usan IVA. Canarias usa IGIC: 0, 3, 7, 9,5, 15 y 20. Ceuta y Melilla usan IPSI. El documento usa el impuesto de ese territorio.
+17. El territorio sale de la provincia. Península y Baleares usan IVA. Canarias usa IGIC: 0, 3, 7, 9,5, 15 y 20. Ceuta y Melilla usan IPSI con porcentaje manual. El documento usa el impuesto de ese territorio. Hecha.
 18. Recargo de equivalencia en los gastos.
 19. Retención de IRPF en los ingresos de un autónomo.
 20. Bandeja de la asesoría: validar, rechazar o pedir otro documento.

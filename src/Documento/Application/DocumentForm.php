@@ -5,7 +5,8 @@ namespace App\Documento\Application;
 use App\Documento\Domain\DocumentDetails;
 use App\Documento\Domain\InvalidDocument;
 use App\Documento\Domain\MovementDirection;
-use App\Documento\Domain\VatRate;
+use App\Documento\Domain\Tax;
+use App\Documento\Domain\TaxRate;
 
 final class DocumentForm
 {
@@ -15,7 +16,8 @@ final class DocumentForm
         string $partyName,
         string $taxId,
         string $base,
-        string $vatRate,
+        string $taxRate,
+        Tax $tax = Tax::Vat,
     ): DocumentDetails {
         return new DocumentDetails(
             self::direction($direction),
@@ -23,7 +25,8 @@ final class DocumentForm
             self::text($partyName),
             self::taxId($taxId),
             self::money($base),
-            self::vatRate($vatRate),
+            '' === trim($taxRate) ? null : TaxRate::fromPercentage($tax, $taxRate),
+            $tax,
         );
     }
 
@@ -66,15 +69,6 @@ final class DocumentForm
         $value = mb_strtoupper(trim($value));
 
         return '' === $value ? null : $value;
-    }
-
-    private static function vatRate(string $value): ?VatRate
-    {
-        if ('' === $value) {
-            return null;
-        }
-
-        return VatRate::tryFrom((int) $value) ?? throw new InvalidDocument('The VAT rate is not valid.');
     }
 
     private static function money(string $value): ?int

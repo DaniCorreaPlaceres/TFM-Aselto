@@ -4,6 +4,7 @@ namespace App\Documento\Infrastructure\Extraction;
 
 use App\Documento\Domain\DocumentExtractor;
 use App\Documento\Domain\Proposal;
+use App\Documento\Domain\Tax;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 final class ConfiguredDocumentExtractor implements DocumentExtractor
@@ -16,12 +17,12 @@ final class ConfiguredDocumentExtractor implements DocumentExtractor
     ) {
     }
 
-    public function propose(string $mediaType, string $contents): Proposal
+    public function propose(string $mediaType, string $contents, Tax $tax = Tax::Vat): Proposal
     {
         if ('' === trim($this->apiKey)) {
-            return $this->sample->propose($mediaType, $contents);
+            return $this->sample->propose($mediaType, $contents, $tax);
         }
 
-        return $this->openAi->propose($mediaType, $contents);
+        return $this->openAi->propose($mediaType, $contents, $tax);
     }
 }
