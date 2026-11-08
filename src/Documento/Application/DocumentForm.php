@@ -3,6 +3,7 @@
 namespace App\Documento\Application;
 
 use App\Documento\Domain\DocumentDetails;
+use App\Documento\Domain\EquivalenceSurcharge;
 use App\Documento\Domain\InvalidDocument;
 use App\Documento\Domain\MovementDirection;
 use App\Documento\Domain\Tax;
@@ -18,6 +19,7 @@ final class DocumentForm
         string $base,
         string $taxRate,
         Tax $tax = Tax::Vat,
+        string $surcharge = '',
     ): DocumentDetails {
         return new DocumentDetails(
             self::direction($direction),
@@ -27,6 +29,7 @@ final class DocumentForm
             self::money($base),
             '' === trim($taxRate) ? null : TaxRate::fromPercentage($tax, $taxRate),
             $tax,
+            '' === trim($surcharge) ? null : EquivalenceSurcharge::fromPercentage($surcharge),
         );
     }
 

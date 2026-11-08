@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus';
 
 export default class extends Controller {
-    static targets = ['base', 'rate', 'total', 'quota'];
+    static targets = ['base', 'rate', 'total', 'quota', 'surcharge', 'surchargeGroup', 'surchargeQuota'];
     static values = { taxName: String };
 
     connect() {
@@ -15,11 +15,15 @@ export default class extends Controller {
             this.clearGroup(edited);
         }
 
+        const surchargeRate = this.refreshSurcharge();
         const base = this.cents(this.baseTarget.value);
         const rate = this.rateBasisPoints();
 
         if (null === base || null === rate || undefined === rate || undefined === base) {
             this.totalTarget.value = '';
+            if (this.hasSurchargeQuotaTarget) {
+                this.surchargeQuotaTarget.textContent = 'Cuota de recargo: se calcula con la base y el recargo.';
+            }
             this.quotaTarget.textContent = `Cuota de ${this.taxNameValue}: se calcula con la base y ${this.taxNameValue}`;
 
             return;
@@ -27,7 +31,33 @@ export default class extends Controller {
 
         const quota = Math.floor((base * rate + 5000) / 10000);
         this.quotaTarget.textContent = `Cuota de ${this.taxNameValue}: ${this.euros(quota)} €`;
-        this.totalTarget.value = this.euros(base + quota);
+        const surchargeQuota = Math.floor((base * surchargeRate + 5000) / 10000);
+        if (this.hasSurchargeQuotaTarget) {
+            this.surchargeQuotaTarget.textContent = '' === this.surchargeTarget.value ? 'Sin recargo.' : `Cuota de recargo: ${this.euros(surchargeQuota)} €`;
+        }
+        this.totalTarget.value = this.euros(base + quota + surchargeQuota);
+    }
+
+    refreshSurcharge() {
+        if (!this.hasSurchargeTarget) {
+            return 0;
+        }
+
+        const direction = this.element.querySelector('input[name="direction"]:checked')?.value;
+        const allowed = 'IVA' === this.taxNameValue && 'gasto' === direction;
+        const rate = this.rateBasisPoints();
+
+        this.surchargeGroupTarget.hidden = !allowed;
+        this.surchargeTarget.disabled = !allowed;
+        for (const option of this.surchargeTarget.options) {
+            option.disabled = '' !== option.value && (!allowed || Number(option.dataset.vatRate) !== rate);
+        }
+
+        if (!allowed || this.surchargeTarget.selectedOptions[0]?.disabled) {
+            this.surchargeTarget.value = '';
+        }
+
+        return Math.round(Number(this.surchargeTarget.value) * 100);
     }
 
     submit(event) {
@@ -65,7 +95,7 @@ export default class extends Controller {
     }
 
     missingFields() {
-        return [...this.element.querySelectorAll('[data-field]')].filter((group) => this.isEmpty(group));
+        return [...this.element.querySelectorAll('[data-field]')].filter((group) => !group.hasAttribute('data-optional') && this.isEmpty(group));
     }
 
     invalidBase() {

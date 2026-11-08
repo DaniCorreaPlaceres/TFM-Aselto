@@ -24,6 +24,7 @@ final class ConfirmDocument
         string $taxId,
         string $base,
         string $taxRate,
+        string $surcharge = '',
     ): Document {
         $document = $this->documents->execute($userId, $documentId);
         $document = $document->confirm(DocumentForm::read(
@@ -34,6 +35,7 @@ final class ConfirmDocument
             $base,
             $taxRate,
             $document->tax(),
+            $surcharge,
         ));
 
         $this->transaction->run(function () use ($document): void {

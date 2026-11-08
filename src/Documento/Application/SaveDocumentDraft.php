@@ -24,6 +24,7 @@ final class SaveDocumentDraft
         string $taxId,
         string $base,
         string $taxRate,
+        string $surcharge = '',
     ): Document {
         $document = $this->documents->execute($userId, $documentId);
         $document = $document->saveDraft(DocumentForm::read(
@@ -34,6 +35,7 @@ final class SaveDocumentDraft
             $base,
             $taxRate,
             $document->tax(),
+            $surcharge,
         ));
 
         $this->transaction->run(function () use ($document): void {

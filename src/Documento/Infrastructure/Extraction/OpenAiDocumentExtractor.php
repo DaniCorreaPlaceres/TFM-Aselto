@@ -89,7 +89,10 @@ final class OpenAiDocumentExtractor implements DocumentExtractor
 
         return 'Read this Spanish invoice or receipt. Reply with JSON only, using these keys: '
             .'direction (income, expense or null), issued_on (YYYY-MM-DD or null), party_name, tax_id, '
-            .'base as a decimal string, and tax_rate. '.$rateInstructions.' '
+            .'base as a decimal string, tax_rate, and surcharge_rate. '.$rateInstructions.' '
+            .'surcharge_rate is null unless an equivalence surcharge is explicitly printed on an expense with IVA. '
+            .'Allowed surcharge rates are 5.2 with IVA 21, 1.4 with IVA 10, 0.5 with IVA 4, or 1.75 for tobacco with IVA 21. '
+            .'Never infer a surcharge from the IVA rate alone. For IGIC, IPSI or income return null for surcharge_rate. '
             .'Use expense when the document is a purchase and income when the client issued it. '
             .'Do not invent missing fields.';
     }

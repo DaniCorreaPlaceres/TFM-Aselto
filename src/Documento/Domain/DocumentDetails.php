@@ -12,7 +12,12 @@ final class DocumentDetails
         private readonly ?int $baseCents,
         private readonly ?TaxRate $taxRate,
         private readonly Tax $tax = Tax::Vat,
+        private readonly ?EquivalenceSurcharge $surcharge = null,
     ) {
+        if (null !== $surcharge && !$surcharge->supports($direction, $tax, $taxRate)) {
+            throw new InvalidSurcharge('The surcharge is not compatible with the document.');
+        }
+
         if (null !== $taxRate && !$tax->accepts($taxRate)) {
             throw new InvalidTaxRate('The rate does not belong to the document tax.');
         }
@@ -74,6 +79,16 @@ final class DocumentDetails
         return $this->taxRate->quotaFor($this->baseCents);
     }
 
+    public function surcharge(): ?EquivalenceSurcharge
+    {
+        return $this->surcharge;
+    }
+
+    public function surchargeQuotaCents(): ?int
+    {
+        return null === $this->baseCents ? null : $this->surcharge?->quotaFor($this->baseCents);
+    }
+
     public function totalCents(): ?int
     {
         $quota = $this->quotaCents();
@@ -82,6 +97,6 @@ final class DocumentDetails
             return null;
         }
 
-        return $this->baseCents + $quota;
+        return $this->baseCents + $quota + ($this->surchargeQuotaCents() ?? 0);
     }
 }

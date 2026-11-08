@@ -4,8 +4,10 @@ namespace App\Documento\Infrastructure\Extraction;
 
 use App\Documento\Application\DocumentForm;
 use App\Documento\Domain\DocumentDetails;
+use App\Documento\Domain\EquivalenceSurcharge;
 use App\Documento\Domain\ExtractionFailed;
 use App\Documento\Domain\InvalidDocument;
+use App\Documento\Domain\InvalidSurcharge;
 use App\Documento\Domain\InvalidTaxRate;
 use App\Documento\Domain\Tax;
 use App\Documento\Domain\TaxRate;
@@ -47,7 +49,20 @@ final class OpenAiProposalReader
             throw new ExtractionFailed('The document could not be read.');
         }
 
-        return $details;
+        $value = $data['surcharge_rate'] ?? null;
+        $surcharge = null;
+
+        if (is_int($value) || is_float($value) || is_string($value)) {
+            try {
+                $candidate = EquivalenceSurcharge::fromPercentage((string) $value);
+                if ($candidate->supports($details->direction(), $tax, $details->taxRate())) {
+                    $surcharge = $candidate;
+                }
+            } catch (InvalidSurcharge) {
+            }
+        }
+
+        return new DocumentDetails($details->direction(), $details->issuedOn(), $details->partyName(), $details->taxId(), $details->baseCents(), $details->taxRate(), $tax, $surcharge);
     }
 
     private static function direction(mixed $value): string
