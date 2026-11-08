@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus';
 
 export default class extends Controller {
-    static targets = ['base', 'rate', 'total', 'quota', 'surcharge', 'surchargeGroup', 'surchargeQuota'];
+    static targets = ['base', 'rate', 'total', 'quota', 'surcharge', 'surchargeGroup', 'surchargeQuota', 'withholding', 'withholdingGroup', 'withholdingQuota'];
     static values = { taxName: String };
 
     connect() {
@@ -11,18 +11,22 @@ export default class extends Controller {
     recalculate(event) {
         const edited = event?.target instanceof HTMLElement ? event.target.closest('[data-field]') : null;
 
-        if (edited instanceof HTMLElement && !this.isEmpty(edited) && !(edited.contains(this.baseTarget) && this.invalidBase()) && !(edited.contains(this.rateTarget) && this.invalidRate())) {
+        if (edited instanceof HTMLElement && !this.isEmpty(edited) && !(edited.contains(this.baseTarget) && this.invalidBase()) && !(edited.contains(this.rateTarget) && this.invalidRate()) && !(this.hasWithholdingTarget && edited.contains(this.withholdingTarget) && this.invalidWithholding())) {
             this.clearGroup(edited);
         }
 
+        const withholdingRate = this.refreshWithholding();
         const surchargeRate = this.refreshSurcharge();
         const base = this.cents(this.baseTarget.value);
         const rate = this.rateBasisPoints();
 
-        if (null === base || null === rate || undefined === rate || undefined === base) {
+        if (null === base || null === rate || undefined === rate || undefined === base || undefined === withholdingRate) {
             this.totalTarget.value = '';
             if (this.hasSurchargeQuotaTarget) {
                 this.surchargeQuotaTarget.textContent = 'Cuota de recargo: se calcula con la base y el recargo.';
+            }
+            if (this.hasWithholdingQuotaTarget) {
+                this.withholdingQuotaTarget.textContent = 'Cuota de retención: se calcula con la base y el porcentaje.';
             }
             this.quotaTarget.textContent = `Cuota de ${this.taxNameValue}: se calcula con la base y ${this.taxNameValue}`;
 
@@ -35,7 +39,11 @@ export default class extends Controller {
         if (this.hasSurchargeQuotaTarget) {
             this.surchargeQuotaTarget.textContent = '' === this.surchargeTarget.value ? 'Sin recargo.' : `Cuota de recargo: ${this.euros(surchargeQuota)} €`;
         }
-        this.totalTarget.value = this.euros(base + quota + surchargeQuota);
+        const withholdingQuota = Math.floor((base * (withholdingRate ?? 0) + 5000) / 10000);
+        if (this.hasWithholdingQuotaTarget) {
+            this.withholdingQuotaTarget.textContent = null === withholdingRate ? 'Sin retención.' : `Cuota de retención: ${this.euros(withholdingQuota)} €`;
+        }
+        this.totalTarget.value = this.euros(base + quota + surchargeQuota - withholdingQuota);
     }
 
     refreshSurcharge() {
@@ -60,9 +68,45 @@ export default class extends Controller {
         return Math.round(Number(this.surchargeTarget.value) * 100);
     }
 
+    refreshWithholding() {
+        if (!this.hasWithholdingTarget) {
+            return null;
+        }
+
+        const allowed = 'ingreso' === this.element.querySelector('input[name="direction"]:checked')?.value;
+        this.withholdingGroupTarget.hidden = !allowed;
+        this.withholdingTarget.disabled = !allowed;
+        if (!allowed) {
+            this.withholdingTarget.value = '';
+        }
+
+        return this.withholdingBasisPoints();
+    }
+
+    withholdingBasisPoints() {
+        if (!this.hasWithholdingTarget || '' === this.withholdingTarget.value.trim()) {
+            return null;
+        }
+
+        const text = this.withholdingTarget.value.trim().replace(',', '.');
+        if (!/^\d{1,3}(\.\d{1,2})?$/.test(text)) {
+            return undefined;
+        }
+
+        const [whole, fraction = '0'] = text.split('.');
+        const rate = Number(whole) * 100 + Number(fraction.padEnd(2, '0'));
+
+        return rate <= 10000 ? rate : undefined;
+    }
+
+    invalidWithholding() {
+        return undefined === this.withholdingBasisPoints();
+    }
+
     submit(event) {
         const invalidBase = this.invalidBase();
         const invalidRate = this.invalidRate();
+        const invalidWithholding = this.invalidWithholding();
         const missing = 'confirm' === event.submitter?.value ? this.missingFields() : [];
 
         this.clearErrors();
@@ -75,6 +119,10 @@ export default class extends Controller {
             missing.push(this.rateTarget.closest('[data-field]'));
         }
 
+        if (invalidWithholding) {
+            missing.push(this.withholdingTarget.closest('[data-field]'));
+        }
+
         const groups = missing.filter((group) => group instanceof HTMLElement);
 
         if (0 === groups.length) {
@@ -82,7 +130,7 @@ export default class extends Controller {
         }
 
         event.preventDefault();
-        groups.forEach((group) => this.showError(group, (invalidBase && group === this.baseTarget.closest('[data-field]')) || (invalidRate && group === this.rateTarget.closest('[data-field]'))
+        groups.forEach((group) => this.showError(group, (invalidBase && group === this.baseTarget.closest('[data-field]')) || (invalidRate && group === this.rateTarget.closest('[data-field]')) || (invalidWithholding && group === this.withholdingTarget.closest('[data-field]'))
             ? group.dataset.invalid
             : group.dataset.message));
         groups[0].querySelector('input, select')?.focus();

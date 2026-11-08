@@ -17,12 +17,12 @@ final class ConfiguredDocumentExtractor implements DocumentExtractor
     ) {
     }
 
-    public function propose(string $mediaType, string $contents, Tax $tax = Tax::Vat): Proposal
+    public function propose(string $mediaType, string $contents, Tax $tax = Tax::Vat, bool $allowsWithholding = false): Proposal
     {
         if ('' === trim($this->apiKey)) {
-            return $this->sample->propose($mediaType, $contents, $tax);
+            return $this->sample->propose($mediaType, $contents, $tax, $allowsWithholding);
         }
 
-        return $this->openAi->propose($mediaType, $contents, $tax);
+        return $this->openAi->propose($mediaType, $contents, $tax, $allowsWithholding);
     }
 }

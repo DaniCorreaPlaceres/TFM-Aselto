@@ -25,7 +25,7 @@ Lista de lo que hay que hacer. El detalle de cada una se escribe en `docs/sdd/` 
 16. Perfil editable con los datos fiscales. Cada persona edita los suyos. El admin de la asesoría edita los de sus clientes. El gestor los ve y no los cambia. Hecha.
 17. El territorio sale de la provincia. Península y Baleares usan IVA. Canarias usa IGIC: 0, 3, 7, 9,5, 15 y 20. Ceuta y Melilla usan IPSI con porcentaje manual. El documento usa el impuesto de ese territorio. Hecha.
 18. Recargo de equivalencia opcional en los gastos con IVA, con cuota y total calculados. Hecha.
-19. Retención de IRPF en los ingresos de un autónomo.
+19. Retención de IRPF opcional en los ingresos de un autónomo, con porcentaje manual, cuota y total calculados. Hecha.
 20. Bandeja de la asesoría: validar, rechazar o pedir otro documento.
 21. Trimestre: cifras, cierre y consulta del histórico.
 22. Mensajes y solicitudes entre cliente y asesoría.

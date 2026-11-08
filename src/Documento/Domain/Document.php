@@ -32,7 +32,17 @@ final class Document
         private readonly Tax $tax = Tax::Vat,
         private readonly ?EquivalenceSurcharge $surcharge = null,
         private readonly ?int $surchargeQuotaCents = null,
+        private readonly ?WithholdingRate $withholdingRate = null,
+        private readonly ?int $withholdingQuotaCents = null,
     ) {
+        if (null !== $withholdingRate && MovementDirection::Income !== $direction) {
+            throw new InvalidWithholding('Withholding is only available for income.');
+        }
+
+        if ((null === $baseCents ? null : $withholdingRate?->quotaFor($baseCents)) !== $withholdingQuotaCents) {
+            throw new InvalidWithholding('The withholding quota does not match the base and percentage.');
+        }
+
         if (null !== $surcharge && !$surcharge->supports($direction, $tax, $taxRate)) {
             throw new InvalidSurcharge('The surcharge is not compatible with the document.');
         }
@@ -131,6 +141,8 @@ final class Document
             $this->tax,
             $details->surcharge(),
             $details->surchargeQuotaCents(),
+            $details->withholdingRate(),
+            $details->withholdingQuotaCents(),
         );
     }
 
@@ -275,6 +287,16 @@ final class Document
         return $this->surchargeQuotaCents;
     }
 
+    public function withholdingRate(): ?WithholdingRate
+    {
+        return $this->withholdingRate;
+    }
+
+    public function withholdingQuotaCents(): ?int
+    {
+        return $this->withholdingQuotaCents;
+    }
+
     public function totalCents(): ?int
     {
         return $this->totalCents;
@@ -322,6 +344,8 @@ final class Document
             $this->tax,
             $details->surcharge(),
             $details->surchargeQuotaCents(),
+            $details->withholdingRate(),
+            $details->withholdingQuotaCents(),
         );
     }
 

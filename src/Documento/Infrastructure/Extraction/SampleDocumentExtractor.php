@@ -10,7 +10,7 @@ use App\Documento\Domain\Tax;
 
 final class SampleDocumentExtractor implements DocumentExtractor
 {
-    public function propose(string $mediaType, string $contents, Tax $tax = Tax::Vat): Proposal
+    public function propose(string $mediaType, string $contents, Tax $tax = Tax::Vat, bool $allowsWithholding = false): Proposal
     {
         return new Proposal(
             DocumentForm::read('gasto', '2026-03-12', 'Proveedor de ejemplo', '00000000T', '100,00', match ($tax) {

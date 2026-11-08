@@ -8,6 +8,7 @@ use App\Documento\Domain\InvalidDocument;
 use App\Documento\Domain\MovementDirection;
 use App\Documento\Domain\Tax;
 use App\Documento\Domain\TaxRate;
+use App\Documento\Domain\WithholdingRate;
 
 final class DocumentForm
 {
@@ -20,6 +21,7 @@ final class DocumentForm
         string $taxRate,
         Tax $tax = Tax::Vat,
         string $surcharge = '',
+        string $withholdingRate = '',
     ): DocumentDetails {
         return new DocumentDetails(
             self::direction($direction),
@@ -30,6 +32,7 @@ final class DocumentForm
             '' === trim($taxRate) ? null : TaxRate::fromPercentage($tax, $taxRate),
             $tax,
             '' === trim($surcharge) ? null : EquivalenceSurcharge::fromPercentage($surcharge),
+            '' === trim($withholdingRate) ? null : WithholdingRate::fromPercentage($withholdingRate),
         );
     }
 
