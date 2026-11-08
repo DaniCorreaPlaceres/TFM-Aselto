@@ -5,6 +5,7 @@ namespace App\Documento\Ui;
 use App\Cliente\Application\ShowClientHome;
 use App\Documento\Application\ConfirmDocument;
 use App\Documento\Application\DocumentForm;
+use App\Documento\Application\DocumentWithholdingPolicy;
 use App\Documento\Application\ListClientDocuments;
 use App\Documento\Application\OpenClientDocument;
 use App\Documento\Application\SaveDocumentDraft;
@@ -16,6 +17,7 @@ use App\Documento\Domain\IncompleteDocument;
 use App\Documento\Domain\InvalidDocument;
 use App\Documento\Domain\InvalidSurcharge;
 use App\Documento\Domain\InvalidTaxRate;
+use App\Documento\Domain\InvalidWithholding;
 use App\Documento\Domain\MissingClientProfile;
 use App\Documento\Domain\MissingFiscalProvince;
 use App\Documento\Domain\MovementDirection;
@@ -110,6 +112,7 @@ final class DocumentController extends AbstractController
         OpenClientDocument $openClientDocument,
         SaveDocumentDraft $saveDocumentDraft,
         ConfirmDocument $confirmDocument,
+        DocumentWithholdingPolicy $withholdingPolicy,
     ): Response {
         $user = $this->client();
 
@@ -140,6 +143,9 @@ final class DocumentController extends AbstractController
                 } catch (IncompleteDocument $exception) {
                     $fieldErrors = $this->fieldErrors($exception, $document->tax());
                     $this->addFlash('error', 'Revisa los campos marcados.');
+                } catch (InvalidWithholding) {
+                    $fieldErrors['withholdingRate'] = 'La retención solo se admite en ingresos de autónomos. Escribe un porcentaje entre 0 y 100, con hasta dos decimales, o deja el campo vacío.';
+                    $this->addFlash('error', 'Revisa la retención de IRPF.');
                 } catch (InvalidSurcharge) {
                     $fieldErrors['surcharge'] = 'El recargo solo se admite en gastos con IVA y debe corresponder con su tipo. Revisa la selección.';
                     $this->addFlash('error', 'Revisa el recargo de equivalencia.');
@@ -156,7 +162,7 @@ final class DocumentController extends AbstractController
 
         return $this->render('client/document.html.twig', [
             ...$this->layout($showClientHome, $user, 'documentos'),
-            'document' => $this->viewDocument($document, $input),
+            'document' => $this->viewDocument($document, $input, $withholdingPolicy->allows($user->id())),
             'fieldErrors' => $fieldErrors,
             'hasFirm' => null !== $document->firmId(),
         ]);
@@ -223,11 +229,11 @@ final class DocumentController extends AbstractController
     }
 
     /**
-     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string} $input
+     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string} $input
      *
      * @return array<string, mixed>
      */
-    private function viewDocument(Document $document, array $input): array
+    private function viewDocument(Document $document, array $input, bool $allowsWithholding): array
     {
         return [
             'id' => $document->id(),
@@ -237,6 +243,9 @@ final class DocumentController extends AbstractController
             'proposal' => $document->proposal()?->value,
             'status' => DocumentLabel::status($document->status()),
             'taxName' => mb_strtoupper($document->tax()->value),
+            'allowsWithholding' => $allowsWithholding,
+            'withholdingRate' => $document->withholdingRate()?->percentage() ?? '',
+            'withholdingQuota' => DocumentLabel::euros($document->withholdingQuotaCents()),
             'supportsSurcharge' => Tax::Vat === $document->tax(),
             'surcharge' => $document->surcharge()?->percentage() ?? '',
             'surchargeQuota' => DocumentLabel::euros($document->surchargeQuotaCents()),
@@ -258,9 +267,9 @@ final class DocumentController extends AbstractController
     }
 
     /**
-     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string} $input
+     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string} $input
      *
-     * @return array{quota: string, total: string, surchargeQuota: string}
+     * @return array{quota: string, total: string, surchargeQuota: string, withholdingQuota: string}
      */
     private function amounts(array $input, Tax $tax): array
     {
@@ -274,12 +283,14 @@ final class DocumentController extends AbstractController
                 $input['taxRate'],
                 $tax,
                 $input['surcharge'],
+                $input['withholdingRate'],
             );
-        } catch (InvalidDocument|InvalidTaxRate|InvalidSurcharge) {
-            return ['quota' => '', 'total' => '', 'surchargeQuota' => ''];
+        } catch (InvalidDocument|InvalidTaxRate|InvalidSurcharge|InvalidWithholding) {
+            return ['quota' => '', 'total' => '', 'surchargeQuota' => '', 'withholdingQuota' => ''];
         }
 
         return [
+            'withholdingQuota' => DocumentLabel::euros($details->withholdingQuotaCents()),
             'surchargeQuota' => DocumentLabel::euros($details->surchargeQuotaCents()),
             'quota' => DocumentLabel::euros($details->quotaCents()),
             'total' => DocumentLabel::euros($details->totalCents()),
@@ -311,7 +322,7 @@ final class DocumentController extends AbstractController
     }
 
     /**
-     * @return array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string}
+     * @return array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string}
      */
     private function inputFromDocument(Document $document): array
     {
@@ -327,11 +338,12 @@ final class DocumentController extends AbstractController
             'base' => DocumentLabel::euros($document->baseCents()),
             'taxRate' => $document->taxRate()?->percentage() ?? '',
             'surcharge' => $document->surcharge()?->percentage() ?? '',
+            'withholdingRate' => $document->withholdingRate()?->percentage() ?? '',
         ];
     }
 
     /**
-     * @return array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string}
+     * @return array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string}
      */
     private function inputFromRequest(Request $request): array
     {
@@ -343,13 +355,14 @@ final class DocumentController extends AbstractController
             'base' => (string) $request->request->get('base', ''),
             'taxRate' => (string) $request->request->get('tax_rate', ''),
             'surcharge' => (string) $request->request->get('surcharge', ''),
+            'withholdingRate' => (string) $request->request->get('withholding_rate', ''),
         ];
     }
 
     /**
-     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string} $input
+     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string} $input
      *
-     * @return array{string, string, string, string, string, string, string}
+     * @return array{string, string, string, string, string, string, string, string}
      */
     private function arguments(array $input): array
     {
@@ -361,6 +374,7 @@ final class DocumentController extends AbstractController
             $input['base'],
             $input['taxRate'],
             $input['surcharge'],
+            $input['withholdingRate'],
         ];
     }
 }

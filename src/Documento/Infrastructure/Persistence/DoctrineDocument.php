@@ -9,6 +9,7 @@ use App\Documento\Domain\MovementDirection;
 use App\Documento\Domain\ProposalOrigin;
 use App\Documento\Domain\Tax;
 use App\Documento\Domain\TaxRate;
+use App\Documento\Domain\WithholdingRate;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -70,6 +71,12 @@ class DoctrineDocument
     #[ORM\Column(nullable: true)]
     private ?int $surchargeQuotaCents = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $withholdingRate = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $withholdingQuotaCents = null;
+
     #[ORM\Column(length: 16, nullable: true)]
     private ?string $proposal = null;
 
@@ -96,6 +103,8 @@ class DoctrineDocument
         $this->totalCents = $document->totalCents();
         $this->surcharge = $document->surcharge()?->value;
         $this->surchargeQuotaCents = $document->surchargeQuotaCents();
+        $this->withholdingRate = $document->withholdingRate()?->basisPoints();
+        $this->withholdingQuotaCents = $document->withholdingQuotaCents();
         $this->proposal = $document->proposal()?->value;
         $this->createdAt = $document->createdAt();
     }
@@ -123,6 +132,8 @@ class DoctrineDocument
             Tax::from($this->tax),
             null === $this->surcharge ? null : EquivalenceSurcharge::from($this->surcharge),
             $this->surchargeQuotaCents,
+            null === $this->withholdingRate ? null : WithholdingRate::fromBasisPoints($this->withholdingRate),
+            $this->withholdingQuotaCents,
         );
     }
 }

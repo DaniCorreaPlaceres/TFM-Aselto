@@ -9,12 +9,15 @@ use App\Documento\Domain\ExtractionFailed;
 use App\Documento\Domain\InvalidDocument;
 use App\Documento\Domain\InvalidSurcharge;
 use App\Documento\Domain\InvalidTaxRate;
+use App\Documento\Domain\InvalidWithholding;
+use App\Documento\Domain\MovementDirection;
 use App\Documento\Domain\Tax;
 use App\Documento\Domain\TaxRate;
+use App\Documento\Domain\WithholdingRate;
 
 final class OpenAiProposalReader
 {
-    public function read(string $payload, Tax $tax = Tax::Vat): DocumentDetails
+    public function read(string $payload, Tax $tax = Tax::Vat, bool $allowsWithholding = false): DocumentDetails
     {
         $payload = trim($payload);
         $payload = preg_replace('/^```(?:json)?\s*|\s*```$/', '', $payload) ?? $payload;
@@ -62,7 +65,16 @@ final class OpenAiProposalReader
             }
         }
 
-        return new DocumentDetails($details->direction(), $details->issuedOn(), $details->partyName(), $details->taxId(), $details->baseCents(), $details->taxRate(), $tax, $surcharge);
+        $withholding = null;
+        $value = $data['withholding_rate'] ?? null;
+        if ($allowsWithholding && MovementDirection::Income === $details->direction() && (is_int($value) || is_float($value) || is_string($value))) {
+            try {
+                $withholding = WithholdingRate::fromPercentage((string) $value);
+            } catch (InvalidWithholding) {
+            }
+        }
+
+        return new DocumentDetails($details->direction(), $details->issuedOn(), $details->partyName(), $details->taxId(), $details->baseCents(), $details->taxRate(), $tax, $surcharge, $withholding);
     }
 
     private static function direction(mixed $value): string

@@ -7,6 +7,7 @@ use App\Cliente\Domain\ClientKind;
 use App\Cliente\Domain\ClientRepository;
 use App\Documento\Application\ConfirmDocument;
 use App\Documento\Application\DocumentForm;
+use App\Documento\Application\DocumentWithholdingPolicy;
 use App\Documento\Application\ListClientDocuments;
 use App\Documento\Application\OpenClientDocument;
 use App\Documento\Application\SaveDocumentDraft;
@@ -369,12 +370,12 @@ final class DocumentRegistrationTest extends TestCase
 
     private function draft(RegistrationDocumentRepository $documents): SaveDocumentDraft
     {
-        return new SaveDocumentDraft(new OpenClientDocument($documents), $documents, new RegistrationTransaction());
+        return new SaveDocumentDraft(new OpenClientDocument($documents), $documents, new RegistrationTransaction(), new DocumentWithholdingPolicy($this->clients()));
     }
 
     private function confirm(RegistrationDocumentRepository $documents): ConfirmDocument
     {
-        return new ConfirmDocument(new OpenClientDocument($documents), $documents, new RegistrationTransaction());
+        return new ConfirmDocument(new OpenClientDocument($documents), $documents, new RegistrationTransaction(), new DocumentWithholdingPolicy($this->clients()));
     }
 
     private function clients(string $province = 'Madrid'): RegistrationClientRepository
@@ -524,7 +525,7 @@ final class RegistrationClock implements Clock
 
 final class FailingDocumentExtractor implements DocumentExtractor
 {
-    public function propose(string $mediaType, string $contents, Tax $tax = Tax::Vat): Proposal
+    public function propose(string $mediaType, string $contents, Tax $tax = Tax::Vat, bool $allowsWithholding = false): Proposal
     {
         throw new ExtractionFailed('The document could not be read.');
     }
@@ -532,7 +533,7 @@ final class FailingDocumentExtractor implements DocumentExtractor
 
 final class FixedDocumentExtractor implements DocumentExtractor
 {
-    public function propose(string $mediaType, string $contents, Tax $tax = Tax::Vat): Proposal
+    public function propose(string $mediaType, string $contents, Tax $tax = Tax::Vat, bool $allowsWithholding = false): Proposal
     {
         return new Proposal(
             DocumentForm::read('gasto', '2026-03-12', 'Proveedor de ejemplo', '00000000T', '100,00', '21'),

@@ -20,7 +20,7 @@
         {% else %}
             <p>Escribe los datos y revísalos antes de confirmar.</p>
         {% endif %}
-        <p class="client-hint">El total suma la base, la cuota de {{ document.taxName }} y el recargo, si lo hay.</p>
+        <p class="client-hint">El total suma la base, la cuota de {{ document.taxName }} y el recargo, si lo hay{% if document.allowsWithholding %}, y resta la retención de IRPF, si la hay{% endif %}.</p>
         <form method="post" novalidate data-controller="document-review" data-document-review-tax-name-value="{{ document.taxName }}" data-action="input->document-review#recalculate change->document-review#recalculate submit->document-review#submit">
             <fieldset data-field="direction" data-message="Indica si es un ingreso o un gasto.">
                 <legend>Tipo</legend>
@@ -92,6 +92,16 @@
                 </div>
             {% endif %}
 
+            {% if document.allowsWithholding %}
+                <div data-field="withholdingRate" data-optional="true" data-invalid="Escribe un porcentaje entre 0 y 100, con hasta dos decimales, o deja el campo vacío." data-document-review-target="withholdingGroup">
+                    <label for="withholding_rate">Retención de IRPF (%)</label>
+                    <input id="withholding_rate" name="withholding_rate" type="text" inputmode="decimal" value="{{ document.withholdingRate|replace({'.': ','}) }}" data-document-review-target="withholding" aria-describedby="withholding-hint{% if fieldErrors.withholdingRate is defined %} withholdingRate-error{% endif %}" {% if fieldErrors.withholdingRate is defined %}aria-invalid="true"{% endif %}>
+                    <p id="withholding-hint" class="client-hint">Solo para ingresos de autónomos. Deja vacío si no lleva retención; si la hay, escribe el porcentaje del documento.</p>
+                    <p id="withholdingRate-error" class="field-error" {% if fieldErrors.withholdingRate is not defined %}hidden{% endif %}>{{ fieldErrors.withholdingRate|default('') }}</p>
+                    <p data-document-review-target="withholdingQuota" aria-live="polite">Cuota de retención: {% if document.withholdingQuota %}{{ document.withholdingQuota }} €{% else %}sin retención calculada{% endif %}</p>
+                </div>
+            {% endif %}
+
             <label for="total">Total</label>
             <input id="total" type="text" readonly value="{{ document.total }}" data-document-review-target="total" aria-describedby="total-hint">
             <p id="total-hint" class="client-hint">Suma la base, la cuota de {{ document.taxName }} y el recargo, si lo hay.</p>
@@ -113,6 +123,10 @@
             {% if document.surcharge %}
                 <li><span>Recargo de equivalencia</span>{{ document.surcharge|replace({'.': ','}) }} %</li>
                 <li><span>Cuota de recargo</span>{{ document.surchargeQuota }} €</li>
+            {% endif %}
+            {% if document.withholdingRate is not same as ('') %}
+                <li><span>Retención de IRPF</span>{{ document.withholdingRate|replace({'.': ','}) }} %</li>
+                <li><span>Cuota de retención</span>{{ document.withholdingQuota }} €</li>
             {% endif %}
             <li><span>Total</span>{{ document.totalLabel }} €</li>
         </ul>

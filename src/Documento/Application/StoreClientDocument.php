@@ -2,6 +2,7 @@
 
 namespace App\Documento\Application;
 
+use App\Cliente\Domain\ClientKind;
 use App\Cliente\Domain\ClientRepository;
 use App\Documento\Domain\Document;
 use App\Documento\Domain\DocumentExtractor;
@@ -74,7 +75,11 @@ final class StoreClientDocument
         );
 
         try {
-            $proposal = $this->extractor->propose($storedType, $contents, $tax);
+            $allowsWithholding = ClientKind::SelfEmployed === $client->kind();
+            $proposal = $this->extractor->propose($storedType, $contents, $tax, $allowsWithholding);
+            if (!$allowsWithholding && null !== $proposal->details()->withholdingRate()) {
+                throw new ExtractionFailed('Withholding is not available for this client.');
+            }
             $document = $document->propose($proposal->details(), $proposal->origin());
         } catch (ExtractionFailed) {
         }

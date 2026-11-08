@@ -22,7 +22,7 @@ final class OpenAiDocumentExtractor implements DocumentExtractor
     ) {
     }
 
-    public function propose(string $mediaType, string $contents, Tax $tax = Tax::Vat): Proposal
+    public function propose(string $mediaType, string $contents, Tax $tax = Tax::Vat, bool $allowsWithholding = false): Proposal
     {
         if ('' === trim($this->apiKey)) {
             throw new ExtractionFailed('The extractor is not configured.');
@@ -39,7 +39,7 @@ final class OpenAiDocumentExtractor implements DocumentExtractor
                     'messages' => [[
                         'role' => 'user',
                         'content' => [
-                            ['type' => 'text', 'text' => self::instructions($tax)],
+                            ['type' => 'text', 'text' => self::instructions($tax, $allowsWithholding)],
                             $this->file($mediaType, $contents),
                         ],
                     ]],
@@ -51,7 +51,7 @@ final class OpenAiDocumentExtractor implements DocumentExtractor
             throw new ExtractionFailed('The document could not be read.');
         }
 
-        return new Proposal($this->reader->read(is_string($content) ? $content : '', $tax), ProposalOrigin::Extracted);
+        return new Proposal($this->reader->read(is_string($content) ? $content : '', $tax, $allowsWithholding), ProposalOrigin::Extracted);
     }
 
     /**
@@ -79,7 +79,7 @@ final class OpenAiDocumentExtractor implements DocumentExtractor
         ];
     }
 
-    private static function instructions(Tax $tax): string
+    private static function instructions(Tax $tax, bool $allowsWithholding): string
     {
         $rateInstructions = match ($tax) {
             Tax::Vat => 'The client territory uses IVA. tax_rate must be 0, 4, 10, 21 or null.',
@@ -89,10 +89,14 @@ final class OpenAiDocumentExtractor implements DocumentExtractor
 
         return 'Read this Spanish invoice or receipt. Reply with JSON only, using these keys: '
             .'direction (income, expense or null), issued_on (YYYY-MM-DD or null), party_name, tax_id, '
-            .'base as a decimal string, tax_rate, and surcharge_rate. '.$rateInstructions.' '
+            .'base as a decimal string, tax_rate, surcharge_rate, and withholding_rate. '.$rateInstructions.' '
             .'surcharge_rate is null unless an equivalence surcharge is explicitly printed on an expense with IVA. '
             .'Allowed surcharge rates are 5.2 with IVA 21, 1.4 with IVA 10, 0.5 with IVA 4, or 1.75 for tobacco with IVA 21. '
             .'Never infer a surcharge from the IVA rate alone. For IGIC, IPSI or income return null for surcharge_rate. '
+            .($allowsWithholding
+                ? 'The client is self-employed. withholding_rate is the IRPF percentage explicitly printed on income, or null. Do not infer it from the client profile or tax rate. '
+                : 'The client cannot use income withholding. Always return null for withholding_rate. ')
+            .'For expenses always return null for withholding_rate. Never return calculated quotas or totals. '
             .'Use expense when the document is a purchase and income when the client issued it. '
             .'Do not invent missing fields.';
     }

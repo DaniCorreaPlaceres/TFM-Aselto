@@ -12,6 +12,7 @@ final class ConfirmDocument
         private readonly OpenClientDocument $documents,
         private readonly DocumentRepository $repository,
         private readonly Transaction $transaction,
+        private readonly DocumentWithholdingPolicy $withholdingPolicy,
     ) {
     }
 
@@ -25,6 +26,7 @@ final class ConfirmDocument
         string $base,
         string $taxRate,
         string $surcharge = '',
+        string $withholdingRate = '',
     ): Document {
         $document = $this->documents->execute($userId, $documentId);
         $document = $document->confirm(DocumentForm::read(
@@ -36,7 +38,10 @@ final class ConfirmDocument
             $taxRate,
             $document->tax(),
             $surcharge,
+            $withholdingRate,
         ));
+
+        $this->withholdingPolicy->assertAllowed($userId, $document->withholdingRate());
 
         $this->transaction->run(function () use ($document): void {
             $this->repository->save($document);
