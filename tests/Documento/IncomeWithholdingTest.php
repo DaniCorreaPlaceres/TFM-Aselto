@@ -189,7 +189,7 @@ final class IncomeWithholdingTest extends TestCase
         $transaction->method('run')->willReturnCallback(static function (callable $operation): void { $operation(); });
         $open = new OpenClientDocument($repository);
 
-        return [new SaveDocumentDraft($open, $repository, $transaction, $policy), new ConfirmDocument($open, $repository, $transaction, $policy)];
+        return [new SaveDocumentDraft($open, $repository, $transaction, $policy), new ConfirmDocument($open, $repository, $transaction, $policy, new \App\Shared\Infrastructure\SystemClock())];
     }
 
     private function document(): Document

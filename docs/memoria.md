@@ -19,7 +19,7 @@ Entra una web en la que conviven varias asesorías, aisladas entre sí.
 Papeles:
 
 - Superadmin de la plataforma. Da de alta asesorías y también un cliente sin asesoría. No hay planes ni cobros.
-- Admin de una asesoría. Invita gestores y da de alta clientes.
+- Admin de una asesoría. Invita gestores, da de alta clientes y también revisa sus registros.
 - Gestor. Revisa documentos, pide justificantes, valida y cierra el trimestre.
 - Cliente. Un acceso por autónomo o por sociedad. Puede usar la plataforma solo o vinculado a una asesoría. Sube documentos y consulta su actividad.
 
@@ -28,7 +28,7 @@ Recorrido principal:
 1. El cliente elige hacer una foto o subir un archivo.
 2. Un extractor propone fecha, tercero, NIF, base, impuesto y su tipo, y si es ingreso o gasto. La cuota y el total se calculan.
 3. El cliente corrige, guarda un borrador o confirma el envío. La IA no confirma sola.
-4. El gestor valida, corrige, rechaza o pide otro documento.
+4. El admin o el gestor de la asesoría valida, corrige, rechaza con motivo o pide un justificante adicional.
 5. Con asesoría, solo lo validado entra en las cifras validadas del trimestre. Sin asesoría, los documentos confirmados cuentan en las cifras personales, diferenciadas de una validación de asesoría.
 6. Cliente y gestor ven las cifras según su acceso. El gestor puede cerrar el trimestre de la asesoría y dejarlas congeladas. El cliente sin asesoría puede cerrar su trimestre para su control personal.
 
@@ -123,7 +123,7 @@ Orden de construcción acordado:
 0. Esta memoria. Hecha.
 1. GitHub, ramas y Docker. Hecho. `main` está protegida, `develop` integra, y cada pull request ejecuta las cuatro comprobaciones. El entorno local arranca y `GET /salud` responde.
 2. Estructura Symfony. Hecha. Los siete módulos tienen `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
-3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso, la home comercial, el alta de asesorías y de su equipo, el alta de clientes, el inicio del cliente, el alta de un documento, su lectura y el perfil fiscal editable. Los documentos ya usan el impuesto del territorio del cliente. Los gastos con IVA ya admiten recargo de equivalencia. Los ingresos de autónomos ya admiten retención de IRPF opcional. Lo siguiente es la bandeja de la asesoría.
+3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso, la home comercial, el alta de asesorías y de su equipo, el alta de clientes, el inicio del cliente, el alta de un documento, su lectura y el perfil fiscal editable. Los documentos ya usan el impuesto del territorio del cliente. Los gastos con IVA ya admiten recargo de equivalencia. Los ingresos de autónomos ya admiten retención de IRPF opcional. La bandeja ya permite a admin y gestor revisar, validar, rechazar y pedir justificantes. Lo siguiente es el trimestre: cifras, cierre e histórico.
 
 ## 6. Especificaciones de producto
 
@@ -160,7 +160,11 @@ El inicio muestra el saludo, la acción de añadir un documento, los ingresos y 
 - Un cliente puede registrarse directamente, en principio sin asesoría. El superadmin también puede dar de alta un cliente sin asesoría.
 - Quien da de alta un acceso no escribe la contraseña. La persona la crea con un enlace de su correo, de un solo uso y con caducidad.
 - El admin de una asesoría da de alta a los clientes de la suya. Si un cliente está vinculado, un gestor solo ve los de esa asesoría.
-- El cliente puede corregir el borrador. El gestor puede corregirlo al validar.
+- El cliente puede corregir el borrador y un registro rechazado. El admin o el gestor puede corregirlo al validar.
+- El rechazo exige un motivo y permite corregir y reenviar el mismo registro. Se conservan el original, los justificantes y el historial del rechazo.
+- La solicitud de justificante exige un motivo. El registro sigue enviado con solicitud pendiente y no se valida hasta que su propietario aporte un archivo adicional. Aportarlo conserva los datos fiscales y no valida automáticamente.
+- Cada revisión guarda acción, autor, fecha, motivo y datos anteriores y posteriores. Los registros validados no se editan desde estas pantallas.
+- La bandeja y sus descargas comprueban el papel del actor, la asesoría del registro y la vinculación actual del cliente. Solo se comparten enviados, rechazados y validados; los borradores quedan para el cliente.
 - Si el trimestre de esa fecha está cerrado, no se valida otro movimiento dentro de él.
 - Un cierre personal también congela sus cifras. Para incorporar una corrección que las cambie, primero se reabre el trimestre.
 - El cliente puede reabrir sus cierres personales. El admin o el gestor puede reabrir los cierres de su asesoría. Cada reapertura registra quién la realiza y cuándo.
@@ -229,9 +233,11 @@ El superadmin abre `/asesorias` desde su acceso. Da de alta una asesoría con no
 
 En todos esos altas se envía un correo. El enlace confirma la dirección y permite crear la contraseña. Caduca a las 24 horas y vale una vez. Hasta entonces no se puede entrar. Quien olvida la contraseña pide otro enlace en `/recuperar`; ese caduca a las 2 horas. Si la cuenta aún no tiene contraseña, se reenvía el enlace de alta. El mensaje es el mismo aunque el correo no exista. La contraseña de desarrollo `aselto-dev` sigue valiendo para los cuatro accesos de prueba, que ya están confirmados.
 
-El cliente, en `/inicio`, ve el logotipo oficial y el menú: Inicio, Ingresos y gastos, Documentos, Mi asesoría y Ayuda. El saludo usa su nombre y la única acción principal es «Añadir documento». Las cifras del periodo siguen a cero hasta que la asesoría valide movimientos. Los gastos no van en rojo. Si tiene asesoría, Mi asesoría muestra el nombre de la suya. Si no tiene, lo dice. Un admin o un gestor no abre ese inicio.
+El cliente, en `/inicio`, ve el logotipo oficial y el menú: Inicio, Ingresos y gastos, Documentos, Mi asesoría y Ayuda. El saludo usa su nombre y la única acción principal es «Añadir documento». El resumen del trimestre todavía está pendiente de implementar: la pantalla muestra importes sin calcular y lo explica, en vez de presentar ceros como cifras calculadas. Los gastos no van en rojo. Si tiene asesoría, Mi asesoría muestra el nombre de la suya. Si no tiene, lo dice. Un admin o un gestor no abre ese inicio.
 
 «Añadir documento» deja elegir «Hacer una foto» o «Subir archivo». Al subirlo, el extractor propone los datos y el cliente los revisa junto al archivo. Puede corregirlos, guardar un borrador o confirmar. Si no hay clave, los datos son un ejemplo y la pantalla lo dice. Si la lectura falla, el documento queda subido y la persona escribe los datos. El total se calcula solo. Confirmar deja el registro enviado: no lo valida la asesoría y no cambia las cifras. Lo recién subido o en borrador aparece en el inicio como pendiente de su revisión. Solo ve sus documentos. Si tiene asesoría, el documento queda ligado a esa. Un archivo admitido ocupa menos de 8 MB y se guarda en `var/storage`.
+
+La revisión de la asesoría no calcula todavía las cifras del trimestre. La petición de justificante conserva el estado enviado y lo muestra como «Justificante pendiente». Las rutas de archivos comprueban los mismos permisos que la ficha.
 
 ## 8. Documentación
 
@@ -261,4 +267,4 @@ docker/
 
 `GET /salud` vive en `src/Controller/HealthController.php`. Cada módulo tiene `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
 
-La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel, el acceso y los enlaces de correo. Las tablas son `identity_user` y `access_token`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Cliente ya registra autónomos y sociedades, y el cliente entra por `/inicio`. La tabla es `client_profile`. Documento ya guarda el archivo y, al subirlo, propone los datos. La tabla es `client_document`. La clave de lectura, si se usa, va en `.env.local` y no en el repositorio. El cliente edita sus datos en `/perfil`. El admin edita los de la asesoría en `/asesoria/datos` y los de un cliente de la suya desde la lista. El gestor los consulta y no los cambia. Los documentos nuevos guardan IVA, IGIC o IPSI según la provincia del cliente al subirlos. Los anteriores conservan IVA. Cambiar la provincia no cambia el impuesto de un documento ya guardado. Si falta la provincia, se pide completar el perfil antes de guardar el archivo. Los gastos con IVA guardan el recargo de equivalencia opcional y su cuota por separado, y lo incluyen en el total. Los documentos anteriores permanecen sin recargo. Los ingresos de autónomos guardan el porcentaje y la cuota de retención de IRPF opcional y la descuentan del total. Los documentos anteriores permanecen sin retención. Sigue pendiente la bandeja.
+La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel, el acceso y los enlaces de correo. Las tablas son `identity_user` y `access_token`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Cliente ya registra autónomos y sociedades, y el cliente entra por `/inicio`. La tabla es `client_profile`. Documento ya guarda el archivo y, al subirlo, propone los datos. La tabla es `client_document`. La clave de lectura, si se usa, va en `.env.local` y no en el repositorio. El cliente edita sus datos en `/perfil`. El admin edita los de la asesoría en `/asesoria/datos` y los de un cliente de la suya desde la lista. El gestor los consulta y no los cambia. Los documentos nuevos guardan IVA, IGIC o IPSI según la provincia del cliente al subirlos. Los anteriores conservan IVA. Cambiar la provincia no cambia el impuesto de un documento ya guardado. Si falta la provincia, se pide completar el perfil antes de guardar el archivo. Los gastos con IVA guardan el recargo de equivalencia opcional y su cuota por separado, y lo incluyen en el total. Los documentos anteriores permanecen sin recargo. Los ingresos de autónomos guardan el porcentaje y la cuota de retención de IRPF opcional y la descuentan del total. Los documentos anteriores permanecen sin retención. La bandeja está en `/bandeja`: admin y gestor de la misma asesoría revisan los registros enviados, pueden corregir al validar, rechazar con motivo o pedir un justificante adicional. El cliente corrige y reenvía los rechazados o aporta el justificante desde su registro. El historial y los archivos adicionales se guardan en el mismo agregado, con versiones para evitar sobrescrituras. Sigue pendiente el trimestre.

@@ -1,0 +1,26 @@
+{% extends 'firm/_review_layout.html.twig' %}
+
+{% block title %}Bandeja de la asesoría{% endblock %}
+
+{% block review_body %}
+    <h1>Bandeja de la asesoría</h1>
+    <p>Revisa los registros enviados por tus clientes.</p>
+    <nav class="review-nav" aria-label="Estado de los registros">
+        {% for status, label in {submitted: 'Pendientes', rejected: 'Rechazados', validated: 'Validados'} %}
+            <a href="{{ path('firm_inbox', {status: status}) }}" {% if filter == status %}aria-current="page"{% endif %}>{{ label }}</a>
+        {% endfor %}
+    </nav>
+    {% if documents is empty %}
+        <p>No hay registros en esta vista.</p>
+    {% else %}
+        <ul class="plain-list">
+            {% for document in documents %}
+                <li>
+                    <a href="{{ path('firm_document', {id: document.id}) }}">{{ document.client }} · {{ document.name }}</a>
+                    <span>{{ document.status }}</span>
+                    <span>{{ document.total }} €</span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

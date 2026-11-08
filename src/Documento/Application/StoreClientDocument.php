@@ -11,24 +11,12 @@ use App\Documento\Domain\DocumentRepository;
 use App\Documento\Domain\ExtractionFailed;
 use App\Documento\Domain\MissingClientProfile;
 use App\Documento\Domain\Tax;
-use App\Documento\Domain\UnsupportedFile;
 use App\Shared\Domain\Clock;
 use App\Shared\Domain\IdGenerator;
 use App\Shared\Domain\Transaction;
 
 final class StoreClientDocument
 {
-    private const MAX_BYTES = 8_000_000;
-
-    /** @var array<string, string> */
-    private const EXTENSIONS = [
-        'application/pdf' => 'pdf',
-        'image/jpeg' => 'jpg',
-        'image/jpg' => 'jpg',
-        'image/png' => 'png',
-        'image/webp' => 'webp',
-    ];
-
     public function __construct(
         private readonly ClientRepository $clients,
         private readonly DocumentRepository $documents,
@@ -50,24 +38,15 @@ final class StoreClientDocument
 
         $tax = Tax::forProvince($client->contact()->province());
 
-        if ('' === $contents || strlen($contents) > self::MAX_BYTES) {
-            throw new UnsupportedFile('The file is empty or too large.');
-        }
-
-        $mediaType = mb_strtolower(trim($mediaType));
-
-        if (!isset(self::EXTENSIONS[$mediaType])) {
-            throw new UnsupportedFile('The file type is not allowed.');
-        }
-
-        $storedType = 'image/jpg' === $mediaType ? 'image/jpeg' : $mediaType;
+        $upload = DocumentUpload::read($originalName, $mediaType, $contents);
+        $storedType = $upload['mediaType'];
         $id = $this->ids->next();
-        $path = $this->files->write($id, self::EXTENSIONS[$mediaType], $contents);
+        $path = $this->files->write($id, $upload['extension'], $contents);
         $document = Document::receive(
             $id,
             $client->userId(),
             $client->firmId(),
-            self::fileName($originalName),
+            $upload['originalName'],
             $path,
             $storedType,
             $this->clock->now(),
@@ -89,21 +68,5 @@ final class StoreClientDocument
         });
 
         return $document;
-    }
-
-    private static function fileName(string $originalName): string
-    {
-        $name = trim(basename(str_replace('\\', '/', $originalName)));
-        $name = preg_replace('/[\x00-\x1F\x7F]/', '', $name) ?? '';
-
-        if ('' === $name) {
-            return 'documento';
-        }
-
-        if (mb_strlen($name) > 180) {
-            return mb_substr($name, 0, 180);
-        }
-
-        return $name;
     }
 }

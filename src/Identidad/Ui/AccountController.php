@@ -25,8 +25,8 @@ final class AccountController extends AbstractController
 
         [$destination, $secondary] = match ($user->role()) {
             Role::Superadmin => [['route' => 'firms', 'label' => 'Asesorías'], ['route' => 'clients', 'label' => 'Clientes']],
-            Role::FirmAdmin => [['route' => 'clients', 'label' => 'Clientes'], ['route' => 'team', 'label' => 'Equipo']],
-            Role::Advisor => [['route' => 'clients', 'label' => 'Clientes'], null],
+            Role::FirmAdmin => [['route' => 'firm_inbox', 'label' => 'Bandeja'], ['route' => 'clients', 'label' => 'Clientes']],
+            Role::Advisor => [['route' => 'firm_inbox', 'label' => 'Bandeja'], ['route' => 'clients', 'label' => 'Clientes']],
         };
 
         return $this->render('identity/account.html.twig', [
@@ -34,6 +34,7 @@ final class AccountController extends AbstractController
             'role' => RoleLabel::inSpanish($user->role()),
             'destination' => $destination,
             'secondary' => $secondary,
+            'team' => Role::FirmAdmin === $user->role(),
             'fiscal' => Role::FirmAdmin === $user->role() ? ['route' => 'firm_profile', 'label' => 'Datos fiscales'] : null,
         ]);
     }

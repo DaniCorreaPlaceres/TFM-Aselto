@@ -93,7 +93,7 @@ final class EquivalenceSurchargeTest extends TestCase
         $open = new OpenClientDocument($repository);
         $draft = (new SaveDocumentDraft($open, $repository, $transaction, new DocumentWithholdingPolicy($this->createStub(ClientRepository::class))))->execute(self::OWNER, self::ID, 'gasto', '2026-11-08', 'Proveedor de ejemplo', '00000000T', '100', '21', '5.2');
         self::assertSame(DocumentStatus::Draft, $draft->status());
-        $confirmed = (new ConfirmDocument($open, $repository, $transaction, new DocumentWithholdingPolicy($this->createStub(ClientRepository::class))))->execute(self::OWNER, self::ID, 'gasto', '2026-11-08', 'Proveedor de ejemplo', '00000000T', '100', '21', '5,2');
+        $confirmed = (new ConfirmDocument($open, $repository, $transaction, new DocumentWithholdingPolicy($this->createStub(ClientRepository::class)), new \App\Shared\Infrastructure\SystemClock()))->execute(self::OWNER, self::ID, 'gasto', '2026-11-08', 'Proveedor de ejemplo', '00000000T', '100', '21', '5,2');
         self::assertSame(DocumentStatus::Submitted, $confirmed->status());
         self::assertSame(12620, $confirmed->totalCents());
         $record = new DoctrineDocument();

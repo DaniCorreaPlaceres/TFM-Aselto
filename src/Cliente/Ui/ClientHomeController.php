@@ -4,6 +4,7 @@ namespace App\Cliente\Ui;
 
 use App\Cliente\Application\ShowClientHome;
 use App\Documento\Application\ListClientDocuments;
+use App\Documento\Ui\DocumentLabel;
 use App\Identidad\Domain\Role;
 use App\Identidad\Infrastructure\Security\SecurityUser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,6 +24,7 @@ final class ClientHomeController extends AbstractController
             foreach ($listClientDocuments->pending($user->id()) as $document) {
                 $pending[] = [
                     'name' => $document->partyName() ?: $document->originalName(),
+                    'status' => DocumentLabel::forDocument($document),
                     'href' => $this->generateUrl('client_document', ['id' => $document->id()]),
                 ];
             }

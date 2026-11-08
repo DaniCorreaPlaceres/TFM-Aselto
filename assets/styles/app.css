@@ -535,3 +535,80 @@ button:focus {
         grid-template-columns: 1fr 1fr;
     }
 }
+
+.review-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin: 16px 0;
+}
+
+.review-nav a {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 8px;
+    color: #006B70;
+    font-weight: 600;
+}
+
+.review-nav a[aria-current="page"] {
+    background: #E3F1F1;
+    border-radius: 8px;
+}
+
+.review-layout textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 120px;
+    padding: 12px;
+    border: 1px solid #64748B;
+    border-radius: 8px;
+    color: #14243B;
+    background: #FFFFFF;
+    font: inherit;
+    resize: vertical;
+}
+
+.review-layout textarea:focus,
+.review-nav a:focus-visible {
+    outline: 3px solid #006B70;
+    outline-offset: 3px;
+}
+
+.review-layout .plain-list li {
+    flex-wrap: wrap;
+    overflow-wrap: anywhere;
+}
+
+.review-history summary,
+.review-files a {
+    box-sizing: border-box;
+    display: block;
+    min-height: 48px;
+    padding: 12px 0;
+    color: #006B70;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.review-history,
+.review-files,
+.review-reason {
+    overflow-wrap: anywhere;
+}
+
+.review-reason {
+    white-space: pre-wrap;
+}
+
+.review-history summary {
+    display: list-item;
+}
+
+.review-history summary:focus-visible,
+.review-files a:focus-visible {
+    outline: 3px solid #006B70;
+    outline-offset: 3px;
+}

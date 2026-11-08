@@ -14,6 +14,9 @@
         {% if secondary %}
             <a class="quiet-link" href="{{ path(secondary.route) }}">{{ secondary.label }}</a>
         {% endif %}
+        {% if team %}
+            <a class="quiet-link" href="{{ path('team') }}">Equipo</a>
+        {% endif %}
         {% if fiscal %}
             <a class="quiet-link" href="{{ path(fiscal.route) }}">{{ fiscal.label }}</a>
         {% endif %}

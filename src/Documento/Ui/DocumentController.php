@@ -4,13 +4,12 @@ namespace App\Documento\Ui;
 
 use App\Cliente\Application\ShowClientHome;
 use App\Documento\Application\ConfirmDocument;
-use App\Documento\Application\DocumentForm;
 use App\Documento\Application\DocumentWithholdingPolicy;
 use App\Documento\Application\ListClientDocuments;
 use App\Documento\Application\OpenClientDocument;
 use App\Documento\Application\SaveDocumentDraft;
 use App\Documento\Application\StoreClientDocument;
-use App\Documento\Domain\Document;
+use App\Documento\Domain\DocumentChanged;
 use App\Documento\Domain\DocumentFileStore;
 use App\Documento\Domain\DocumentNotFound;
 use App\Documento\Domain\IncompleteDocument;
@@ -20,16 +19,12 @@ use App\Documento\Domain\InvalidTaxRate;
 use App\Documento\Domain\InvalidWithholding;
 use App\Documento\Domain\MissingClientProfile;
 use App\Documento\Domain\MissingFiscalProvince;
-use App\Documento\Domain\MovementDirection;
 use App\Documento\Domain\ProposalOrigin;
-use App\Documento\Domain\Tax;
-use App\Documento\Domain\TaxRate;
 use App\Documento\Domain\UnsupportedFile;
 use App\Identidad\Domain\Role;
 use App\Identidad\Infrastructure\Security\SecurityUser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -48,7 +43,7 @@ final class DocumentController extends AbstractController
             $documents[] = [
                 'id' => $document->id(),
                 'name' => $document->partyName() ?: $document->originalName(),
-                'status' => DocumentLabel::status($document->status()),
+                'status' => DocumentLabel::forDocument($document),
                 'direction' => DocumentLabel::direction($document->direction()),
             ];
         }
@@ -113,6 +108,8 @@ final class DocumentController extends AbstractController
         SaveDocumentDraft $saveDocumentDraft,
         ConfirmDocument $confirmDocument,
         DocumentWithholdingPolicy $withholdingPolicy,
+        DocumentReviewForm $form,
+        DocumentReviewPresenter $presenter,
     ): Response {
         $user = $this->client();
 
@@ -123,25 +120,30 @@ final class DocumentController extends AbstractController
         }
 
         $fieldErrors = [];
-        $input = $this->inputFromDocument($document);
+        $input = $form->inputFromDocument($document);
 
         if ($request->isMethod('POST') && $document->isEditable()) {
-            $input = $this->inputFromRequest($request);
+            $input = $form->inputFromRequest($request);
 
             if (!$this->isCsrfTokenValid('save_document', (string) $request->request->get('_csrf_token'))) {
                 $this->addFlash('error', 'La sesión del formulario ha caducado. Vuelve a intentarlo.');
             } else {
                 try {
+                    $document->assertVersion((int) $request->request->get('version', 0));
                     $saved = 'confirm' === $request->request->get('intent')
-                        ? $confirmDocument->execute($user->id(), $id, ...$this->arguments($input))
-                        : $saveDocumentDraft->execute($user->id(), $id, ...$this->arguments($input));
+                        ? $confirmDocument->execute($user->id(), $id, ...$form->arguments($input))
+                        : $saveDocumentDraft->execute($user->id(), $id, ...$form->arguments($input));
                     $this->addFlash('success', $saved->isEditable()
                         ? 'El borrador está guardado.'
                         : 'Has confirmado el registro.');
 
                     return $this->redirectToRoute('client_document', ['id' => $id]);
+                } catch (DocumentChanged) {
+                    $this->addFlash('error', 'El registro ha cambiado. Revisa su versión actual antes de guardar.');
+
+                    return $this->redirectToRoute('client_document', ['id' => $id]);
                 } catch (IncompleteDocument $exception) {
-                    $fieldErrors = $this->fieldErrors($exception, $document->tax());
+                    $fieldErrors = $form->fieldErrors($exception, $document->tax());
                     $this->addFlash('error', 'Revisa los campos marcados.');
                 } catch (InvalidWithholding) {
                     $fieldErrors['withholdingRate'] = 'La retención solo se admite en ingresos de autónomos. Escribe un porcentaje entre 0 y 100, con hasta dos decimales, o deja el campo vacío.';
@@ -150,7 +152,7 @@ final class DocumentController extends AbstractController
                     $fieldErrors['surcharge'] = 'El recargo solo se admite en gastos con IVA y debe corresponder con su tipo. Revisa la selección.';
                     $this->addFlash('error', 'Revisa el recargo de equivalencia.');
                 } catch (InvalidTaxRate) {
-                    $fieldErrors['taxRate'] = $this->rateError($document->tax());
+                    $fieldErrors['taxRate'] = $form->rateError($document->tax());
                     $this->addFlash('error', 'Revisa el porcentaje del impuesto.');
                 } catch (InvalidDocument) {
                     $this->addFlash('error', 'Revisa los importes. Usa la coma para los céntimos, por ejemplo 1250,50.');
@@ -162,7 +164,9 @@ final class DocumentController extends AbstractController
 
         return $this->render('client/document.html.twig', [
             ...$this->layout($showClientHome, $user, 'documentos'),
-            'document' => $this->viewDocument($document, $input, $withholdingPolicy->allows($user->id())),
+            'document' => $form->viewDocument($document, $input, $withholdingPolicy->allows($user->id())),
+            'history' => $presenter->history($document),
+            'supportingFiles' => $presenter->files($document),
             'fieldErrors' => $fieldErrors,
             'hasFirm' => null !== $document->firmId(),
         ]);
@@ -180,26 +184,7 @@ final class DocumentController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $response = new Response($contents);
-        $response->headers->set('Content-Type', $document->mediaType());
-        $response->headers->set('Content-Disposition', HeaderUtils::makeDisposition(
-            HeaderUtils::DISPOSITION_INLINE,
-            $document->originalName(),
-        ));
-
-        return $response;
-    }
-
-    private function rateMessage(Tax $tax): string
-    {
-        return Tax::Ipsi === $tax ? 'Indica el porcentaje de IPSI.' : 'Elige el tipo de '.mb_strtoupper($tax->value).'.';
-    }
-
-    private function rateError(Tax $tax): string
-    {
-        return Tax::Ipsi === $tax
-            ? 'Escribe un porcentaje entre 0 y 100, con hasta dos decimales.'
-            : 'Elige uno de los tipos de '.mb_strtoupper($tax->value).' de la lista.';
+        return DocumentFileResponse::create($contents, $document->mediaType(), $document->originalName());
     }
 
     private function client(): SecurityUser
@@ -225,156 +210,6 @@ final class DocumentController extends AbstractController
             'email' => $user->getUserIdentifier(),
             'name' => $home->name(),
             'firmName' => $home->firmName(),
-        ];
-    }
-
-    /**
-     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string} $input
-     *
-     * @return array<string, mixed>
-     */
-    private function viewDocument(Document $document, array $input, bool $allowsWithholding): array
-    {
-        return [
-            'id' => $document->id(),
-            'originalName' => $document->originalName(),
-            'image' => str_starts_with($document->mediaType(), 'image/'),
-            'editable' => $document->isEditable(),
-            'proposal' => $document->proposal()?->value,
-            'status' => DocumentLabel::status($document->status()),
-            'taxName' => mb_strtoupper($document->tax()->value),
-            'allowsWithholding' => $allowsWithholding,
-            'withholdingRate' => $document->withholdingRate()?->percentage() ?? '',
-            'withholdingQuota' => DocumentLabel::euros($document->withholdingQuotaCents()),
-            'supportsSurcharge' => Tax::Vat === $document->tax(),
-            'surcharge' => $document->surcharge()?->percentage() ?? '',
-            'surchargeQuota' => DocumentLabel::euros($document->surchargeQuotaCents()),
-            'manualTaxRate' => Tax::Ipsi === $document->tax(),
-            'taxRates' => array_map(static fn (int $rate): string => TaxRate::fromBasisPoints($document->tax(), $rate)->percentage(), $document->tax()->allowedBasisPoints()),
-            'rateMessage' => $this->rateMessage($document->tax()),
-            'rateError' => $this->rateError($document->tax()),
-            'quota' => DocumentLabel::euros($document->quotaCents()),
-            'directionLabel' => DocumentLabel::direction($document->direction()),
-            'issuedOnLabel' => $document->issuedOn()?->format('d/m/Y') ?? '',
-            'baseLabel' => DocumentLabel::euros($document->baseCents()),
-            'totalLabel' => DocumentLabel::euros($document->totalCents()),
-            'partyName' => $document->partyName() ?? '',
-            'taxId' => $document->taxId() ?? '',
-            'taxRate' => $document->taxRate()?->percentage() ?? '',
-            ...$input,
-            ...$this->amounts($input, $document->tax()),
-        ];
-    }
-
-    /**
-     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string} $input
-     *
-     * @return array{quota: string, total: string, surchargeQuota: string, withholdingQuota: string}
-     */
-    private function amounts(array $input, Tax $tax): array
-    {
-        try {
-            $details = DocumentForm::read(
-                $input['direction'],
-                $input['issuedOn'],
-                $input['partyName'],
-                $input['taxId'],
-                $input['base'],
-                $input['taxRate'],
-                $tax,
-                $input['surcharge'],
-                $input['withholdingRate'],
-            );
-        } catch (InvalidDocument|InvalidTaxRate|InvalidSurcharge|InvalidWithholding) {
-            return ['quota' => '', 'total' => '', 'surchargeQuota' => '', 'withholdingQuota' => ''];
-        }
-
-        return [
-            'withholdingQuota' => DocumentLabel::euros($details->withholdingQuotaCents()),
-            'surchargeQuota' => DocumentLabel::euros($details->surchargeQuotaCents()),
-            'quota' => DocumentLabel::euros($details->quotaCents()),
-            'total' => DocumentLabel::euros($details->totalCents()),
-        ];
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function fieldErrors(IncompleteDocument $exception, Tax $tax): array
-    {
-        $messages = [
-            'direction' => 'Indica si es un ingreso o un gasto.',
-            'issuedOn' => 'Indica la fecha.',
-            'partyName' => 'Indica el tercero.',
-            'taxId' => 'Indica el NIF.',
-            'base' => 'Indica la base.',
-            'taxRate' => $this->rateMessage($tax),
-        ];
-        $errors = [];
-
-        foreach ($exception->fields() as $field) {
-            if (isset($messages[$field])) {
-                $errors[$field] = $messages[$field];
-            }
-        }
-
-        return $errors;
-    }
-
-    /**
-     * @return array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string}
-     */
-    private function inputFromDocument(Document $document): array
-    {
-        return [
-            'direction' => match ($document->direction()) {
-                MovementDirection::Income => 'ingreso',
-                MovementDirection::Expense => 'gasto',
-                null => '',
-            },
-            'issuedOn' => $document->issuedOn()?->format('Y-m-d') ?? '',
-            'partyName' => $document->partyName() ?? '',
-            'taxId' => $document->taxId() ?? '',
-            'base' => DocumentLabel::euros($document->baseCents()),
-            'taxRate' => $document->taxRate()?->percentage() ?? '',
-            'surcharge' => $document->surcharge()?->percentage() ?? '',
-            'withholdingRate' => $document->withholdingRate()?->percentage() ?? '',
-        ];
-    }
-
-    /**
-     * @return array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string}
-     */
-    private function inputFromRequest(Request $request): array
-    {
-        return [
-            'direction' => (string) $request->request->get('direction', ''),
-            'issuedOn' => (string) $request->request->get('issued_on', ''),
-            'partyName' => (string) $request->request->get('party_name', ''),
-            'taxId' => (string) $request->request->get('tax_id', ''),
-            'base' => (string) $request->request->get('base', ''),
-            'taxRate' => (string) $request->request->get('tax_rate', ''),
-            'surcharge' => (string) $request->request->get('surcharge', ''),
-            'withholdingRate' => (string) $request->request->get('withholding_rate', ''),
-        ];
-    }
-
-    /**
-     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string} $input
-     *
-     * @return array{string, string, string, string, string, string, string, string}
-     */
-    private function arguments(array $input): array
-    {
-        return [
-            $input['direction'],
-            $input['issuedOn'],
-            $input['partyName'],
-            $input['taxId'],
-            $input['base'],
-            $input['taxRate'],
-            $input['surcharge'],
-            $input['withholdingRate'],
         ];
     }
 }

@@ -12,6 +12,26 @@
         <p><a href="{{ path('client_document_file', {id: document.id}) }}">Ver archivo</a></p>
     {% endif %}
 
+    {% if document.statusCode == 'rejected' %}
+        <p class="error">La asesoría ha rechazado el registro. Consulta el motivo, corrige los datos y vuelve a confirmar.</p>
+    {% endif %}
+    {% if document.pendingRequest %}
+        <section aria-labelledby="supporting-title">
+            <h2 id="supporting-title">Tu asesoría pide otro justificante</h2>
+            <p class="review-reason">{{ document.pendingRequest }}</p>
+            <form method="post" action="{{ path('client_document_support', {id: document.id}) }}" enctype="multipart/form-data">
+                <label for="supporting-file">Añadir justificante</label>
+                <input id="supporting-file" type="file" name="file" accept="application/pdf,image/jpeg,image/png,image/webp" required>
+                <p>PDF, JPEG, PNG o WebP, hasta 8 MB. El archivo original se conserva.</p>
+                <input type="hidden" name="version" value="{{ document.version }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('support_document_' ~ document.id) }}">
+                <button type="submit">Aportar justificante</button>
+            </form>
+        </section>
+    {% endif %}
+    {{ include('document/_supporting_files.html.twig', {supportingRoute: 'client_supporting_file'}) }}
+    {{ include('document/_review_history.html.twig') }}
+
     {% if document.editable %}
         {% if document.proposal == 'extracted' %}
             <p>Hemos extraído estos datos. Revísalos antes de confirmar.</p>
@@ -21,114 +41,9 @@
             <p>Escribe los datos y revísalos antes de confirmar.</p>
         {% endif %}
         <p class="client-hint">El total suma la base, la cuota de {{ document.taxName }} y el recargo, si lo hay{% if document.allowsWithholding %}, y resta la retención de IRPF, si la hay{% endif %}.</p>
-        <form method="post" novalidate data-controller="document-review" data-document-review-tax-name-value="{{ document.taxName }}" data-action="input->document-review#recalculate change->document-review#recalculate submit->document-review#submit">
-            <fieldset data-field="direction" data-message="Indica si es un ingreso o un gasto.">
-                <legend>Tipo</legend>
-                <label class="choice">
-                    <input type="radio" name="direction" value="ingreso" {% if document.direction == 'ingreso' %}checked{% endif %} {% if fieldErrors.direction is defined %}aria-invalid="true" aria-describedby="direction-error"{% endif %}>
-                    Ingreso
-                </label>
-                <label class="choice">
-                    <input type="radio" name="direction" value="gasto" {% if document.direction == 'gasto' %}checked{% endif %} {% if fieldErrors.direction is defined %}aria-invalid="true" aria-describedby="direction-error"{% endif %}>
-                    Gasto
-                </label>
-                <p id="direction-error" class="field-error" {% if fieldErrors.direction is not defined %}hidden{% endif %}>{{ fieldErrors.direction|default('') }}</p>
-            </fieldset>
-
-            <div data-field="issuedOn" data-message="Indica la fecha.">
-                <label for="issued_on">Fecha</label>
-                <input id="issued_on" name="issued_on" type="date" value="{{ document.issuedOn }}" {% if fieldErrors.issuedOn is defined %}aria-invalid="true" aria-describedby="issuedOn-error"{% endif %}>
-                <p id="issuedOn-error" class="field-error" {% if fieldErrors.issuedOn is not defined %}hidden{% endif %}>{{ fieldErrors.issuedOn|default('') }}</p>
-            </div>
-
-            <div data-field="partyName" data-message="Indica el tercero.">
-                <label for="party_name">Tercero</label>
-                <input id="party_name" name="party_name" type="text" maxlength="120" value="{{ document.partyName }}" {% if fieldErrors.partyName is defined %}aria-invalid="true" aria-describedby="partyName-error"{% endif %}>
-                <p id="partyName-error" class="field-error" {% if fieldErrors.partyName is not defined %}hidden{% endif %}>{{ fieldErrors.partyName|default('') }}</p>
-            </div>
-
-            <div data-field="taxId" data-message="Indica el NIF.">
-                <label for="tax_id">NIF</label>
-                <input id="tax_id" name="tax_id" type="text" maxlength="20" value="{{ document.taxId }}" {% if fieldErrors.taxId is defined %}aria-invalid="true" aria-describedby="taxId-error"{% endif %}>
-                <p id="taxId-error" class="field-error" {% if fieldErrors.taxId is not defined %}hidden{% endif %}>{{ fieldErrors.taxId|default('') }}</p>
-            </div>
-
-            <div data-field="base" data-message="Indica la base." data-invalid="La base no es un importe. Usa la coma para los céntimos, por ejemplo 1250,50.">
-                <label for="base">Base</label>
-                <input id="base" name="base" type="text" inputmode="decimal" value="{{ document.base }}" data-document-review-target="base" {% if fieldErrors.base is defined %}aria-invalid="true" aria-describedby="base-error"{% endif %}>
-                <p id="base-error" class="field-error" {% if fieldErrors.base is not defined %}hidden{% endif %}>{{ fieldErrors.base|default('') }}</p>
-            </div>
-
-            <div data-field="taxRate" data-message="{{ document.rateMessage }}" data-invalid="{{ document.rateError }}">
-                <label for="tax_rate">{% if document.manualTaxRate %}Porcentaje de IPSI{% else %}Tipo de {{ document.taxName }}{% endif %}</label>
-                {% if document.manualTaxRate %}
-                    <input id="tax_rate" name="tax_rate" type="text" inputmode="decimal" value="{{ document.taxRate|replace({'.': ','}) }}" data-document-review-target="rate" aria-describedby="tax-rate-hint{% if fieldErrors.taxRate is defined %} taxRate-error{% endif %}" {% if fieldErrors.taxRate is defined %}aria-invalid="true"{% endif %}>
-                    <p id="tax-rate-hint" class="client-hint">Escribe el porcentaje que figura en el documento. Aselto no determina qué tipo corresponde.</p>
-                {% else %}
-                    <select id="tax_rate" name="tax_rate" data-document-review-target="rate" {% if fieldErrors.taxRate is defined %}aria-invalid="true" aria-describedby="taxRate-error"{% endif %}>
-                        <option value="">Elige un tipo</option>
-                        {% for rate in document.taxRates %}
-                            <option value="{{ rate }}" {% if document.taxRate is same as (rate) %}selected{% endif %}>{{ rate|replace({'.': ','}) }} %</option>
-                        {% endfor %}
-                    </select>
-                {% endif %}
-                <p id="taxRate-error" class="field-error" {% if fieldErrors.taxRate is not defined %}hidden{% endif %}>{{ fieldErrors.taxRate|default('') }}</p>
-            </div>
-
-            <p id="quota" data-document-review-target="quota" aria-live="polite">Cuota de {{ document.taxName }}: {% if document.quota %}{{ document.quota }} €{% else %}se calcula con la base y {{ document.taxName }}{% endif %}</p>
-
-            {% if document.supportsSurcharge %}
-                <div data-field="surcharge" data-optional="true" data-document-review-target="surchargeGroup">
-                    <label for="surcharge">Recargo de equivalencia</label>
-                    <select id="surcharge" name="surcharge" data-document-review-target="surcharge" aria-describedby="surcharge-hint{% if fieldErrors.surcharge is defined %} surcharge-error{% endif %}" {% if fieldErrors.surcharge is defined %}aria-invalid="true"{% endif %}>
-                        <option value="">Sin recargo</option>
-                        {% for rate, vat in {'0.5': 400, '1.4': 1000, '5.2': 2100, '1.75': 2100} %}
-                            <option value="{{ rate }}" data-vat-rate="{{ vat }}" {% if document.surcharge is same as (rate) %}selected{% endif %}>{{ rate|replace({'.': ','}) }} %{% if rate == '1.75' %} (tabaco){% endif %}</option>
-                        {% endfor %}
-                    </select>
-                    <p id="surcharge-hint" class="client-hint">Solo para gastos con IVA. Elige el recargo que figura en el documento.</p>
-                    <p id="surcharge-error" class="field-error" {% if fieldErrors.surcharge is not defined %}hidden{% endif %}>{{ fieldErrors.surcharge|default('') }}</p>
-                    <p data-document-review-target="surchargeQuota" aria-live="polite">Cuota de recargo: {% if document.surchargeQuota %}{{ document.surchargeQuota }} €{% else %}sin recargo calculado{% endif %}</p>
-                </div>
-            {% endif %}
-
-            {% if document.allowsWithholding %}
-                <div data-field="withholdingRate" data-optional="true" data-invalid="Escribe un porcentaje entre 0 y 100, con hasta dos decimales, o deja el campo vacío." data-document-review-target="withholdingGroup">
-                    <label for="withholding_rate">Retención de IRPF (%)</label>
-                    <input id="withholding_rate" name="withholding_rate" type="text" inputmode="decimal" value="{{ document.withholdingRate|replace({'.': ','}) }}" data-document-review-target="withholding" aria-describedby="withholding-hint{% if fieldErrors.withholdingRate is defined %} withholdingRate-error{% endif %}" {% if fieldErrors.withholdingRate is defined %}aria-invalid="true"{% endif %}>
-                    <p id="withholding-hint" class="client-hint">Solo para ingresos de autónomos. Deja vacío si no lleva retención; si la hay, escribe el porcentaje del documento.</p>
-                    <p id="withholdingRate-error" class="field-error" {% if fieldErrors.withholdingRate is not defined %}hidden{% endif %}>{{ fieldErrors.withholdingRate|default('') }}</p>
-                    <p data-document-review-target="withholdingQuota" aria-live="polite">Cuota de retención: {% if document.withholdingQuota %}{{ document.withholdingQuota }} €{% else %}sin retención calculada{% endif %}</p>
-                </div>
-            {% endif %}
-
-            <label for="total">Total</label>
-            <input id="total" type="text" readonly value="{{ document.total }}" data-document-review-target="total" aria-describedby="total-hint">
-            <p id="total-hint" class="client-hint">Suma la base, la cuota de {{ document.taxName }} y el recargo, si lo hay.</p>
-
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token('save_document') }}">
-            <button type="submit" name="intent" value="confirm">Confirmar registro</button>
-            <button type="submit" name="intent" value="draft" class="quiet">Guardar borrador</button>
-        </form>
+        {{ include('document/_details_form.html.twig') }}
     {% else %}
-        <p>{% if hasFirm %}Has confirmado el registro. Tu asesoría todavía no lo ha validado.{% else %}Has confirmado el registro.{% endif %}</p>
-        <ul class="plain-list">
-            <li><span>Tipo</span>{{ document.directionLabel }}</li>
-            <li><span>Fecha</span>{{ document.issuedOnLabel }}</li>
-            <li><span>Tercero</span>{{ document.partyName }}</li>
-            <li><span>NIF</span>{{ document.taxId }}</li>
-            <li><span>Base</span>{{ document.baseLabel }} €</li>
-            <li><span>{{ document.taxName }}</span>{{ document.taxRate|replace({'.': ','}) }} %</li>
-            <li><span>Cuota</span>{{ document.quota }} €</li>
-            {% if document.surcharge %}
-                <li><span>Recargo de equivalencia</span>{{ document.surcharge|replace({'.': ','}) }} %</li>
-                <li><span>Cuota de recargo</span>{{ document.surchargeQuota }} €</li>
-            {% endif %}
-            {% if document.withholdingRate is not same as ('') %}
-                <li><span>Retención de IRPF</span>{{ document.withholdingRate|replace({'.': ','}) }} %</li>
-                <li><span>Cuota de retención</span>{{ document.withholdingQuota }} €</li>
-            {% endif %}
-            <li><span>Total</span>{{ document.totalLabel }} €</li>
-        </ul>
+        <p>{% if document.statusCode == 'validated' %}Tu asesoría ha validado este registro.{% elseif document.pendingRequest %}Falta el justificante solicitado. El registro sigue pendiente de revisión.{% elseif hasFirm %}Has confirmado el registro. Tu asesoría todavía no lo ha validado.{% else %}Has confirmado el registro.{% endif %}</p>
+        {{ include('document/_amount_summary.html.twig') }}
     {% endif %}
 {% endblock %}

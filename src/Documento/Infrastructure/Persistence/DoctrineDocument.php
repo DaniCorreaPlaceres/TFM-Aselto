@@ -77,6 +77,21 @@ class DoctrineDocument
     #[ORM\Column(nullable: true)]
     private ?int $withholdingQuotaCents = null;
 
+    /** @var list<array<string, mixed>>|null */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $reviewHistory = null;
+
+    /** @var list<array<string, mixed>>|null */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $supportingFiles = null;
+
+    #[ORM\Column(length: 1000, nullable: true)]
+    private ?string $pendingRequest = null;
+
+    #[ORM\Version]
+    #[ORM\Column(type: 'integer', options: ['default' => 1])]
+    private int $version = 1;
+
     #[ORM\Column(length: 16, nullable: true)]
     private ?string $proposal = null;
 
@@ -105,6 +120,9 @@ class DoctrineDocument
         $this->surchargeQuotaCents = $document->surchargeQuotaCents();
         $this->withholdingRate = $document->withholdingRate()?->basisPoints();
         $this->withholdingQuotaCents = $document->withholdingQuotaCents();
+        $this->reviewHistory = array_map(DocumentReviewData::record(...), $document->reviewHistory());
+        $this->supportingFiles = array_map(DocumentReviewData::file(...), $document->supportingFiles());
+        $this->pendingRequest = $document->pendingRequest();
         $this->proposal = $document->proposal()?->value;
         $this->createdAt = $document->createdAt();
     }
@@ -134,6 +152,10 @@ class DoctrineDocument
             $this->surchargeQuotaCents,
             null === $this->withholdingRate ? null : WithholdingRate::fromBasisPoints($this->withholdingRate),
             $this->withholdingQuotaCents,
+            array_map(DocumentReviewData::restoreRecord(...), $this->reviewHistory ?? []),
+            array_map(DocumentReviewData::restoreFile(...), $this->supportingFiles ?? []),
+            $this->pendingRequest,
+            $this->version,
         );
     }
 }
