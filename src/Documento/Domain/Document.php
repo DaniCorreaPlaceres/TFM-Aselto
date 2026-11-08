@@ -30,7 +30,17 @@ final class Document
         private readonly ?ProposalOrigin $proposal,
         private readonly \DateTimeImmutable $createdAt,
         private readonly Tax $tax = Tax::Vat,
+        private readonly ?EquivalenceSurcharge $surcharge = null,
+        private readonly ?int $surchargeQuotaCents = null,
     ) {
+        if (null !== $surcharge && !$surcharge->supports($direction, $tax, $taxRate)) {
+            throw new InvalidSurcharge('The surcharge is not compatible with the document.');
+        }
+
+        if ((null === $baseCents ? null : $surcharge?->quotaFor($baseCents)) !== $surchargeQuotaCents) {
+            throw new InvalidSurcharge('The surcharge quota does not match the base and rate.');
+        }
+
         if (null !== $taxRate && !$tax->accepts($taxRate)) {
             throw new InvalidTaxRate('The rate does not belong to the document tax.');
         }
@@ -119,6 +129,8 @@ final class Document
             $origin,
             $this->createdAt,
             $this->tax,
+            $details->surcharge(),
+            $details->surchargeQuotaCents(),
         );
     }
 
@@ -253,6 +265,16 @@ final class Document
         return $this->quotaCents;
     }
 
+    public function surcharge(): ?EquivalenceSurcharge
+    {
+        return $this->surcharge;
+    }
+
+    public function surchargeQuotaCents(): ?int
+    {
+        return $this->surchargeQuotaCents;
+    }
+
     public function totalCents(): ?int
     {
         return $this->totalCents;
@@ -298,6 +320,8 @@ final class Document
             $this->proposal,
             $this->createdAt,
             $this->tax,
+            $details->surcharge(),
+            $details->surchargeQuotaCents(),
         );
     }
 

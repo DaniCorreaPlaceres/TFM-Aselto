@@ -20,7 +20,7 @@
         {% else %}
             <p>Escribe los datos y revísalos antes de confirmar.</p>
         {% endif %}
-        <p class="client-hint">El total se calcula con la base y {{ document.taxName }}.</p>
+        <p class="client-hint">El total suma la base, la cuota de {{ document.taxName }} y el recargo, si lo hay.</p>
         <form method="post" novalidate data-controller="document-review" data-document-review-tax-name-value="{{ document.taxName }}" data-action="input->document-review#recalculate change->document-review#recalculate submit->document-review#submit">
             <fieldset data-field="direction" data-message="Indica si es un ingreso o un gasto.">
                 <legend>Tipo</legend>
@@ -77,9 +77,24 @@
 
             <p id="quota" data-document-review-target="quota" aria-live="polite">Cuota de {{ document.taxName }}: {% if document.quota %}{{ document.quota }} €{% else %}se calcula con la base y {{ document.taxName }}{% endif %}</p>
 
+            {% if document.supportsSurcharge %}
+                <div data-field="surcharge" data-optional="true" data-document-review-target="surchargeGroup">
+                    <label for="surcharge">Recargo de equivalencia</label>
+                    <select id="surcharge" name="surcharge" data-document-review-target="surcharge" aria-describedby="surcharge-hint{% if fieldErrors.surcharge is defined %} surcharge-error{% endif %}" {% if fieldErrors.surcharge is defined %}aria-invalid="true"{% endif %}>
+                        <option value="">Sin recargo</option>
+                        {% for rate, vat in {'0.5': 400, '1.4': 1000, '5.2': 2100, '1.75': 2100} %}
+                            <option value="{{ rate }}" data-vat-rate="{{ vat }}" {% if document.surcharge is same as (rate) %}selected{% endif %}>{{ rate|replace({'.': ','}) }} %{% if rate == '1.75' %} (tabaco){% endif %}</option>
+                        {% endfor %}
+                    </select>
+                    <p id="surcharge-hint" class="client-hint">Solo para gastos con IVA. Elige el recargo que figura en el documento.</p>
+                    <p id="surcharge-error" class="field-error" {% if fieldErrors.surcharge is not defined %}hidden{% endif %}>{{ fieldErrors.surcharge|default('') }}</p>
+                    <p data-document-review-target="surchargeQuota" aria-live="polite">Cuota de recargo: {% if document.surchargeQuota %}{{ document.surchargeQuota }} €{% else %}sin recargo calculado{% endif %}</p>
+                </div>
+            {% endif %}
+
             <label for="total">Total</label>
             <input id="total" type="text" readonly value="{{ document.total }}" data-document-review-target="total" aria-describedby="total-hint">
-            <p id="total-hint" class="client-hint">Se calcula con la base y {{ document.taxName }}.</p>
+            <p id="total-hint" class="client-hint">Suma la base, la cuota de {{ document.taxName }} y el recargo, si lo hay.</p>
 
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('save_document') }}">
             <button type="submit" name="intent" value="confirm">Confirmar registro</button>
@@ -95,6 +110,10 @@
             <li><span>Base</span>{{ document.baseLabel }} €</li>
             <li><span>{{ document.taxName }}</span>{{ document.taxRate|replace({'.': ','}) }} %</li>
             <li><span>Cuota</span>{{ document.quota }} €</li>
+            {% if document.surcharge %}
+                <li><span>Recargo de equivalencia</span>{{ document.surcharge|replace({'.': ','}) }} %</li>
+                <li><span>Cuota de recargo</span>{{ document.surchargeQuota }} €</li>
+            {% endif %}
             <li><span>Total</span>{{ document.totalLabel }} €</li>
         </ul>
     {% endif %}

@@ -4,6 +4,7 @@ namespace App\Documento\Infrastructure\Persistence;
 
 use App\Documento\Domain\Document;
 use App\Documento\Domain\DocumentStatus;
+use App\Documento\Domain\EquivalenceSurcharge;
 use App\Documento\Domain\MovementDirection;
 use App\Documento\Domain\ProposalOrigin;
 use App\Documento\Domain\Tax;
@@ -63,6 +64,12 @@ class DoctrineDocument
     #[ORM\Column(nullable: true)]
     private ?int $totalCents = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $surcharge = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $surchargeQuotaCents = null;
+
     #[ORM\Column(length: 16, nullable: true)]
     private ?string $proposal = null;
 
@@ -87,6 +94,8 @@ class DoctrineDocument
         $this->tax = $document->tax()->value;
         $this->quotaCents = $document->quotaCents();
         $this->totalCents = $document->totalCents();
+        $this->surcharge = $document->surcharge()?->value;
+        $this->surchargeQuotaCents = $document->surchargeQuotaCents();
         $this->proposal = $document->proposal()?->value;
         $this->createdAt = $document->createdAt();
     }
@@ -112,6 +121,8 @@ class DoctrineDocument
             null === $this->proposal ? null : ProposalOrigin::from($this->proposal),
             $this->createdAt,
             Tax::from($this->tax),
+            null === $this->surcharge ? null : EquivalenceSurcharge::from($this->surcharge),
+            $this->surchargeQuotaCents,
         );
     }
 }
