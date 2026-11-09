@@ -23,6 +23,7 @@
     <p class="client-hint">{{ quarter.firmId ? 'Cifras validadas por tu asesoría.' : 'Control personal: registros confirmados por ti.' }} {{ quarter.record and quarter.record.closed ? 'Trimestre cerrado.' : 'Trimestre abierto.' }}</p>
 
     <p><a href="{{ path('client_movements') }}">Ver trimestre</a> · {{ quarter.calculation.pending|length }} registros pendientes para el cierre.</p>
+    <section class="client-pending"><h2>Mensajes y solicitudes</h2><p>{{ unreadConversations }} conversaciones con mensajes nuevos · {{ openRequests }} solicitudes pendientes.</p><a href="{{ path('messages') }}">Ver mensajes</a></section>
     <section class="client-pending">
         <h2>Pendiente de revisión</h2>
         {% if pending is empty %}

@@ -1,0 +1,16 @@
+{% extends 'communication/_layout.html.twig' %}
+{% block communication_body %}
+    <h1>Mensajes y solicitudes</h1>
+    {% if recipients is empty %}
+        <p>{{ clientView ? 'Todavía no tienes una asesoría vinculada con la que intercambiar mensajes.' : 'Todavía no hay clientes en tu asesoría.' }}</p>
+    {% else %}
+        <p>{{ clientView ? 'Habla con tu asesoría y responde a sus solicitudes.' : 'El admin y los gestores de tu asesoría pueden atender estas conversaciones.' }}</p>
+        <a class="action" href="{{ path('message_new') }}">Nuevo mensaje</a>
+    {% endif %}
+    <ul class="plain-list message-list">
+        {% for item in conversations %}
+            <li><div><a href="{{ path('message_thread', {id: item.id}) }}"><strong>{{ item.subject }}</strong></a>
+                <p>{{ item.client }}{% if item.request %} · {{ item.resolvedAt ? 'Solicitud resuelta' : 'Solicitud pendiente' }}{% endif %}{% if item.unread %} · {{ item.unread }} mensajes nuevos para ti{% endif %}</p></div></li>
+        {% else %}<li>Todavía no hay conversaciones.</li>{% endfor %}
+    </ul>
+{% endblock %}

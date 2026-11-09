@@ -34,6 +34,7 @@ services:
             - '../src/Cliente/Infrastructure/Persistence/DoctrineClient.php'
             - '../src/Documento/Infrastructure/Persistence/DoctrineDocument.php'
             - '../src/Finanzas/Infrastructure/Persistence/DoctrineQuarter.php'
+            - '../src/Comunicacion/Infrastructure/Persistence/DoctrineConversation.php'
 
     App\Identidad\Domain\UserRepository:
         alias: App\Identidad\Infrastructure\Persistence\DoctrineUserRepository
@@ -88,3 +89,9 @@ services:
 
     App\Finanzas\Domain\FinancialRecords:
         alias: App\Finanzas\Infrastructure\Persistence\DoctrineFinancialRecords
+
+    App\Comunicacion\Domain\ConversationRepository:
+        alias: App\Comunicacion\Infrastructure\Persistence\DoctrineConversationRepository
+
+    App\Comunicacion\Domain\AttachmentStore:
+        alias: App\Comunicacion\Infrastructure\Storage\LocalAttachmentStore

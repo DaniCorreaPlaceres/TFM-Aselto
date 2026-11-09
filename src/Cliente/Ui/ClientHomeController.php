@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ClientHomeController extends AbstractController
 {
     #[Route('/inicio', name: 'client_home', methods: ['GET'])]
-    public function home(ShowClientHome $showClientHome, ListClientDocuments $listClientDocuments, ShowQuarter $quarters): Response
+    public function home(ShowClientHome $showClientHome, ListClientDocuments $listClientDocuments, \App\Comunicacion\Application\Messaging $messaging, ShowQuarter $quarters): Response
     {
         $view = $this->view('inicio', $showClientHome);
         $user = $this->getUser();
@@ -32,6 +32,9 @@ final class ClientHomeController extends AbstractController
             ];
         }
 
+        $conversations = $messaging->list($user->id());
+        $view['unreadConversations'] = count(array_filter($conversations, fn ($conversation): bool => $conversation->unread($user->id()) > 0));
+        $view['openRequests'] = count(array_filter($conversations, static fn ($conversation): bool => $conversation->request && null === $conversation->resolvedAt));
         $view['pending'] = $pending;
         $quarter = $quarters->execute($user->id(), null, $quarters->currentPeriod());
         $view['quarter'] = $quarter;

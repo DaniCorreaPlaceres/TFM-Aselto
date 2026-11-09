@@ -1,0 +1,4 @@
+{% extends clientView ? 'client/_layout.html.twig' : 'firm/_review_layout.html.twig' %}
+{% block title %}Mensajes{% endblock %}
+{% block client_body %}{% block communication_body %}{% endblock %}{% endblock %}
+{% block review_body %}{{ block('communication_body') }}{% endblock %}

@@ -639,3 +639,20 @@ button:focus {
     background: #475569;
     cursor: not-allowed;
 }
+
+textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 12px;
+    color: #14243B;
+    background: #FFFFFF;
+    border: 1px solid #64748B;
+    font: inherit;
+}
+textarea:focus { outline: 3px solid #006B70; outline-offset: 2px; }
+.message-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.message-history { padding-left: 24px; }
+.message-history article { margin: 16px 0; padding: 16px; border: 1px solid #64748B; background: #FFFFFF; }
+.message-history h2 { margin-top: 0; font-size: 18px; overflow-wrap: anywhere; }
+.message-list li { display: block; overflow-wrap: anywhere; }
+.message-list a { display: inline-block; min-height: 48px; padding-top: 12px; }
