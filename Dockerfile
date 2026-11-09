@@ -9,6 +9,10 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
+COPY composer.json composer.lock ./
+RUN composer install --no-interaction --prefer-dist --no-progress --no-scripts \
+    && sha256sum composer.lock | cut -d ' ' -f 1 > vendor/.aselto-lock-hash
+
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/aselto.ini
 COPY docker/php/entrada.sh /usr/local/bin/entrada
 

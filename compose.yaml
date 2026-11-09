@@ -12,6 +12,8 @@ services:
       MAILER_DSN: smtp://mailpit:1025
     volumes:
       - .:/var/www/html
+      - app_vendor:/var/www/html/vendor
+      - app_cache:/var/www/html/var/cache
     depends_on:
       database:
         condition: service_healthy
@@ -70,3 +72,5 @@ services:
 
 volumes:
   database_data:
+  app_vendor:
+  app_cache:
