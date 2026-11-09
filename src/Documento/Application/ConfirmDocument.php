@@ -4,6 +4,7 @@ namespace App\Documento\Application;
 
 use App\Documento\Domain\Document;
 use App\Documento\Domain\DocumentRepository;
+use App\Shared\Domain\Clock;
 use App\Shared\Domain\Transaction;
 
 final class ConfirmDocument
@@ -13,6 +14,7 @@ final class ConfirmDocument
         private readonly DocumentRepository $repository,
         private readonly Transaction $transaction,
         private readonly DocumentWithholdingPolicy $withholdingPolicy,
+        private readonly Clock $clock,
     ) {
     }
 
@@ -39,7 +41,7 @@ final class ConfirmDocument
             $document->tax(),
             $surcharge,
             $withholdingRate,
-        ));
+        ), $this->clock->now());
 
         $this->withholdingPolicy->assertAllowed($userId, $document->withholdingRate());
 

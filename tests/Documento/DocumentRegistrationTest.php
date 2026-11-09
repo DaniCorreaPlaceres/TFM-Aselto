@@ -375,7 +375,7 @@ final class DocumentRegistrationTest extends TestCase
 
     private function confirm(RegistrationDocumentRepository $documents): ConfirmDocument
     {
-        return new ConfirmDocument(new OpenClientDocument($documents), $documents, new RegistrationTransaction(), new DocumentWithholdingPolicy($this->clients()));
+        return new ConfirmDocument(new OpenClientDocument($documents), $documents, new RegistrationTransaction(), new DocumentWithholdingPolicy($this->clients()), new RegistrationClock());
     }
 
     private function clients(string $province = 'Madrid'): RegistrationClientRepository
@@ -474,6 +474,11 @@ final class RegistrationDocumentRepository implements DocumentRepository
             $this->documents,
             static fn (Document $document): bool => $document->clientUserId() === $clientUserId,
         ));
+    }
+
+    public function findByFirm(string $firmId): array
+    {
+        return array_values(array_filter($this->documents, static fn (Document $document): bool => $document->firmId() === $firmId));
     }
 
     public function save(Document $document): void

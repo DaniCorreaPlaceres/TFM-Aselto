@@ -1,0 +1,18 @@
+        <ul class="plain-list">
+            <li><span>Tipo</span>{{ document.directionLabel }}</li>
+            <li><span>Fecha</span>{{ document.issuedOnLabel }}</li>
+            <li><span>Tercero</span>{{ document.partyName }}</li>
+            <li><span>NIF</span>{{ document.taxId }}</li>
+            <li><span>Base</span>{{ document.baseLabel }} €</li>
+            <li><span>{{ document.taxName }}</span>{{ document.taxRate|replace({'.': ','}) }} %</li>
+            <li><span>Cuota</span>{{ document.quota }} €</li>
+            {% if document.surcharge %}
+                <li><span>Recargo de equivalencia</span>{{ document.surcharge|replace({'.': ','}) }} %</li>
+                <li><span>Cuota de recargo</span>{{ document.surchargeQuota }} €</li>
+            {% endif %}
+            {% if document.withholdingRate is not same as ('') %}
+                <li><span>Retención de IRPF</span>{{ document.withholdingRate|replace({'.': ','}) }} %</li>
+                <li><span>Cuota de retención</span>{{ document.withholdingQuota }} €</li>
+            {% endif %}
+            <li><span>Total</span>{{ document.totalLabel }} €</li>
+        </ul>

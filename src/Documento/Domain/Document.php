@@ -11,6 +11,10 @@ final class Document
         'image/webp',
     ];
 
+    /**
+     * @param list<ReviewRecord>       $reviewHistory
+     * @param list<SupportingDocument> $supportingFiles
+     */
     public function __construct(
         private readonly string $id,
         private readonly string $clientUserId,
@@ -34,6 +38,10 @@ final class Document
         private readonly ?int $surchargeQuotaCents = null,
         private readonly ?WithholdingRate $withholdingRate = null,
         private readonly ?int $withholdingQuotaCents = null,
+        private readonly array $reviewHistory = [],
+        private readonly array $supportingFiles = [],
+        private readonly ?string $pendingRequest = null,
+        private readonly int $version = 1,
     ) {
         if (null !== $withholdingRate && MovementDirection::Income !== $direction) {
             throw new InvalidWithholding('Withholding is only available for income.');
@@ -143,6 +151,10 @@ final class Document
             $details->surchargeQuotaCents(),
             $details->withholdingRate(),
             $details->withholdingQuotaCents(),
+            $this->reviewHistory,
+            $this->supportingFiles,
+            $this->pendingRequest,
+            $this->version,
         );
     }
 
@@ -153,10 +165,58 @@ final class Document
         return $this->with($details, DocumentStatus::Draft);
     }
 
-    public function confirm(DocumentDetails $details): self
+    public function confirm(DocumentDetails $details, ?\DateTimeImmutable $submittedAt = null): self
     {
         $this->assertEditable();
+        $this->assertComplete($details);
+        $history = $this->reviewHistory;
+        if (null !== $submittedAt) {
+            $history[] = new ReviewRecord(ReviewAction::Submitted, $this->clientUserId, $submittedAt, null, $this->details(), $details);
+        }
 
+        return $this->with($details, DocumentStatus::Submitted, $history);
+    }
+
+    public function validate(DocumentDetails $details, string $actorId, \DateTimeImmutable $at): self
+    {
+        $this->assertSubmitted();
+        if (null !== $this->pendingRequest) {
+            throw new InvalidDocument('A supporting document is still required.');
+        }
+        $this->assertComplete($details);
+
+        return $this->with($details, DocumentStatus::Validated, [...$this->reviewHistory, new ReviewRecord(ReviewAction::Validated, $actorId, $at, null, $this->details(), $details)]);
+    }
+
+    public function reject(string $reason, string $actorId, \DateTimeImmutable $at): self
+    {
+        $this->assertSubmitted();
+
+        return $this->with($this->details(), DocumentStatus::Rejected, [...$this->reviewHistory, new ReviewRecord(ReviewAction::Rejected, $actorId, $at, trim($reason), $this->details())]);
+    }
+
+    public function requestSupportingDocument(string $reason, string $actorId, \DateTimeImmutable $at): self
+    {
+        $this->assertSubmitted();
+        if (null !== $this->pendingRequest) {
+            throw new InvalidDocument('A supporting document has already been requested.');
+        }
+
+        return $this->with($this->details(), DocumentStatus::Submitted, [...$this->reviewHistory, new ReviewRecord(ReviewAction::Requested, $actorId, $at, trim($reason), $this->details())], null, trim($reason));
+    }
+
+    public function attachSupportingDocument(SupportingDocument $file, string $actorId, \DateTimeImmutable $at): self
+    {
+        $this->assertSubmitted();
+        if (null === $this->pendingRequest || $actorId !== $this->clientUserId) {
+            throw new InvalidDocument('There is no supporting document request for this client.');
+        }
+
+        return $this->with($this->details(), DocumentStatus::Submitted, [...$this->reviewHistory, new ReviewRecord(ReviewAction::Attached, $actorId, $at, $this->pendingRequest, $this->details(), null, $file->id)], [...$this->supportingFiles, $file]);
+    }
+
+    private function assertComplete(DocumentDetails $details): void
+    {
         $missing = [];
 
         if (null === $details->direction()) {
@@ -186,20 +246,26 @@ final class Document
         if ([] !== $missing) {
             throw new IncompleteDocument($missing);
         }
+    }
 
-        return $this->with($details, DocumentStatus::Submitted);
+    private function assertSubmitted(): void
+    {
+        if (DocumentStatus::Submitted !== $this->status || null === $this->firmId) {
+            throw new InvalidDocument('Only submitted documents linked to a firm can be reviewed.');
+        }
     }
 
     public function isEditable(): bool
     {
         return DocumentStatus::Uploaded === $this->status
             || DocumentStatus::Extracting === $this->status
-            || DocumentStatus::Draft === $this->status;
+            || DocumentStatus::Draft === $this->status
+            || DocumentStatus::Rejected === $this->status;
     }
 
     public function needsReview(): bool
     {
-        return $this->isEditable();
+        return $this->isEditable() || null !== $this->pendingRequest;
     }
 
     public function id(): string
@@ -312,6 +378,40 @@ final class Document
         return $this->createdAt;
     }
 
+    public function details(): DocumentDetails
+    {
+        return new DocumentDetails($this->direction, $this->issuedOn, $this->partyName, $this->taxId, $this->baseCents, $this->taxRate, $this->tax, $this->surcharge, $this->withholdingRate);
+    }
+
+    /** @return list<ReviewRecord> */
+    public function reviewHistory(): array
+    {
+        return $this->reviewHistory;
+    }
+
+    /** @return list<SupportingDocument> */
+    public function supportingFiles(): array
+    {
+        return $this->supportingFiles;
+    }
+
+    public function pendingRequest(): ?string
+    {
+        return $this->pendingRequest;
+    }
+
+    public function version(): int
+    {
+        return $this->version;
+    }
+
+    public function assertVersion(int $version): void
+    {
+        if ($this->version !== $version) {
+            throw new DocumentChanged('The document has changed since it was opened.');
+        }
+    }
+
     private function assertEditable(): void
     {
         if (!$this->isEditable()) {
@@ -319,7 +419,11 @@ final class Document
         }
     }
 
-    private function with(DocumentDetails $details, DocumentStatus $status): self
+    /**
+     * @param list<ReviewRecord>|null       $history
+     * @param list<SupportingDocument>|null $files
+     */
+    private function with(DocumentDetails $details, DocumentStatus $status, ?array $history = null, ?array $files = null, ?string $pendingRequest = null): self
     {
         $this->assertTax($details);
 
@@ -346,6 +450,10 @@ final class Document
             $details->surchargeQuotaCents(),
             $details->withholdingRate(),
             $details->withholdingQuotaCents(),
+            $history ?? $this->reviewHistory,
+            $files ?? $this->supportingFiles,
+            $pendingRequest,
+            $this->version,
         );
     }
 

@@ -13,14 +13,14 @@
     <div class="client-figures">
         <section>
             <h2>Ingresos registrados</h2>
-            <p>0,00 €</p>
+            <p aria-label="Importe pendiente de cálculo">—</p>
         </section>
         <section>
             <h2>Gastos registrados</h2>
-            <p>0,00 €</p>
+            <p aria-label="Importe pendiente de cálculo">—</p>
         </section>
     </div>
-    <p class="client-hint">Las cifras cuentan solo lo que tu asesoría ha validado.</p>
+    <p class="client-hint">El resumen del trimestre todavía no está disponible. Consulta el estado de tus registros en Documentos.</p>
 
     <section class="client-pending">
         <h2>Pendiente de revisión</h2>
@@ -29,7 +29,7 @@
         {% else %}
             <ul class="plain-list">
                 {% for item in pending %}
-                    <li><a href="{{ item.href }}">{{ item.name }}</a> <span>Por revisar</span></li>
+                    <li><a href="{{ item.href }}">{{ item.name }}</a> <span>{{ item.status }}</span></li>
                 {% endfor %}
             </ul>
         {% endif %}

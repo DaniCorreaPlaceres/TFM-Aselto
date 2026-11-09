@@ -2,11 +2,17 @@
 
 namespace App\Documento\Ui;
 
+use App\Documento\Domain\Document;
 use App\Documento\Domain\DocumentStatus;
 use App\Documento\Domain\MovementDirection;
 
 final class DocumentLabel
 {
+    public static function forDocument(Document $document): string
+    {
+        return null !== $document->pendingRequest() ? 'Justificante pendiente' : self::status($document->status());
+    }
+
     public static function status(DocumentStatus $status): string
     {
         return match ($status) {

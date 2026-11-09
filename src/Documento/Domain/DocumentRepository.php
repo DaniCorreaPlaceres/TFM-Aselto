@@ -11,5 +11,8 @@ interface DocumentRepository
      */
     public function findByOwner(string $clientUserId): array;
 
+    /** @return list<Document> */
+    public function findByFirm(string $firmId): array;
+
     public function save(Document $document): void;
 }

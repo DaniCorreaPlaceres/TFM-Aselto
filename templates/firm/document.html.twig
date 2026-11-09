@@ -1,0 +1,42 @@
+{% extends 'firm/_review_layout.html.twig' %}
+
+{% block title %}Revisar registro{% endblock %}
+
+{% block review_body %}
+    <h1>Revisar registro</h1>
+    <p>{{ clientName }} · {{ document.status }}</p>
+    <h2>Documento original</h2>
+    <p><a href="{{ path('firm_document_file', {id: document.id}) }}">{{ document.originalName }}</a></p>
+    {% if document.image %}
+        <img class="document-preview" src="{{ path('firm_document_file', {id: document.id}) }}" alt="Vista del documento original">
+    {% endif %}
+    {{ include('document/_supporting_files.html.twig', {supportingRoute: 'firm_supporting_file'}) }}
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    {% if document.pendingRequest %}
+        <p class="client-hint review-reason">Esperando justificante: {{ document.pendingRequest }}</p>
+        <p>La validación queda bloqueada hasta que el cliente lo aporte.</p>
+    {% endif %}
+    <h2>Datos del registro</h2>
+    {% if document.editable %}
+        <p>Comprueba los datos con el original. Puedes corregirlos antes de validar.</p>
+        {{ include('document/_details_form.html.twig') }}
+    {% else %}
+        {{ include('document/_amount_summary.html.twig') }}
+    {% endif %}
+    {% if document.statusCode == 'submitted' %}
+        <h2>Rechazar o pedir un justificante</h2>
+        <form method="post">
+            <label for="reason">Explica el motivo al cliente</label>
+            <textarea id="reason" name="reason" rows="4" maxlength="1000" required>{{ reason }}</textarea>
+            <input type="hidden" name="version" value="{{ document.version }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token(csrfId) }}">
+            <button type="submit" class="quiet" name="intent" value="request" {% if document.pendingRequest %}disabled{% endif %}>Pedir justificante</button>
+            <button type="submit" class="quiet" name="intent" value="reject">Rechazar registro</button>
+        </form>
+    {% elseif document.statusCode == 'rejected' %}
+        <p>El cliente puede corregir los datos y volver a enviar el registro.</p>
+    {% else %}
+        <p>El registro está validado y no admite más cambios desde esta pantalla.</p>
+    {% endif %}
+    {{ include('document/_review_history.html.twig') }}
+{% endblock %}
