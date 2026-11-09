@@ -1,18 +1,3 @@
 {% extends 'client/_layout.html.twig' %}
-
 {% block client_title %}Ingresos y gastos{% endblock %}
-
-{% block client_body %}
-    <h1>Ingresos y gastos</h1>
-    <p>Este trimestre todavía no hay movimientos.</p>
-    <div class="client-figures">
-        <section>
-            <h2>Ingresos registrados</h2>
-            <p>0,00 €</p>
-        </section>
-        <section>
-            <h2>Gastos registrados</h2>
-            <p>0,00 €</p>
-        </section>
-    </div>
-{% endblock %}
+{% block client_body %}{{ include('finance/_quarter.html.twig') }}{% endblock %}

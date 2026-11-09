@@ -19,6 +19,7 @@ use App\Documento\Domain\InvalidWithholding;
 use App\Documento\Domain\ReviewAction;
 use App\Identidad\Domain\Role;
 use App\Identidad\Infrastructure\Security\SecurityUser;
+use App\Shared\Domain\ClosedPeriod;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -87,6 +88,8 @@ final class FirmInboxController extends AbstractController
                     });
 
                     return $this->redirectToRoute('firm_document', ['id' => $id]);
+                } catch (ClosedPeriod) {
+                    $this->addFlash('error', 'El trimestre está cerrado. Reábrelo antes de modificar sus registros.');
                 } catch (DocumentChanged) {
                     $this->addFlash('error', 'El registro ha cambiado. Revisa su versión actual antes de decidir.');
 

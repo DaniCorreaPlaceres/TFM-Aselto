@@ -21,7 +21,7 @@ use App\Documento\Infrastructure\Extraction\OpenAiDocumentExtractor;
 use App\Documento\Infrastructure\Extraction\OpenAiProposalReader;
 use App\Documento\Infrastructure\Extraction\SampleDocumentExtractor;
 use App\Documento\Infrastructure\Persistence\DoctrineDocument;
-use App\Shared\Domain\Transaction;
+use App\Shared\Domain\ClientTransaction;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
@@ -185,11 +185,11 @@ final class IncomeWithholdingTest extends TestCase
         $clients = $this->createStub(ClientRepository::class);
         $clients->method('findByUserId')->willReturn(new Client('00000000-0000-4000-8000-000000000021', self::OWNER, $kind, 'Cliente de ejemplo', null));
         $policy = new DocumentWithholdingPolicy($clients);
-        $transaction = $this->createStub(Transaction::class);
-        $transaction->method('run')->willReturnCallback(static function (callable $operation): void { $operation(); });
+        $transaction = $this->createStub(ClientTransaction::class);
+        $transaction->method('run')->willReturnCallback(static function (string $ownerId, callable $operation): mixed { return $operation(); });
         $open = new OpenClientDocument($repository);
 
-        return [new SaveDocumentDraft($open, $repository, $transaction, $policy), new ConfirmDocument($open, $repository, $transaction, $policy, new \App\Shared\Infrastructure\SystemClock())];
+        return [new SaveDocumentDraft($open, $repository, $transaction, $policy, closedPeriods: $this->createStub(\App\Shared\Domain\ClosedPeriodGuard::class)), new ConfirmDocument($open, $repository, $transaction, $policy, new \App\Shared\Infrastructure\SystemClock(), closedPeriods: $this->createStub(\App\Shared\Domain\ClosedPeriodGuard::class))];
     }
 
     private function document(): Document

@@ -40,6 +40,12 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Documento/Infrastructure/Persistence'
                 prefix: 'App\Documento\Infrastructure\Persistence'
 
+            Finanzas:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Finanzas/Infrastructure/Persistence'
+                prefix: 'App\Finanzas\Infrastructure\Persistence'
+
 when@test:
     doctrine:
         dbal:

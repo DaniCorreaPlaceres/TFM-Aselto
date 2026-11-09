@@ -105,6 +105,7 @@ final class ClientProfileController extends AbstractController
 
         return $this->render('client/fiscal.html.twig', [
             'clientName' => $access->client()->name(),
+            'quarterClientId' => in_array($user->role(), [Role::FirmAdmin, Role::Advisor], true) ? $id : null,
             'email' => $access->email(),
             'editable' => $access->editable(),
             'error' => $error,

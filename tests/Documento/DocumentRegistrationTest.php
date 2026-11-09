@@ -30,11 +30,11 @@ use App\Documento\Domain\Tax;
 use App\Documento\Domain\TaxRate;
 use App\Documento\Domain\UnsupportedFile;
 use App\Documento\Infrastructure\Storage\LocalDocumentFileStore;
+use App\Shared\Domain\ClientTransaction;
 use App\Shared\Domain\Clock;
 use App\Shared\Domain\FiscalContact;
 use App\Shared\Domain\IdGenerator;
 use App\Shared\Domain\SpanishProvince;
-use App\Shared\Domain\Transaction;
 use PHPUnit\Framework\TestCase;
 
 final class DocumentRegistrationTest extends TestCase
@@ -370,12 +370,12 @@ final class DocumentRegistrationTest extends TestCase
 
     private function draft(RegistrationDocumentRepository $documents): SaveDocumentDraft
     {
-        return new SaveDocumentDraft(new OpenClientDocument($documents), $documents, new RegistrationTransaction(), new DocumentWithholdingPolicy($this->clients()));
+        return new SaveDocumentDraft(new OpenClientDocument($documents), $documents, new RegistrationTransaction(), new DocumentWithholdingPolicy($this->clients()), closedPeriods: $this->createStub(\App\Shared\Domain\ClosedPeriodGuard::class));
     }
 
     private function confirm(RegistrationDocumentRepository $documents): ConfirmDocument
     {
-        return new ConfirmDocument(new OpenClientDocument($documents), $documents, new RegistrationTransaction(), new DocumentWithholdingPolicy($this->clients()), new RegistrationClock());
+        return new ConfirmDocument(new OpenClientDocument($documents), $documents, new RegistrationTransaction(), new DocumentWithholdingPolicy($this->clients()), new RegistrationClock(), closedPeriods: $this->createStub(\App\Shared\Domain\ClosedPeriodGuard::class));
     }
 
     private function clients(string $province = 'Madrid'): RegistrationClientRepository
@@ -547,10 +547,10 @@ final class FixedDocumentExtractor implements DocumentExtractor
     }
 }
 
-final class RegistrationTransaction implements Transaction
+final class RegistrationTransaction implements ClientTransaction
 {
-    public function run(callable $operation): void
+    public function run(string $ownerId, callable $operation): mixed
     {
-        $operation();
+        return $operation();
     }
 }

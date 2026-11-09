@@ -33,6 +33,7 @@ services:
             - '../src/Asesoria/Infrastructure/Persistence/DoctrineFirm.php'
             - '../src/Cliente/Infrastructure/Persistence/DoctrineClient.php'
             - '../src/Documento/Infrastructure/Persistence/DoctrineDocument.php'
+            - '../src/Finanzas/Infrastructure/Persistence/DoctrineQuarter.php'
 
     App\Identidad\Domain\UserRepository:
         alias: App\Identidad\Infrastructure\Persistence\DoctrineUserRepository
@@ -75,3 +76,15 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\Shared\Domain\ClientTransaction:
+        alias: App\Shared\Infrastructure\DoctrineClientTransaction
+
+    App\Shared\Domain\ClosedPeriodGuard:
+        alias: App\Finanzas\Application\PreventClosedQuarterChanges
+
+    App\Finanzas\Domain\QuarterRepository:
+        alias: App\Finanzas\Infrastructure\Persistence\DoctrineQuarterRepository
+
+    App\Finanzas\Domain\FinancialRecords:
+        alias: App\Finanzas\Infrastructure\Persistence\DoctrineFinancialRecords

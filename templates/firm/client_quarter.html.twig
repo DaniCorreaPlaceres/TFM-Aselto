@@ -1,0 +1,3 @@
+{% extends 'firm/_review_layout.html.twig' %}
+{% block title %}Trimestre de {{ quarter.access.clientName }}{% endblock %}
+{% block review_body %}{{ include('finance/_quarter.html.twig') }}{% endblock %}

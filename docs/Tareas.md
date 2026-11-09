@@ -27,7 +27,7 @@ Lista de lo que hay que hacer. El detalle de cada una se escribe en `docs/sdd/` 
 18. Recargo de equivalencia opcional en los gastos con IVA, con cuota y total calculados. Hecha.
 19. Retención de IRPF opcional en los ingresos de un autónomo, con porcentaje manual, cuota y total calculados. Hecha.
 20. Bandeja de la asesoría: validar con correcciones, rechazar con motivo y reenvío o pedir justificante adicional, conservando historial y original. Hecha.
-21. Trimestre: cifras, cierre y consulta del histórico.
+21. Trimestre: cifras, cierre, reapertura y consulta del histórico. Hecha.
 22. Mensajes y solicitudes entre cliente y asesoría.
 23. Actualización en vivo del trimestre.
 24. API `/api/v1` con los mismos casos de uso.

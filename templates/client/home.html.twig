@@ -13,19 +13,20 @@
     <div class="client-figures">
         <section>
             <h2>Ingresos registrados</h2>
-            <p aria-label="Importe pendiente de cálculo">—</p>
+            <p>{{ (summary.incomeCents / 100)|number_format(2, ',', '.') }} €</p>
         </section>
         <section>
             <h2>Gastos registrados</h2>
-            <p aria-label="Importe pendiente de cálculo">—</p>
+            <p>{{ (summary.expenseCents / 100)|number_format(2, ',', '.') }} €</p>
         </section>
     </div>
-    <p class="client-hint">El resumen del trimestre todavía no está disponible. Consulta el estado de tus registros en Documentos.</p>
+    <p class="client-hint">{{ quarter.firmId ? 'Cifras validadas por tu asesoría.' : 'Control personal: registros confirmados por ti.' }} {{ quarter.record and quarter.record.closed ? 'Trimestre cerrado.' : 'Trimestre abierto.' }}</p>
 
+    <p><a href="{{ path('client_movements') }}">Ver trimestre</a> · {{ quarter.calculation.pending|length }} registros pendientes para el cierre.</p>
     <section class="client-pending">
         <h2>Pendiente de revisión</h2>
         {% if pending is empty %}
-            <p>No hay nada pendiente de revisión.</p>
+            <p>No hay documentos que necesiten una acción tuya.</p>
         {% else %}
             <ul class="plain-list">
                 {% for item in pending %}
