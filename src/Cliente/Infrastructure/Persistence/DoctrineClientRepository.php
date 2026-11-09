@@ -16,7 +16,12 @@ final class DoctrineClientRepository implements ClientRepository
     {
         $record = $this->entityManager->find(DoctrineClient::class, $id);
 
-        return $record instanceof DoctrineClient ? $record->toDomain() : null;
+        if (!$record instanceof DoctrineClient) {
+            return null;
+        }
+        $this->entityManager->refresh($record);
+
+        return $record->toDomain();
     }
 
     public function findByUserId(string $userId): ?Client
@@ -25,7 +30,12 @@ final class DoctrineClientRepository implements ClientRepository
             'userId' => $userId,
         ]);
 
-        return $record instanceof DoctrineClient ? $record->toDomain() : null;
+        if (!$record instanceof DoctrineClient) {
+            return null;
+        }
+        $this->entityManager->refresh($record);
+
+        return $record->toDomain();
     }
 
     public function findByFirm(string $firmId): array

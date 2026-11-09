@@ -33,9 +33,9 @@ use App\Documento\Ui\DocumentFileResponse;
 use App\Identidad\Domain\Role;
 use App\Identidad\Domain\User;
 use App\Identidad\Domain\UserRepository;
+use App\Shared\Domain\ClientTransaction;
 use App\Shared\Domain\Clock;
 use App\Shared\Domain\IdGenerator;
-use App\Shared\Domain\Transaction;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -58,7 +58,7 @@ final class AdvisoryInboxTest extends TestCase
     private FirmDocumentAccess $access;
     private DocumentWithholdingPolicy $policy;
     private Clock $clock;
-    private Transaction $transaction;
+    private ClientTransaction $transaction;
     private ReviewSubmittedDocument $review;
 
     protected function setUp(): void
@@ -86,11 +86,11 @@ final class AdvisoryInboxTest extends TestCase
         $this->documents->method('findByFirm')->willReturnCallback(fn (string $id): array => array_values(array_filter($this->records, static fn (Document $document): bool => $document->firmId() === $id)));
         $this->clock = $this->createStub(Clock::class);
         $this->clock->method('now')->willReturn(new \DateTimeImmutable('2026-11-08 23:30:00 UTC'));
-        $this->transaction = $this->createStub(Transaction::class);
-        $this->transaction->method('run')->willReturnCallback(static function (callable $operation): void { $operation(); });
+        $this->transaction = $this->createStub(ClientTransaction::class);
+        $this->transaction->method('run')->willReturnCallback(static function (string $ownerId, callable $operation): mixed { return $operation(); });
         $this->access = new FirmDocumentAccess($users, $this->clients, $this->documents);
         $this->policy = new DocumentWithholdingPolicy($this->clients);
-        $this->review = new ReviewSubmittedDocument($this->access, $this->documents, $this->policy, $this->clock, $this->transaction);
+        $this->review = new ReviewSubmittedDocument($this->access, $this->documents, $this->policy, $this->clock, $this->transaction, closedPeriods: $this->createStub(\App\Shared\Domain\ClosedPeriodGuard::class));
         $this->records[self::ID] = $this->received()->confirm($this->details(), $this->clock->now());
     }
 
@@ -149,11 +149,11 @@ final class AdvisoryInboxTest extends TestCase
         self::assertTrue($rejected->isEditable());
         self::assertCount(1, (new ListClientDocuments($this->documents))->pending(self::OWNER));
         $open = new OpenClientDocument($this->documents);
-        $draft = (new SaveDocumentDraft($open, $this->documents, $this->transaction, $this->policy))->execute(self::OWNER, self::ID, 'gasto', '2026-10-01', 'Proveedor', '00000000T', '100', '21');
+        $draft = (new SaveDocumentDraft($open, $this->documents, $this->transaction, $this->policy, closedPeriods: $this->createStub(\App\Shared\Domain\ClosedPeriodGuard::class)))->execute(self::OWNER, self::ID, 'gasto', '2026-10-01', 'Proveedor', '00000000T', '100', '21');
         self::assertSame(DocumentStatus::Draft, $draft->status());
         self::assertSame('Corrige la fecha.', $draft->reviewHistory()[1]->reason);
         self::assertCount(0, (new ListFirmDocuments($this->access, $this->documents))->execute(self::ADVISOR));
-        $resent = (new ConfirmDocument($open, $this->documents, $this->transaction, $this->policy, $this->clock))->execute(self::OWNER, self::ID, 'gasto', '2026-10-01', 'Proveedor', '00000000T', '100', '21');
+        $resent = (new ConfirmDocument($open, $this->documents, $this->transaction, $this->policy, $this->clock, closedPeriods: $this->createStub(\App\Shared\Domain\ClosedPeriodGuard::class)))->execute(self::OWNER, self::ID, 'gasto', '2026-10-01', 'Proveedor', '00000000T', '100', '21');
         self::assertSame(DocumentStatus::Submitted, $resent->status());
         self::assertCount(3, $resent->reviewHistory());
         self::assertSame(ReviewAction::Submitted, $resent->reviewHistory()[2]->action);
@@ -281,7 +281,7 @@ final class AdvisoryInboxTest extends TestCase
     {
         $clients = $this->createStub(ClientRepository::class);
         $clients->method('findByUserId')->willReturn(new Client('00000000-0000-4000-8000-000000000021', self::OWNER, ClientKind::Company, 'Sociedad de ejemplo', self::FIRM));
-        $review = new ReviewSubmittedDocument($this->access, $this->documents, new DocumentWithholdingPolicy($clients), $this->clock, $this->transaction);
+        $review = new ReviewSubmittedDocument($this->access, $this->documents, new DocumentWithholdingPolicy($clients), $this->clock, $this->transaction, closedPeriods: $this->createStub(\App\Shared\Domain\ClosedPeriodGuard::class));
         $this->expectException(InvalidWithholding::class);
         $review->execute(self::ADVISOR, self::ID, 1, ReviewAction::Validated, DocumentForm::read('ingreso', '2026-11-08', 'Cliente', '00000000T', '100', '21', withholdingRate: '15'));
     }

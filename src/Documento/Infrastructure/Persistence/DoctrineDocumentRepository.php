@@ -19,7 +19,12 @@ final class DoctrineDocumentRepository implements DocumentRepository
     {
         $record = $this->entityManager->find(DoctrineDocument::class, $id);
 
-        return $record instanceof DoctrineDocument ? $record->toDomain() : null;
+        if (!$record instanceof DoctrineDocument) {
+            return null;
+        }
+        $this->entityManager->refresh($record);
+
+        return $record->toDomain();
     }
 
     public function findByOwner(string $clientUserId): array

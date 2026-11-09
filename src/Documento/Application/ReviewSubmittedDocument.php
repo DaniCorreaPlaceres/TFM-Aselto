@@ -7,34 +7,40 @@ use App\Documento\Domain\DocumentDetails;
 use App\Documento\Domain\DocumentRepository;
 use App\Documento\Domain\InvalidDocument;
 use App\Documento\Domain\ReviewAction;
+use App\Shared\Domain\ClientTransaction;
 use App\Shared\Domain\Clock;
-use App\Shared\Domain\Transaction;
+use App\Shared\Domain\ClosedPeriodGuard;
 
 final class ReviewSubmittedDocument
 {
-    public function __construct(private readonly FirmDocumentAccess $access, private readonly DocumentRepository $documents, private readonly DocumentWithholdingPolicy $withholdingPolicy, private readonly Clock $clock, private readonly Transaction $transaction)
+    public function __construct(private readonly FirmDocumentAccess $access, private readonly DocumentRepository $documents, private readonly DocumentWithholdingPolicy $withholdingPolicy, private readonly Clock $clock, private readonly ClientTransaction $transaction, private readonly ClosedPeriodGuard $closedPeriods)
     {
     }
 
     public function execute(string $actorId, string $documentId, int $version, ReviewAction $action, ?DocumentDetails $details = null, string $reason = ''): Document
     {
         $document = $this->access->open($actorId, $documentId)->document;
-        $document->assertVersion($version);
-        if (ReviewAction::Validated === $action) {
-            if (null === $details) {
-                throw new InvalidDocument('The reviewed details are missing.');
-            }
-            $this->withholdingPolicy->assertAllowed($document->clientUserId(), $details->withholdingRate());
-        }
-        $at = $this->clock->now();
-        $reviewed = match ($action) {
-            ReviewAction::Validated => $document->validate($details, $actorId, $at),
-            ReviewAction::Rejected => $document->reject($reason, $actorId, $at),
-            ReviewAction::Requested => $document->requestSupportingDocument($reason, $actorId, $at),
-            default => throw new InvalidDocument('The review action is not allowed.'),
-        };
-        $this->transaction->run(function () use ($reviewed): void { $this->documents->save($reviewed); });
 
-        return $reviewed;
+        return $this->transaction->run($document->clientUserId(), function () use ($actorId, $documentId, $version, $action, $details, $reason): Document {
+            $document = $this->access->open($actorId, $documentId)->document;
+            $document->assertVersion($version);
+            if (ReviewAction::Validated === $action) {
+                if (null === $details) {
+                    throw new InvalidDocument('The reviewed details are missing.');
+                }
+                $this->closedPeriods->assertOpen($document->clientUserId(), $document->firmId(), $document->issuedOn(), $details->issuedOn());
+                $this->withholdingPolicy->assertAllowed($document->clientUserId(), $details->withholdingRate());
+            }
+            $at = $this->clock->now();
+            $reviewed = match ($action) {
+                ReviewAction::Validated => $document->validate($details, $actorId, $at),
+                ReviewAction::Rejected => $document->reject($reason, $actorId, $at),
+                ReviewAction::Requested => $document->requestSupportingDocument($reason, $actorId, $at),
+                default => throw new InvalidDocument('The review action is not allowed.'),
+            };
+            $this->documents->save($reviewed);
+
+            return $reviewed;
+        });
     }
 }

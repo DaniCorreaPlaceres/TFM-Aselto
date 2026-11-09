@@ -11,9 +11,9 @@ use App\Documento\Domain\DocumentRepository;
 use App\Documento\Domain\ExtractionFailed;
 use App\Documento\Domain\MissingClientProfile;
 use App\Documento\Domain\Tax;
+use App\Shared\Domain\ClientTransaction;
 use App\Shared\Domain\Clock;
 use App\Shared\Domain\IdGenerator;
-use App\Shared\Domain\Transaction;
 
 final class StoreClientDocument
 {
@@ -24,7 +24,7 @@ final class StoreClientDocument
         private readonly DocumentExtractor $extractor,
         private readonly IdGenerator $ids,
         private readonly Clock $clock,
-        private readonly Transaction $transaction,
+        private readonly ClientTransaction $transaction,
     ) {
     }
 
@@ -63,7 +63,7 @@ final class StoreClientDocument
         } catch (ExtractionFailed) {
         }
 
-        $this->transaction->run(function () use ($document): void {
+        $this->transaction->run($userId, function () use ($document): void {
             $this->documents->save($document);
         });
 

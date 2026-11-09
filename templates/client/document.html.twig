@@ -32,6 +32,14 @@
     {{ include('document/_supporting_files.html.twig', {supportingRoute: 'client_supporting_file'}) }}
     {{ include('document/_review_history.html.twig') }}
 
+    {% if canAmendPersonal %}
+        <form method="post" action="{{ path('client_document_amend', {id: document.id}) }}">
+            <input type="hidden" name="version" value="{{ document.version }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('amend_document_' ~ document.id) }}">
+            <button type="submit">Corregir registro</button>
+            <p>Reabre primero su trimestre si está cerrado. La corrección conserva el historial y requiere confirmar de nuevo.</p>
+        </form>
+    {% endif %}
     {% if document.editable %}
         {% if document.proposal == 'extracted' %}
             <p>Hemos extraído estos datos. Revísalos antes de confirmar.</p>

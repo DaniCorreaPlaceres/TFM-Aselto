@@ -177,6 +177,15 @@ final class Document
         return $this->with($details, DocumentStatus::Submitted, $history);
     }
 
+    public function amendPersonal(string $actorId, \DateTimeImmutable $at): self
+    {
+        if (null !== $this->firmId || $actorId !== $this->clientUserId || DocumentStatus::Submitted !== $this->status) {
+            throw new InvalidDocument('Only a confirmed personal record can be corrected.');
+        }
+
+        return $this->with($this->details(), DocumentStatus::Draft, [...$this->reviewHistory, new ReviewRecord(ReviewAction::Amended, $actorId, $at, null, $this->details())]);
+    }
+
     public function validate(DocumentDetails $details, string $actorId, \DateTimeImmutable $at): self
     {
         $this->assertSubmitted();

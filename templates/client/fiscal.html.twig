@@ -6,6 +6,7 @@
     <main class="panel">
         <h1>Datos fiscales</h1>
         <p>{{ clientName }} · {{ email }}</p>
+        {% if quarterClientId %}<p><a href="{{ path('firm_client_quarter', {id: quarterClientId}) }}">Ver trimestre</a></p>{% endif %}
 
         {% for message in app.flashes('success') %}
             <p class="success">{{ message }}</p>

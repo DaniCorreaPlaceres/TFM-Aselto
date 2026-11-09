@@ -29,6 +29,7 @@ final class DocumentReviewPresenter
             }
             $history[] = [
                 'action' => match ($record->action) {
+                    ReviewAction::Amended => 'Corrección iniciada',
                     ReviewAction::Submitted => 'Registro enviado',
                     ReviewAction::Validated => 'Registro validado',
                     ReviewAction::Rejected => 'Registro rechazado',

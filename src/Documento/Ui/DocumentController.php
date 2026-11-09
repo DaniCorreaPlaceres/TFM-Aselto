@@ -23,6 +23,7 @@ use App\Documento\Domain\ProposalOrigin;
 use App\Documento\Domain\UnsupportedFile;
 use App\Identidad\Domain\Role;
 use App\Identidad\Infrastructure\Security\SecurityUser;
+use App\Shared\Domain\ClosedPeriod;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
@@ -110,6 +111,7 @@ final class DocumentController extends AbstractController
         DocumentWithholdingPolicy $withholdingPolicy,
         DocumentReviewForm $form,
         DocumentReviewPresenter $presenter,
+        \App\Cliente\Domain\ClientRepository $clients,
     ): Response {
         $user = $this->client();
 
@@ -131,13 +133,15 @@ final class DocumentController extends AbstractController
                 try {
                     $document->assertVersion((int) $request->request->get('version', 0));
                     $saved = 'confirm' === $request->request->get('intent')
-                        ? $confirmDocument->execute($user->id(), $id, ...$form->arguments($input))
-                        : $saveDocumentDraft->execute($user->id(), $id, ...$form->arguments($input));
+                        ? $confirmDocument->execute($user->id(), $id, ...$form->arguments($input), expectedVersion: (int) $request->request->get('version', 0))
+                        : $saveDocumentDraft->execute($user->id(), $id, ...$form->arguments($input), expectedVersion: (int) $request->request->get('version', 0));
                     $this->addFlash('success', $saved->isEditable()
                         ? 'El borrador está guardado.'
                         : 'Has confirmado el registro.');
 
                     return $this->redirectToRoute('client_document', ['id' => $id]);
+                } catch (ClosedPeriod) {
+                    $this->addFlash('error', 'El trimestre está cerrado. Reábrelo antes de modificar sus registros.');
                 } catch (DocumentChanged) {
                     $this->addFlash('error', 'El registro ha cambiado. Revisa su versión actual antes de guardar.');
 
@@ -169,7 +173,30 @@ final class DocumentController extends AbstractController
             'supportingFiles' => $presenter->files($document),
             'fieldErrors' => $fieldErrors,
             'hasFirm' => null !== $document->firmId(),
+            'canAmendPersonal' => null === $clients->findByUserId($user->id())?->firmId() && null === $document->firmId() && \App\Documento\Domain\DocumentStatus::Submitted === $document->status(),
         ]);
+    }
+
+    #[Route('/documentos/{id}/corregir', name: 'client_document_amend', methods: ['POST'], requirements: ['id' => self::ID])]
+    public function amend(string $id, Request $request, \App\Documento\Application\AmendPersonalDocument $amend): Response
+    {
+        $user = $this->client();
+        if (!$this->isCsrfTokenValid('amend_document_'.$id, (string) $request->request->get('_csrf_token'))) {
+            $this->addFlash('error', 'La sesión del formulario ha caducado. Vuelve a intentarlo.');
+        } else {
+            try {
+                $amend->execute($user->id(), $id, (int) $request->request->get('version', 0));
+                $this->addFlash('success', 'Ya puedes corregir el registro. Confírmalo de nuevo para incluirlo en tus cifras.');
+            } catch (ClosedPeriod) {
+                $this->addFlash('error', 'El trimestre está cerrado. Reábrelo antes de corregir el registro.');
+            } catch (DocumentChanged|InvalidDocument) {
+                $this->addFlash('error', 'El registro ha cambiado. Revisa su estado actual.');
+            } catch (DocumentNotFound) {
+                throw $this->createNotFoundException();
+            }
+        }
+
+        return $this->redirectToRoute('client_document', ['id' => $id]);
     }
 
     #[Route('/documentos/{id}/archivo', name: 'client_document_file', methods: ['GET'], requirements: ['id' => self::ID])]

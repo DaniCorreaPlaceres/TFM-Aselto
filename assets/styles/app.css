@@ -612,3 +612,30 @@ button:focus {
     outline: 3px solid #006B70;
     outline-offset: 3px;
 }
+
+.quarter-view .plain-list li {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.quarter-view .plain-list a {
+    display: inline-block;
+    padding: 12px 0;
+}
+
+.quarter-view h3 {
+    margin: 0 0 8px;
+    color: #475569;
+    font-size: 16px;
+}
+
+.quarter-view details summary {
+    min-height: 48px;
+    padding-top: 12px;
+    cursor: pointer;
+}
+
+.quarter-view button:disabled {
+    background: #475569;
+    cursor: not-allowed;
+}

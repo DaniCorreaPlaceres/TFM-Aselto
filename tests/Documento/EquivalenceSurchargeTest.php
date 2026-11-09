@@ -18,7 +18,7 @@ use App\Documento\Domain\Tax;
 use App\Documento\Infrastructure\Extraction\OpenAiProposalReader;
 use App\Documento\Infrastructure\Extraction\SampleDocumentExtractor;
 use App\Documento\Infrastructure\Persistence\DoctrineDocument;
-use App\Shared\Domain\Transaction;
+use App\Shared\Domain\ClientTransaction;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -88,12 +88,12 @@ final class EquivalenceSurchargeTest extends TestCase
         $repository = $this->createMock(DocumentRepository::class);
         $repository->method('find')->willReturnCallback(static function () use (&$current): Document { return $current; });
         $repository->expects($this->exactly(2))->method('save')->willReturnCallback(static function (Document $document) use (&$current): void { $current = $document; });
-        $transaction = $this->createStub(Transaction::class);
-        $transaction->method('run')->willReturnCallback(static function (callable $operation): void { $operation(); });
+        $transaction = $this->createStub(ClientTransaction::class);
+        $transaction->method('run')->willReturnCallback(static function (string $ownerId, callable $operation): mixed { return $operation(); });
         $open = new OpenClientDocument($repository);
-        $draft = (new SaveDocumentDraft($open, $repository, $transaction, new DocumentWithholdingPolicy($this->createStub(ClientRepository::class))))->execute(self::OWNER, self::ID, 'gasto', '2026-11-08', 'Proveedor de ejemplo', '00000000T', '100', '21', '5.2');
+        $draft = (new SaveDocumentDraft($open, $repository, $transaction, new DocumentWithholdingPolicy($this->createStub(ClientRepository::class)), closedPeriods: $this->createStub(\App\Shared\Domain\ClosedPeriodGuard::class)))->execute(self::OWNER, self::ID, 'gasto', '2026-11-08', 'Proveedor de ejemplo', '00000000T', '100', '21', '5.2');
         self::assertSame(DocumentStatus::Draft, $draft->status());
-        $confirmed = (new ConfirmDocument($open, $repository, $transaction, new DocumentWithholdingPolicy($this->createStub(ClientRepository::class)), new \App\Shared\Infrastructure\SystemClock()))->execute(self::OWNER, self::ID, 'gasto', '2026-11-08', 'Proveedor de ejemplo', '00000000T', '100', '21', '5,2');
+        $confirmed = (new ConfirmDocument($open, $repository, $transaction, new DocumentWithholdingPolicy($this->createStub(ClientRepository::class)), new \App\Shared\Infrastructure\SystemClock(), closedPeriods: $this->createStub(\App\Shared\Domain\ClosedPeriodGuard::class)))->execute(self::OWNER, self::ID, 'gasto', '2026-11-08', 'Proveedor de ejemplo', '00000000T', '100', '21', '5,2');
         self::assertSame(DocumentStatus::Submitted, $confirmed->status());
         self::assertSame(12620, $confirmed->totalCents());
         $record = new DoctrineDocument();
@@ -106,7 +106,9 @@ final class EquivalenceSurchargeTest extends TestCase
         $repository = $this->createStub(DocumentRepository::class);
         $repository->method('find')->willReturn($this->document());
         $this->expectException(DocumentNotFound::class);
-        (new SaveDocumentDraft(new OpenClientDocument($repository), $repository, $this->createStub(Transaction::class), new DocumentWithholdingPolicy($this->createStub(ClientRepository::class))))->execute('00000000-0000-4000-8000-000000000015', self::ID, 'gasto', '', '', '', '100', '21', '5.2');
+        $transaction = $this->createStub(ClientTransaction::class);
+        $transaction->method('run')->willReturnCallback(static fn (string $ownerId, callable $operation): mixed => $operation());
+        (new SaveDocumentDraft(new OpenClientDocument($repository), $repository, $transaction, new DocumentWithholdingPolicy($this->createStub(ClientRepository::class)), closedPeriods: $this->createStub(\App\Shared\Domain\ClosedPeriodGuard::class)))->execute('00000000-0000-4000-8000-000000000015', self::ID, 'gasto', '', '', '', '100', '21', '5.2');
     }
 
     public function testExtractionOnlyAcceptsAnExplicitCompatibleSurchargeAndIgnoresModelAmounts(): void

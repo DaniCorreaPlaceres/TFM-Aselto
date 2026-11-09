@@ -5,6 +5,7 @@ namespace App\Cliente\Ui;
 use App\Cliente\Application\ShowClientHome;
 use App\Documento\Application\ListClientDocuments;
 use App\Documento\Ui\DocumentLabel;
+use App\Finanzas\Application\ShowQuarter;
 use App\Identidad\Domain\Role;
 use App\Identidad\Infrastructure\Security\SecurityUser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -14,31 +15,29 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ClientHomeController extends AbstractController
 {
     #[Route('/inicio', name: 'client_home', methods: ['GET'])]
-    public function home(ShowClientHome $showClientHome, ListClientDocuments $listClientDocuments): Response
+    public function home(ShowClientHome $showClientHome, ListClientDocuments $listClientDocuments, ShowQuarter $quarters): Response
     {
         $view = $this->view('inicio', $showClientHome);
         $user = $this->getUser();
         $pending = [];
 
-        if ($user instanceof SecurityUser) {
-            foreach ($listClientDocuments->pending($user->id()) as $document) {
-                $pending[] = [
-                    'name' => $document->partyName() ?: $document->originalName(),
-                    'status' => DocumentLabel::forDocument($document),
-                    'href' => $this->generateUrl('client_document', ['id' => $document->id()]),
-                ];
-            }
+        if (!$user instanceof SecurityUser) {
+            throw $this->createAccessDeniedException();
+        }
+        foreach ($listClientDocuments->pending($user->id()) as $document) {
+            $pending[] = [
+                'name' => $document->partyName() ?: $document->originalName(),
+                'status' => DocumentLabel::forDocument($document),
+                'href' => $this->generateUrl('client_document', ['id' => $document->id()]),
+            ];
         }
 
         $view['pending'] = $pending;
+        $quarter = $quarters->execute($user->id(), null, $quarters->currentPeriod());
+        $view['quarter'] = $quarter;
+        $view['summary'] = $quarter->record?->closed ? $quarter->record->snapshot : $quarter->calculation->summary;
 
         return $this->render('client/home.html.twig', $view);
-    }
-
-    #[Route('/ingresos', name: 'client_movements', methods: ['GET'])]
-    public function movements(ShowClientHome $showClientHome): Response
-    {
-        return $this->render('client/movements.html.twig', $this->view('movimientos', $showClientHome));
     }
 
     #[Route('/mi-asesoria', name: 'client_firm', methods: ['GET'])]
