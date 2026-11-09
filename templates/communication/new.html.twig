@@ -1,0 +1,28 @@
+{% extends 'communication/_layout.html.twig' %}
+{% block communication_body %}
+    <h1>Nuevo mensaje</h1>
+    <p><a href="{{ path('messages') }}">Volver a mensajes</a></p>
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    {% if recipients is empty %}
+        <p>No hay un destinatario disponible. Los mensajes requieren un cliente vinculado a una asesoría.</p>
+    {% elseif selected is null %}
+        <form method="get"><label for="recipient">Cliente</label><select id="recipient" name="owner" required>
+            <option value="">Elige un cliente</option>{% for recipient in recipients %}<option value="{{ recipient.userId }}">{{ recipient.name }}</option>{% endfor %}
+        </select><button type="submit">Continuar</button></form>
+    {% else %}
+        <p>{{ clientView ? 'Para tu asesoría' : 'Cliente: ' ~ selected.name }}</p>
+        <form method="post" enctype="multipart/form-data">
+            <input type="hidden" name="owner" value="{{ selected.userId }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('new_message') }}">
+            <label for="subject">Asunto (obligatorio)</label><input id="subject" name="subject" maxlength="120" value="{{ subject }}" required>
+            <label for="text">Mensaje (obligatorio)</label><textarea id="text" name="text" maxlength="4000" rows="6" required>{{ text }}</textarea>
+            <label for="linked-document">Documento relacionado (opcional)</label><select id="linked-document" name="document">
+                <option value="">Sin documento relacionado</option>{% for document in documents %}<option value="{{ document.id }}" {{ document.id == documentId ? 'selected' : '' }}>{{ document.partyName ?: document.originalName }} · {{ document.issuedOn ? document.issuedOn|date('d/m/Y') : 'Sin fecha' }}</option>{% endfor %}
+            </select>
+            {% if staff %}<label class="choice"><input type="checkbox" name="request" value="1" {{ isRequest ? 'checked' : '' }}> Es una solicitud pendiente de resolver</label><p>El cliente puede responder. El admin o gestor confirma cuándo está resuelta.</p>{% endif %}
+            {{ include('communication/_attachments.html.twig') }}
+            {% if error %}<p>Por seguridad del navegador, vuelve a seleccionar los archivos que quieras adjuntar.</p>{% endif %}
+            <button type="submit">Enviar mensaje</button>
+        </form>
+    {% endif %}
+{% endblock %}

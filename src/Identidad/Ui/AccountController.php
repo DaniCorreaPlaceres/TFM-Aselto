@@ -35,6 +35,7 @@ final class AccountController extends AbstractController
             'destination' => $destination,
             'secondary' => $secondary,
             'team' => Role::FirmAdmin === $user->role(),
+            'messaging' => in_array($user->role(), [Role::FirmAdmin, Role::Advisor], true),
             'fiscal' => Role::FirmAdmin === $user->role() ? ['route' => 'firm_profile', 'label' => 'Datos fiscales'] : null,
         ]);
     }
