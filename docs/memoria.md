@@ -215,6 +215,8 @@ Dentro de los contenedores la base se llama `database`. Desde la máquina anfitr
 
 La imagen de PHP instala `intl`, `pdo_mysql`, `zip` y `bcmath`. OPcache se activa en `docker/php/php.ini`. El script `docker/php/entrada.sh` se guarda con finales de línea Unix; `.gitattributes` lo mantiene así.
 
+En PHP 8.5 OPcache viene integrado: el ini configura su uso sin cargar una extensión adicional. En desarrollo comprueba los cambios de código en cada petición. `vendor` y `var/cache` usan volúmenes internos de Docker para reducir el acceso a archivos compartidos desde Windows. La imagen prepara las dependencias de `composer.lock` y el arranque vuelve a instalarlas si cambia ese archivo. Los comandos de caché se ejecutan con `docker compose exec --user www-data app php bin/console ...`. `var/storage` conserva su ubicación compartida; los documentos y el volumen de MySQL no cambian.
+
 `GET /salud` no forma parte del producto. Ya está comprobado: responde 200 con `{"estado":"ok","base_de_datos":"ok"}`. MySQL 8.4 queda sano en el puerto 3306. Mercure responde en el 9080.
 
 `/` es la home comercial y es pública. Usa el logotipo oficial y se dirige a autónomos, sociedades y asesorías. Explica que el documento se añade, los datos se revisan y el trimestre se actualiza. La única acción es Entrar, hacia `/entrar`. Si ya hay sesión, esa acción se llama Tu acceso y abre `/cuenta`. No hay precios en esta página. Quien no tiene sesión ve también «Crear acceso», hacia `/registro`.
