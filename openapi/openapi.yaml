@@ -1,8 +1,189 @@
 openapi: 3.0.3
 info:
   title: Aselto API
-  version: 0.1.0
+  version: 0.2.0
   description: >
-    Contrato de la API. Las operaciones de producto se añaden en la tarea
-    correspondiente. Esta versión todavía no describe rutas.
-paths: {}
+    Primer bloque de la API v1: acceso JWT y consulta de la identidad actual.
+    La sesión web no autentica la API. El token dura una hora y solo se admite
+    mediante Authorization: Bearer. Todavía no hay renovación ni revocación.
+    Los datos fiscales y las demás operaciones se añadirán en bloques posteriores.
+paths:
+  /api/v1/auth/login:
+    post:
+      operationId: login
+      summary: Obtener un token de acceso
+      description: >
+        Usa el mismo proveedor de usuarios y la misma comprobación de activación
+        que la web. Un correo inexistente, una cuenta inactiva y una contraseña
+        incorrecta producen el mismo error. La contraseña no se recorta.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  maxLength: 254
+                  example: cliente@example.test
+                password:
+                  type: string
+                  format: password
+                  minLength: 1
+                  maxLength: 4096
+                  writeOnly: true
+      responses:
+        '200':
+          description: Acceso correcto. La respuesta no se almacena en caché.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [token, token_type, expires_in]
+                properties:
+                  token:
+                    type: string
+                    description: JWT firmado. No debe incluirse en URLs ni registros.
+                  token_type:
+                    type: string
+                    enum: [Bearer]
+                  expires_in:
+                    type: integer
+                    enum: [3600]
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          description: Correo o contraseña incorrectos, o cuenta inactiva.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error:
+                  code: invalid_credentials
+                  message: El correo o la contraseña no son correctos.
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '413':
+          description: El cuerpo supera los 16 KiB.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '415':
+          description: Se requiere Content-Type application/json.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/v1/me:
+    get:
+      operationId: currentUser
+      summary: Consultar la identidad actual
+      description: >
+        Recarga el usuario de la base de datos para comprobar activación, papel y
+        asesoría actuales. No permite elegir otro usuario ni devuelve datos fiscales.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Identidad del usuario autenticado, sin caché.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUser'
+        '401':
+          description: Token ausente, inválido o caducado, o cuenta no disponible.
+          headers:
+            WWW-Authenticate:
+              schema:
+                type: string
+                enum: [Bearer]
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Operación no permitida para el usuario.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+    CurrentUser:
+      type: object
+      additionalProperties: false
+      required: [id, email, role, firm_id, activated]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [superadmin, firm_admin, advisor, client]
+        firm_id:
+          type: string
+          format: uuid
+          nullable: true
+        activated:
+          type: boolean
+          enum: [true]
+  responses:
+    InvalidRequest:
+      description: JSON mal formado o campos ausentes, incorrectos o no admitidos.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    MethodNotAllowed:
+      description: Método no permitido.
+      headers:
+        Allow:
+          description: Métodos admitidos en esta ruta.
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalError:
+      description: Error interno genérico, sin trazas ni detalles técnicos.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
