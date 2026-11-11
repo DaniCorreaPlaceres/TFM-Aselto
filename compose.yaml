@@ -6,7 +6,7 @@ services:
       APP_ENV: dev
       DATABASE_URL: mysql://aselto:aselto@database:3306/aselto?serverVersion=8.4&charset=utf8mb4
       MERCURE_URL: http://mercure/.well-known/mercure
-      MERCURE_PUBLIC_URL: http://127.0.0.1:9080/.well-known/mercure
+      MERCURE_PUBLIC_URL: http://localhost:8080/.well-known/mercure
       MERCURE_JWT_SECRET: "!ChangeThisMercureHubJWTSecretKey!"
       DEFAULT_URI: http://localhost:8080
       MAILER_DSN: smtp://mailpit:1025
@@ -18,6 +18,29 @@ services:
       database:
         condition: service_healthy
       mailpit:
+        condition: service_started
+
+  quarter_updates:
+    build: .
+    restart: unless-stopped
+    user: www-data
+    entrypoint: ["php", "bin/console", "app:quarter-updates:publish", "--watch", "--no-debug"]
+    environment:
+      APP_ENV: dev
+      DATABASE_URL: mysql://aselto:aselto@database:3306/aselto?serverVersion=8.4&charset=utf8mb4
+      MERCURE_URL: http://mercure/.well-known/mercure
+      MERCURE_PUBLIC_URL: http://localhost:8080/.well-known/mercure
+      MERCURE_JWT_SECRET: "!ChangeThisMercureHubJWTSecretKey!"
+    volumes:
+      - .:/var/www/html
+      - app_vendor:/var/www/html/vendor
+      - app_cache:/var/www/html/var/cache
+    depends_on:
+      database:
+        condition: service_healthy
+      app:
+        condition: service_started
+      mercure:
         condition: service_started
 
   web:
@@ -58,13 +81,15 @@ services:
       - "1025:1025"
 
   mercure:
-    image: dunglas/mercure
+    image: dunglas/mercure@sha256:27845c71dd26878bfb77bb0723fd3ea26e55d07ad0025b1c0948533ac30a5afc
     restart: unless-stopped
     environment:
       SERVER_NAME: ":80"
       MERCURE_PUBLISHER_JWT_KEY: "!ChangeThisMercureHubJWTSecretKey!"
       MERCURE_SUBSCRIBER_JWT_KEY: "!ChangeThisMercureHubJWTSecretKey!"
       MERCURE_EXTRA_DIRECTIVES: |
+        cookie_name mercure_access_token
+        resource_identifier http://localhost:8080/.well-known/mercure
         anonymous
         cors_origins http://localhost:8080 http://127.0.0.1:8080
     ports:

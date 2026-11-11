@@ -1,0 +1,27 @@
+    <p class="client-period">Este trimestre</p>
+    <div class="client-figures">
+        <section>
+            <h2>Ingresos registrados</h2>
+            <p>{{ (summary.incomeCents / 100)|number_format(2, ',', '.') }} €</p>
+        </section>
+        <section>
+            <h2>Gastos registrados</h2>
+            <p>{{ (summary.expenseCents / 100)|number_format(2, ',', '.') }} €</p>
+        </section>
+    </div>
+    <p class="client-hint">{{ quarter.firmId ? 'Cifras validadas por tu asesoría.' : 'Control personal: registros confirmados por ti.' }} {{ quarter.record and quarter.record.closed ? 'Trimestre cerrado.' : 'Trimestre abierto.' }}</p>
+
+    <p><a href="{{ path('client_movements') }}">Ver trimestre</a> · {{ quarter.calculation.pending|length }} registros pendientes para el cierre.</p>
+
+    <section class="client-pending">
+        <h2>Pendiente de revisión</h2>
+        {% if pending is empty %}
+            <p>No hay documentos que necesiten una acción tuya.</p>
+        {% else %}
+            <ul class="plain-list">
+                {% for item in pending %}
+                    <li><a href="{{ item.href }}">{{ item.name }}</a> <span>{{ item.status }}</span></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </section>

@@ -9,31 +9,9 @@
     <a class="action" href="{{ path('client_document_new') }}">Añadir documento</a>
     <p class="client-hint">Tus facturas y justificantes se reúnen en Documentos.</p>
 
-    <p class="client-period">Este trimestre</p>
-    <div class="client-figures">
-        <section>
-            <h2>Ingresos registrados</h2>
-            <p>{{ (summary.incomeCents / 100)|number_format(2, ',', '.') }} €</p>
-        </section>
-        <section>
-            <h2>Gastos registrados</h2>
-            <p>{{ (summary.expenseCents / 100)|number_format(2, ',', '.') }} €</p>
-        </section>
+    <div data-controller="live-quarter" data-live-quarter-auth-value="{{ path('quarter_subscription') }}" data-live-quarter-url-value="{{ app.request.requestUri }}">
+        {{ include('finance/_live_status.html.twig') }}
+        <div data-live-quarter-target="content">{{ include('client/_home_financial.html.twig') }}</div>
     </div>
-    <p class="client-hint">{{ quarter.firmId ? 'Cifras validadas por tu asesoría.' : 'Control personal: registros confirmados por ti.' }} {{ quarter.record and quarter.record.closed ? 'Trimestre cerrado.' : 'Trimestre abierto.' }}</p>
-
-    <p><a href="{{ path('client_movements') }}">Ver trimestre</a> · {{ quarter.calculation.pending|length }} registros pendientes para el cierre.</p>
     <section class="client-pending"><h2>Mensajes y solicitudes</h2><p>{{ unreadConversations }} conversaciones con mensajes nuevos · {{ openRequests }} solicitudes pendientes.</p><a href="{{ path('messages') }}">Ver mensajes</a></section>
-    <section class="client-pending">
-        <h2>Pendiente de revisión</h2>
-        {% if pending is empty %}
-            <p>No hay documentos que necesiten una acción tuya.</p>
-        {% else %}
-            <ul class="plain-list">
-                {% for item in pending %}
-                    <li><a href="{{ item.href }}">{{ item.name }}</a> <span>{{ item.status }}</span></li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    </section>
 {% endblock %}

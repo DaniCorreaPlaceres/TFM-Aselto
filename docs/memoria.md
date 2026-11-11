@@ -54,7 +54,7 @@ Queda fuera: la app, los modelos oficiales de Hacienda, la presentación de impu
 | Persistencia | Doctrine ORM y migraciones |
 | Web | Twig, Stimulus, Turbo y AssetMapper |
 | Estilos | Hoja propia con la paleta de esta memoria. Tailwind queda disponible en el proyecto y no es obligatorio para maquetar. |
-| Tiempo real | Mercure, cuando el trimestre en vivo se implemente |
+| Tiempo real | Mercure 1.1, con avisos privados y consulta autorizada de fragmentos |
 | Trabajos en segundo plano | Symfony Messenger con transporte Doctrine |
 | API | JSON en `/api/v1`, misma lógica que la web, autenticación JWT |
 | Web | Sesión de Symfony |
@@ -123,7 +123,7 @@ Orden de construcción acordado:
 0. Esta memoria. Hecha.
 1. GitHub, ramas y Docker. Hecho. `main` está protegida, `develop` integra, y cada pull request ejecuta las cuatro comprobaciones. El entorno local arranca y `GET /salud` responde.
 2. Estructura Symfony. Hecha. Los siete módulos tienen `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
-3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso, la home comercial, el alta de asesorías y de su equipo, el alta de clientes, el inicio del cliente, el alta de un documento, su lectura y el perfil fiscal editable. Los documentos ya usan el impuesto del territorio del cliente. Los gastos con IVA ya admiten recargo de equivalencia. Los ingresos de autónomos ya admiten retención de IRPF opcional. La bandeja ya permite a admin y gestor revisar, validar, rechazar y pedir justificantes. El trimestre ya muestra cifras, cierre, reapertura e histórico. Los mensajes y las solicitudes generales permiten atención compartida y adjuntos privados. Lo siguiente es la actualización en vivo del trimestre.
+3. A partir de aquí, la plataforma, tarea a tarea. Ya están el acceso, la home comercial, el alta de asesorías y de su equipo, el alta de clientes, el inicio del cliente, el alta de un documento, su lectura y el perfil fiscal editable. Los documentos ya usan el impuesto del territorio del cliente. Los gastos con IVA ya admiten recargo de equivalencia. Los ingresos de autónomos ya admiten retención de IRPF opcional. La bandeja ya permite a admin y gestor revisar, validar, rechazar y pedir justificantes. El trimestre ya muestra cifras, cierre, reapertura e histórico. Los mensajes y las solicitudes generales permiten atención compartida y adjuntos privados. El trimestre ya se actualiza en vivo en Inicio y en sus vistas de cliente y asesoría. Lo siguiente es la API con los mismos casos de uso.
 
 ## 6. Especificaciones de producto
 
@@ -171,6 +171,8 @@ El inicio muestra el saludo, la acción de añadir un documento, los ingresos y 
 - Los pendientes con fecha del trimestre y los documentos sin fecha de ese ámbito bloquean el cierre. El periodo puede cerrarse sin actividad si no tiene pendientes. Las nuevas subidas se muestran aparte de un cierre y no cambian su copia de cifras. Para confirmar, validar o cambiar datos fechados en un periodo cerrado, primero se reabre; se comprueban fecha original y destino.
 - El cliente sin asesoría puede iniciar una corrección de un registro personal confirmado en un periodo abierto. Vuelve a borrador, conserva el historial y debe confirmarlo de nuevo.
 - Las cifras suman bases de ingresos y gastos; el resultado es su diferencia. IVA, IGIC e IPSI muestran cuotas de ingresos y gastos y su diferencia por separado. El recargo de gastos y la retención de ingresos se muestran aparte. No se calcula deducibilidad ni se presenta una liquidación fiscal.
+- Las pantallas del trimestre reciben por Mercure un aviso privado sin importes ni documentos. Cada usuario se suscribe solo a su tema y la pantalla vuelve a solicitar las cifras comprobando los permisos. Las credenciales duran un minuto y se renuevan con sesión activa. Se conserva el selector del periodo y no se sustituyen formularios de documentos ni mensajes.
+- Los avisos se guardan en la misma transacción que el documento o el cierre y se publican después del commit. Una caída del hub no revierte la operación: el proceso de avisos reintenta las pendientes. Los cierres conservan su instantánea, también en una actualización en vivo.
 - El cliente puede reabrir sus cierres personales. El admin o el gestor puede reabrir los cierres de su asesoría. Cada reapertura registra quién la realiza y cuándo.
 - Una asesoría invita a vincularse a un cliente que ya tiene cuenta. Solo al aceptar el cliente se da acceso a sus documentos e histórico.
 - Al vincularse, se conservan los cierres personales anteriores y se identifican como tales. La asesoría puede consultar ese histórico; no pasa a estar validado automáticamente.
@@ -217,7 +219,7 @@ Entorno local:
 docker compose up --build
 ```
 
-La web queda en <http://localhost:8080>. MySQL publica el puerto 3306, con base `aselto`, usuario `aselto` y contraseña `aselto`. Mercure publica el puerto 9080. El buzón local es Mailpit, en <http://localhost:8025>. Esas credenciales son solo de desarrollo.
+La web queda en <http://localhost:8080>. MySQL publica el puerto 3306, con base `aselto`, usuario `aselto` y contraseña `aselto`. Mercure publica el puerto 9080 y se sirve a la web por `/.well-known/mercure` en el mismo origen. La imagen local se fija al digest comprobado de Mercure 1.1.6. El servicio `quarter_updates` reintenta los avisos pendientes cada dos segundos; su tabla es `quarter_update_outbox`. El buzón local es Mailpit, en <http://localhost:8025>. Esas credenciales son solo de desarrollo.
 
 Dentro de los contenedores la base se llama `database`. Desde la máquina anfitriona, `127.0.0.1`.
 
@@ -225,7 +227,7 @@ La imagen de PHP instala `intl`, `pdo_mysql`, `zip` y `bcmath`. OPcache se activ
 
 En PHP 8.5 OPcache viene integrado: el ini configura su uso sin cargar una extensión adicional. En desarrollo comprueba los cambios de código en cada petición. `vendor` y `var/cache` usan volúmenes internos de Docker para reducir el acceso a archivos compartidos desde Windows. La imagen prepara las dependencias de `composer.lock` y el arranque vuelve a instalarlas si cambia ese archivo. Los comandos de caché se ejecutan con `docker compose exec --user www-data app php bin/console ...`. `var/storage` conserva su ubicación compartida; los documentos y el volumen de MySQL no cambian.
 
-`GET /salud` no forma parte del producto. Ya está comprobado: responde 200 con `{"estado":"ok","base_de_datos":"ok"}`. MySQL 8.4 queda sano en el puerto 3306. Mercure responde en el 9080.
+`GET /salud` no forma parte del producto. Ya está comprobado: responde 200 con `{"estado":"ok","base_de_datos":"ok"}`. MySQL 8.4 queda sano en el puerto 3306. Mercure responde en el 9080. La web usa la ruta del mismo origen para las suscripciones privadas; el acceso por localhost y 127.0.0.1 usa cookies del host actual.
 
 `/` es la home comercial y es pública. Usa el logotipo oficial y se dirige a autónomos, sociedades y asesorías. Explica que el documento se añade, los datos se revisan y el trimestre se actualiza. La única acción es Entrar, hacia `/entrar`. Si ya hay sesión, esa acción se llama Tu acceso y abre `/cuenta`. No hay precios en esta página. Quien no tiene sesión ve también «Crear acceso», hacia `/registro`.
 
@@ -278,3 +280,5 @@ docker/
 `GET /salud` vive en `src/Controller/HealthController.php`. Cada módulo tiene `Domain`, `Application`, `Infrastructure` y `Ui`. El dominio no se registra como servicio.
 
 La home comercial vive en `src/Controller/CommercialHomeController.php`. Identidad ya tiene el usuario, el papel, el acceso y los enlaces de correo. Las tablas son `identity_user` y `access_token`. Asesoría ya da de alta la asesoría y permite invitar a su gestor. La tabla es `advisory_firm`. Cliente ya registra autónomos y sociedades, y el cliente entra por `/inicio`. La tabla es `client_profile`. Documento ya guarda el archivo y, al subirlo, propone los datos. La tabla es `client_document`. La clave de lectura, si se usa, va en `.env.local` y no en el repositorio. El cliente edita sus datos en `/perfil`. El admin edita los de la asesoría en `/asesoria/datos` y los de un cliente de la suya desde la lista. El gestor los consulta y no los cambia. Los documentos nuevos guardan IVA, IGIC o IPSI según la provincia del cliente al subirlos. Los anteriores conservan IVA. Cambiar la provincia no cambia el impuesto de un documento ya guardado. Si falta la provincia, se pide completar el perfil antes de guardar el archivo. Los gastos con IVA guardan el recargo de equivalencia opcional y su cuota por separado, y lo incluyen en el total. Los documentos anteriores permanecen sin recargo. Los ingresos de autónomos guardan el porcentaje y la cuota de retención de IRPF opcional y la descuentan del total. Los documentos anteriores permanecen sin retención. La bandeja está en `/bandeja`: admin y gestor de la misma asesoría revisan los registros enviados, pueden corregir al validar, rechazar con motivo o pedir un justificante adicional. El cliente corrige y reenvía los rechazados o aporta el justificante desde su registro. El historial y los archivos adicionales se guardan en el mismo agregado, con versiones para evitar sobrescrituras. Comunicación está en `/mensajes`: guarda conversaciones, mensajes, adjuntos, estado de solicitudes y progreso de lectura por usuario en `client_conversation`. Las escrituras se coordinan por cliente; el dominio no conoce HTTP, Doctrine ni el almacenamiento de archivos. Finanzas consulta los registros por fecha fiscal y guarda cierres y reaperturas en `financial_quarter`, separados por cliente, asesoría o control personal, año y trimestre. Cada cierre conserva sus registros e importes; las reaperturas conservan la versión anterior y el autor y momento de la acción. Las operaciones que cambian documentos y los cierres se coordinan por cliente mediante una transacción.
+
+Las pruebas del controlador de actualización en vivo usan el ejecutor de pruebas incluido en Node, sin dependencias npm ni un proceso de compilación nuevo. Se ejecutan también dentro de la comprobación PHPUnit del PR con Node 22.

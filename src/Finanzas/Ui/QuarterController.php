@@ -65,6 +65,10 @@ final class QuarterController extends AbstractController
             $layout = ['section' => 'movimientos', 'email' => $user->getUserIdentifier(), 'name' => $client->name(), 'firmName' => $client->firmName()];
         }
 
+        if ('1' === $request->headers->get('X-Quarter-Fragment')) {
+            return $this->render('finance/_quarter_content.html.twig', [...$presenter->view($view), 'csrf' => $csrf], new Response(headers: ['Cache-Control' => 'private, no-store']));
+        }
+
         return $this->render(null === $id ? 'client/movements.html.twig' : 'firm/client_quarter.html.twig', [...$layout, ...$presenter->view($view), 'csrf' => $csrf]);
     }
 }

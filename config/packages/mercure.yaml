@@ -1,6 +1,9 @@
 mercure:
+    default_cookie_lifetime: 60
+    clear_cookie_on_logout: false
     hubs:
         default:
+            http_client: quarter_hub.client
             url: '%env(default::MERCURE_URL)%'
             public_url: '%env(default::MERCURE_PUBLIC_URL)%'
             jwt:
@@ -10,3 +13,9 @@ mercure:
                     iss: '%env(MERCURE_JWT_ISSUER)%'
                     sub: 'app'
                     client_id: 'app'
+
+when@dev:
+    mercure:
+        hubs:
+            default:
+                cookie_name: mercure_access_token

@@ -29,7 +29,7 @@ Lista de lo que hay que hacer. El detalle de cada una se escribe en `docs/sdd/` 
 20. Bandeja de la asesoría: validar con correcciones, rechazar con motivo y reenvío o pedir justificante adicional, conservando historial y original. Hecha.
 21. Trimestre: cifras, cierre, reapertura y consulta del histórico. Hecha.
 22. Mensajes y solicitudes entre cliente y asesoría, con adjuntos y lectura individual. Hecha.
-23. Actualización en vivo del trimestre.
+23. Actualización en vivo del trimestre. Hecha.
 24. API `/api/v1` con los mismos casos de uso.
 25. Datos de demostración de dos asesorías.
 26. Maquetar toda la plataforma con Bootstrap 5, incluida la home comercial, manteniendo la marca y las reglas visuales.
