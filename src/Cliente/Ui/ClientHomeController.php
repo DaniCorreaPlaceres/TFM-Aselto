@@ -9,13 +9,14 @@ use App\Finanzas\Application\ShowQuarter;
 use App\Identidad\Domain\Role;
 use App\Identidad\Infrastructure\Security\SecurityUser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class ClientHomeController extends AbstractController
 {
     #[Route('/inicio', name: 'client_home', methods: ['GET'])]
-    public function home(ShowClientHome $showClientHome, ListClientDocuments $listClientDocuments, \App\Comunicacion\Application\Messaging $messaging, ShowQuarter $quarters): Response
+    public function home(Request $request, ShowClientHome $showClientHome, ListClientDocuments $listClientDocuments, \App\Comunicacion\Application\Messaging $messaging, ShowQuarter $quarters): Response
     {
         $view = $this->view('inicio', $showClientHome);
         $user = $this->getUser();
@@ -39,6 +40,10 @@ final class ClientHomeController extends AbstractController
         $quarter = $quarters->execute($user->id(), null, $quarters->currentPeriod());
         $view['quarter'] = $quarter;
         $view['summary'] = $quarter->record?->closed ? $quarter->record->snapshot : $quarter->calculation->summary;
+
+        if ('1' === $request->headers->get('X-Quarter-Fragment')) {
+            return $this->render('client/_home_financial.html.twig', $view, new Response(headers: ['Cache-Control' => 'private, no-store']));
+        }
 
         return $this->render('client/home.html.twig', $view);
     }

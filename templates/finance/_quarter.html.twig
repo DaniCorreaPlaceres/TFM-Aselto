@@ -1,45 +1,11 @@
-<div class="quarter-view">
-{% macro money(cents) %}{{ (cents / 100)|number_format(2, ',', '.') }} €{% endmacro %}
-{% import _self as amount %}
-{% set route = quarter.access.owner ? 'client_movements' : 'firm_client_quarter' %}
-{% set parameters = quarter.access.owner ? {} : {id: quarter.access.clientId} %}
-<h1>Ingresos y gastos</h1>
+<div class="quarter-view" data-controller="live-quarter" data-live-quarter-auth-value="{{ path('quarter_subscription') }}" data-live-quarter-url-value="{{ app.request.requestUri }}">
+    <h1>Ingresos y gastos</h1>
 <p>{{ quarter.access.clientName }} · {{ quarter.firmId ? 'Validado por la asesoría' : 'Control personal' }}</p>
-<form method="get">
+    <form method="get">
 <label for="quarter-year">Año</label><input id="quarter-year" name="year" type="number" min="1" max="9999" value="{{ quarter.period.year }}" required>
 <label for="quarter-number">Trimestre</label><select id="quarter-number" name="quarter">{% for number in 1..4 %}<option value="{{ number }}" {{ quarter.period.number == number ? 'selected' : '' }}>{{ number }}.º trimestre</option>{% endfor %}</select>
 <input type="hidden" name="scope" value="{{ quarter.firmId ?? 'personal' }}"><button type="submit">Consultar</button>
 </form>
-<h2>{{ quarter.period.number }}.º trimestre de {{ quarter.period.year }}</h2>
-<p>{{ quarter.record and quarter.record.closed ? 'Cerrado: cifras guardadas en el cierre.' : 'Abierto: cifras actuales.' }}</p>
-<div class="client-figures">
-<section><h3>Ingresos · base</h3><p>{{ amount.money(summary.incomeCents) }}</p></section>
-<section><h3>Gastos · base</h3><p>{{ amount.money(summary.expenseCents) }}</p></section>
-<section><h3>Resultado · bases</h3><p>{{ amount.money(summary.resultCents) }}</p></section>
-</div>
-<p>El resultado resta las bases de gastos a las de ingresos. Este resumen es para tu control; no es una liquidación ni una presentación de impuestos.</p>
-<h2>Impuestos registrados</h2>
-<ul class="plain-list">{% for tax, totals in summary.taxes %}<li><strong>{{ tax|upper }}</strong> · En ingresos: {{ amount.money(totals.output) }} · En gastos: {{ amount.money(totals.input) }} · Diferencia: {{ amount.money(totals.balance) }}</li>{% endfor %}</ul>
-<p>Recargo de equivalencia en gastos: {{ amount.money(summary.surchargeCents) }}. Retención de IRPF en ingresos: {{ amount.money(summary.withholdingCents) }}. Se muestran por separado.</p>
-<h2>Registros incluidos</h2>
-<ul class="plain-list">{% for movement in summary.movements %}
-<li><strong>{{ movement.date|date('d/m/Y') }} · {{ movement.income ? 'Ingreso' : 'Gasto' }}</strong> · {{ movement.partyName }} · Base: {{ amount.money(movement.baseCents) }} · {{ movement.tax|upper }}: {{ amount.money(movement.taxCents) }} · Total: {{ amount.money(movement.totalCents) }}
-{% if quarter.access.owner %}<a href="{{ path('client_document', {id: movement.id}) }}">Ver registro</a>{% elseif quarter.firmId %}<a href="{{ path('firm_document', {id: movement.id}) }}">Ver registro</a>{% endif %}</li>
-{% else %}<li>No hay registros incluidos en estas cifras.</li>{% endfor %}</ul>
-<h2>Pendientes actuales · {{ quarter.calculation.pending|length }}</h2>
-<p>Los registros pendientes del trimestre y todos los documentos sin fecha impiden cerrar. Tras un cierre, los nuevos documentos se muestran aquí sin cambiar sus cifras guardadas.</p>
-<ul class="plain-list">{% for record in quarter.calculation.pending %}<li>{{ record.partyName }} · {{ record.date ? record.date|date('d/m/Y') : 'Sin fecha: revisar antes de cerrar' }}
-{% if quarter.access.owner %}<a href="{{ path('client_document', {id: record.id}) }}">Revisar registro</a>{% elseif quarter.firmId and record.status in ['submitted', 'rejected', 'validated'] %}<a href="{{ path('firm_document', {id: record.id}) }}">Revisar registro</a>{% else %}· Pendiente del cliente{% endif %}</li>{% else %}<li>No hay pendientes para el cierre.</li>{% endfor %}</ul>
-{% if canManage %}<form method="post">
-<input type="hidden" name="version" value="{{ quarter.record ? quarter.record.version : 0 }}">
-<input type="hidden" name="fingerprint" value="{{ quarter.calculation.fingerprint }}">
-<input type="hidden" name="_csrf_token" value="{{ csrf_token(csrf) }}">
-{% if quarter.record and quarter.record.closed %}<p>La reapertura permite corregir registros y conserva la versión anterior y quién la reabrió.</p><button type="submit" name="intent" value="reopen">Reabrir trimestre</button>
-{% else %}<p>Al cerrar se guardan estas cifras y sus registros. Para cambiarlos tendrás que reabrir el trimestre.</p><button type="submit" name="intent" value="close" {{ quarter.calculation.pending is not empty ? 'disabled' : '' }}>Cerrar trimestre</button>{% endif %}
-</form>{% else %}<p>Puedes consultar estas cifras. El cierre y la reapertura corresponden a quien gestiona este periodo.</p>{% endif %}
-<h2>Historial de este trimestre</h2>
-<ul class="plain-list">{% for event in events %}<li><strong>{{ event.closed ? 'Cierre' : 'Reapertura' }}</strong> · {{ event.date }} · {{ event.author }} · Ingresos: {{ amount.money(event.snapshot.incomeCents) }} · Gastos: {{ amount.money(event.snapshot.expenseCents) }} · Resultado: {{ amount.money(event.snapshot.resultCents) }}
-<details><summary>Ver registros de esta versión</summary><ul>{% for movement in event.snapshot.movements %}<li>{{ movement.date|date('d/m/Y') }} · {{ movement.partyName }} · {{ movement.income ? 'Ingreso' : 'Gasto' }} · Base {{ amount.money(movement.baseCents) }} · {{ movement.tax|upper }} {{ amount.money(movement.taxCents) }} · Recargo {{ amount.money(movement.surchargeCents) }} · Retención {{ amount.money(movement.withholdingCents) }} · Total {{ amount.money(movement.totalCents) }}</li>{% else %}<li>Sin movimientos.</li>{% endfor %}</ul></details></li>{% else %}<li>Todavía no hay cierres ni reaperturas.</li>{% endfor %}</ul>
-<h2>Periodos guardados</h2><p><a href="{{ path(route, parameters) }}">Consultar el periodo actual</a></p>
-<ul class="plain-list">{% for saved in quarter.history %}<li><a href="{{ path(route, parameters|merge({year: saved.period.year, quarter: saved.period.number, scope: saved.firmId ?? 'personal'})) }}">{{ saved.period.number }}.º trimestre de {{ saved.period.year }} · {{ saved.firmId ? 'Asesoría' : 'Control personal' }} · {{ saved.closed ? 'Cerrado' : 'Reabierto' }}</a></li>{% else %}<li>Todavía no hay periodos guardados.</li>{% endfor %}</ul>
+    {{ include('finance/_live_status.html.twig') }}
+    <div data-live-quarter-target="content">{{ include('finance/_quarter_content.html.twig') }}</div>
 </div>

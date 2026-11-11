@@ -42,6 +42,10 @@ jobs:
           coverage: none
       - run: composer install --no-interaction --prefer-dist --no-scripts
       - run: vendor/bin/phpunit
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/Frontend/live-quarter.test.mjs
 
   openapi:
     name: OpenAPI
