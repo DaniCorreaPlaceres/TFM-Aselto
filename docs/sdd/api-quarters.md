@@ -38,3 +38,7 @@ Con Docker y las claves JWT locales preparados:
 Usa datos sintéticos y revierte todo al terminar. Evitar cambios manuales de documentos durante la prueba, que compara los existentes antes y después.
 
 En Swagger UI, obtener un token, autorizar y abrir Trimestres. Consultar año y trimestre, copiar `version` y `fingerprint` al cierre y después usar la versión devuelta para reabrir. Seguir `docs/api/quarters.md` para los permisos y ámbitos.
+
+## Corrección de formato del PR
+
+CI detectó tres comas finales ausentes en los bloques match de la integración. Corregidas y verificados los cinco archivos PHP en copias LF con PHP-CS-Fixer sin caché: ninguna corrección pendiente.

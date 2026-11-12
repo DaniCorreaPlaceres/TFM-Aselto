@@ -62,10 +62,10 @@ try {
     $accounts = $profiles = [];
     foreach (['personal', 'linked', 'stranger', 'admin', 'advisor', 'other', 'root'] as $name) {
         $role = match ($name) {
-            'admin' => Role::FirmAdmin, 'advisor', 'other' => Role::Advisor, 'root' => Role::Superadmin, default => Role::Client
+            'admin' => Role::FirmAdmin, 'advisor', 'other' => Role::Advisor, 'root' => Role::Superadmin, default => Role::Client,
         };
         $firm = match ($name) {
-            'linked', 'admin', 'advisor' => $firmId, 'other' => $otherFirmId, default => null
+            'linked', 'admin', 'advisor' => $firmId, 'other' => $otherFirmId, default => null,
         };
         $user = new User($uuid(), $uuid().'@example.test', $hash, $role, $firm, true);
         $users->save($user);
@@ -137,7 +137,7 @@ try {
         $document = Document::receive($uuid(), $owner, $firm, 'synthetic.pdf', 'synthetic-api-quarter/no-file.pdf', 'application/pdf', new DateTimeImmutable('2026-11-01'), $tax);
         if (null !== $date) {
             $details = DocumentForm::read('gasto', $date, 'Proveedor sintético', '00000000T', '100', match ($tax) {
-                Tax::Vat => '21', Tax::Igic => '7', Tax::Ipsi => '3'
+                Tax::Vat => '21', Tax::Igic => '7', Tax::Ipsi => '3',
             }, $tax);
             $document = $document->confirm($details);
             if ($validated) {
