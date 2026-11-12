@@ -1,6 +1,6 @@
 # API v1
 
-El primer bloque permite entrar y consultar la identidad actual. El contrato está en [OpenAPI](../../openapi/openapi.yaml). Documentos, perfiles fiscales, trimestres y mensajes se incorporan después; todavía no hay rutas API para ellos.
+El acceso permite entrar y consultar la identidad actual; el bloque de [documentos y revisión](documents.md) ya está disponible. El contrato está en [OpenAPI](../../openapi/openapi.yaml). Los perfiles fiscales, trimestres y mensajes se incorporan después; todavía no hay rutas API para ellos.
 
 ## Operaciones disponibles
 
@@ -15,7 +15,7 @@ La contraseña se utiliza exactamente como se recibe, incluidos los espacios. El
 
 ## Errores
 
-Todos tienen la forma `{"error":{"code":"...","message":"..."}}`, con un mensaje en español. Acceso incorrecto, cuenta inexistente e inactiva reciben el mismo `401 invalid_credentials`.
+Todos tienen la forma `{"error":{"code":"...","message":"..."}}`, con un mensaje en español. Los errores de documento incompleto pueden añadir `error.fields` con los campos que faltan. Acceso incorrecto, cuenta inexistente e inactiva reciben el mismo `401 invalid_credentials`.
 
 En una operación protegida, `401 token_missing`, `token_invalid` o `token_expired` requiere volver a autenticarse o enviar el token correctamente. La respuesta incluye `WWW-Authenticate: Bearer`. Los errores de petición usan 400, tipo de contenido incorrecto 415, tamaño excesivo 413, ruta inexistente 404 y método incorrecto 405, con cabecera Allow. Los errores internos usan un 500 genérico sin trazas.
 

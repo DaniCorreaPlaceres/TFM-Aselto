@@ -1,21 +1,14 @@
 openapi: 3.0.3
 info:
   title: Aselto API
-  version: 0.2.0
-  description: >
-    Primer bloque de la API v1: acceso JWT y consulta de la identidad actual.
-    La sesión web no autentica la API. El token dura una hora y solo se admite
-    mediante Authorization: Bearer. Todavía no hay renovación ni revocación.
-    Los datos fiscales y las demás operaciones se añadirán en bloques posteriores.
+  version: 0.3.0
+  description: 'API v1: acceso JWT, identidad y documentos del cliente y su asesoría. Reutiliza los casos de uso de la web. Los cambios documentales exigen versión. Impuestos e importes calculados no son editables. Trimestres y comunicación se incorporan en bloques posteriores.'
 paths:
   /api/v1/auth/login:
     post:
       operationId: login
-      summary: Obtener un token de acceso
-      description: >
-        Usa el mismo proveedor de usuarios y la misma comprobación de activación
-        que la web. Un correo inexistente, una cuenta inactiva y una contraseña
-        incorrecta producen el mismo error. La contraseña no se recorta.
+      summary: 'Obtener un token de acceso'
+      description: "Usa el mismo proveedor de usuarios y la misma comprobación de activación que la web. Un correo inexistente, una cuenta inactiva y una contraseña incorrecta producen el mismo error. La contraseña no se recorta.\n"
       security: []
       requestBody:
         required: true
@@ -24,7 +17,9 @@ paths:
             schema:
               type: object
               additionalProperties: false
-              required: [email, password]
+              required:
+                - email
+                - password
               properties:
                 email:
                   type: string
@@ -39,27 +34,32 @@ paths:
                   writeOnly: true
       responses:
         '200':
-          description: Acceso correcto. La respuesta no se almacena en caché.
+          description: 'Acceso correcto. La respuesta no se almacena en caché.'
           content:
             application/json:
               schema:
                 type: object
                 additionalProperties: false
-                required: [token, token_type, expires_in]
+                required:
+                  - token
+                  - token_type
+                  - expires_in
                 properties:
                   token:
                     type: string
-                    description: JWT firmado. No debe incluirse en URLs ni registros.
+                    description: 'JWT firmado. No debe incluirse en URLs ni registros.'
                   token_type:
                     type: string
-                    enum: [Bearer]
+                    enum:
+                      - Bearer
                   expires_in:
                     type: integer
-                    enum: [3600]
+                    enum:
+                      - 3600
         '400':
           $ref: '#/components/responses/InvalidRequest'
         '401':
-          description: Correo o contraseña incorrectos, o cuenta inactiva.
+          description: 'Correo o contraseña incorrectos, o cuenta inactiva.'
           content:
             application/json:
               schema:
@@ -67,17 +67,17 @@ paths:
               example:
                 error:
                   code: invalid_credentials
-                  message: El correo o la contraseña no son correctos.
+                  message: 'El correo o la contraseña no son correctos.'
         '405':
           $ref: '#/components/responses/MethodNotAllowed'
         '413':
-          description: El cuerpo supera los 16 KiB.
+          description: 'El cuerpo supera los 16 KiB.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '415':
-          description: Se requiere Content-Type application/json.
+          description: 'Se requiere Content-Type application/json.'
           content:
             application/json:
               schema:
@@ -87,32 +87,32 @@ paths:
   /api/v1/me:
     get:
       operationId: currentUser
-      summary: Consultar la identidad actual
-      description: >
-        Recarga el usuario de la base de datos para comprobar activación, papel y
-        asesoría actuales. No permite elegir otro usuario ni devuelve datos fiscales.
+      summary: 'Consultar la identidad actual'
+      description: "Recarga el usuario de la base de datos para comprobar activación, papel y asesoría actuales. No permite elegir otro usuario ni devuelve datos fiscales.\n"
       security:
-        - bearerAuth: []
+        -
+          bearerAuth: {  }
       responses:
         '200':
-          description: Identidad del usuario autenticado, sin caché.
+          description: 'Identidad del usuario autenticado, sin caché.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/CurrentUser'
         '401':
-          description: Token ausente, inválido o caducado, o cuenta no disponible.
+          description: 'Token ausente, inválido o caducado, o cuenta no disponible.'
           headers:
             WWW-Authenticate:
               schema:
                 type: string
-                enum: [Bearer]
+                enum:
+                  - Bearer
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: Operación no permitida para el usuario.
+          description: 'Operación no permitida para el usuario.'
           content:
             application/json:
               schema:
@@ -121,6 +121,748 @@ paths:
           $ref: '#/components/responses/MethodNotAllowed'
         '500':
           $ref: '#/components/responses/InternalError'
+  /api/v1/documents:
+    get:
+      operationId: clientDocuments
+      summary: 'Listar documentos del cliente'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        '200':
+          description: 'Lista de documentos autorizados.'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - documents
+                properties:
+                  documents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/DocumentUnauthorized'
+        '403':
+          $ref: '#/components/responses/DocumentForbidden'
+        '404':
+          $ref: '#/components/responses/DocumentNotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: uploadDocument
+      summary: 'Subir un documento para revisión humana'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        '201':
+          description: 'Registro persistido con la versión actual. No se cachea.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+          headers:
+            Location:
+              description: 'URL protegida de la ficha creada.'
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/DocumentUnauthorized'
+        '403':
+          $ref: '#/components/responses/DocumentForbidden'
+        '404':
+          $ref: '#/components/responses/DocumentNotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/DocumentConflict'
+        '413':
+          $ref: '#/components/responses/DocumentTooLarge'
+        '415':
+          $ref: '#/components/responses/DocumentMediaType'
+        '422':
+          $ref: '#/components/responses/DocumentValidation'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 'PDF, JPEG, PNG o WebP de hasta 8.000.000 bytes.'
+  '/api/v1/documents/{id}':
+    parameters:
+      -
+        name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: clientDocument
+      summary: 'Consultar documento e historial'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        '200':
+          description: 'Registro persistido con la versión actual. No se cachea.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/DocumentUnauthorized'
+        '403':
+          $ref: '#/components/responses/DocumentForbidden'
+        '404':
+          $ref: '#/components/responses/DocumentNotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  '/api/v1/documents/{id}/file':
+    parameters:
+      -
+        name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: clientOriginal
+      summary: 'Descargar el original autorizado'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        '200':
+          description: 'Archivo protegido, con cabeceras private, no-store y nosniff.'
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/DocumentUnauthorized'
+        '403':
+          $ref: '#/components/responses/DocumentForbidden'
+        '404':
+          $ref: '#/components/responses/DocumentNotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  '/api/v1/documents/{id}/supporting-files/{fileId}':
+    parameters:
+      -
+        name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      -
+        name: fileId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: clientSupportingFile
+      summary: 'Descargar un justificante autorizado'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        '200':
+          description: 'Archivo protegido, con cabeceras private, no-store y nosniff.'
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/DocumentUnauthorized'
+        '403':
+          $ref: '#/components/responses/DocumentForbidden'
+        '404':
+          $ref: '#/components/responses/DocumentNotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  '/api/v1/documents/{id}/draft':
+    parameters:
+      -
+        name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: clientdraft
+      summary: 'Reemplazar los datos editables del borrador'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        '200':
+          description: 'Registro persistido con la versión actual. No se cachea.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/DocumentUnauthorized'
+        '403':
+          $ref: '#/components/responses/DocumentForbidden'
+        '404':
+          $ref: '#/components/responses/DocumentNotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/DocumentConflict'
+        '413':
+          $ref: '#/components/responses/DocumentTooLarge'
+        '415':
+          $ref: '#/components/responses/DocumentMediaType'
+        '422':
+          $ref: '#/components/responses/DocumentValidation'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentEdit'
+  '/api/v1/documents/{id}/confirm':
+    parameters:
+      -
+        name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: clientconfirm
+      summary: 'Confirmar o reenviar el registro'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        '200':
+          description: 'Registro persistido con la versión actual. No se cachea.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/DocumentUnauthorized'
+        '403':
+          $ref: '#/components/responses/DocumentForbidden'
+        '404':
+          $ref: '#/components/responses/DocumentNotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/DocumentConflict'
+        '413':
+          $ref: '#/components/responses/DocumentTooLarge'
+        '415':
+          $ref: '#/components/responses/DocumentMediaType'
+        '422':
+          $ref: '#/components/responses/DocumentValidation'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentEdit'
+  '/api/v1/documents/{id}/amend':
+    parameters:
+      -
+        name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: clientamend
+      summary: 'Iniciar la corrección de un confirmado personal'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        '200':
+          description: 'Registro persistido con la versión actual. No se cachea.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/DocumentUnauthorized'
+        '403':
+          $ref: '#/components/responses/DocumentForbidden'
+        '404':
+          $ref: '#/components/responses/DocumentNotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/DocumentConflict'
+        '413':
+          $ref: '#/components/responses/DocumentTooLarge'
+        '415':
+          $ref: '#/components/responses/DocumentMediaType'
+        '422':
+          $ref: '#/components/responses/DocumentValidation'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentVersion'
+  '/api/v1/documents/{id}/supporting-files':
+    parameters:
+      -
+        name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: supplySupportingFile
+      summary: 'Aportar el justificante solicitado sin validar el registro'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        '201':
+          description: 'Registro persistido con la versión actual. No se cachea.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+          headers:
+            Location:
+              description: 'URL protegida del justificante creado.'
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/DocumentUnauthorized'
+        '403':
+          $ref: '#/components/responses/DocumentForbidden'
+        '404':
+          $ref: '#/components/responses/DocumentNotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/DocumentConflict'
+        '413':
+          $ref: '#/components/responses/DocumentTooLarge'
+        '415':
+          $ref: '#/components/responses/DocumentMediaType'
+        '422':
+          $ref: '#/components/responses/DocumentValidation'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - file
+                - version
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: 'PDF, JPEG, PNG o WebP de hasta 8.000.000 bytes.'
+                version:
+                  type: integer
+                  minimum: 1
+                  maximum: 2147483647
+  /api/v1/advisory/documents:
+    get:
+      operationId: advisoryDocuments
+      summary: 'Listar documentos compartidos con la asesoría'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        '200':
+          description: 'Lista de documentos autorizados.'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - documents
+                properties:
+                  documents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/DocumentUnauthorized'
+        '403':
+          $ref: '#/components/responses/DocumentForbidden'
+        '404':
+          $ref: '#/components/responses/DocumentNotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  '/api/v1/advisory/documents/{id}':
+    parameters:
+      -
+        name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: advisoryDocument
+      summary: 'Consultar documento e historial'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        '200':
+          description: 'Registro persistido con la versión actual. No se cachea.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/DocumentUnauthorized'
+        '403':
+          $ref: '#/components/responses/DocumentForbidden'
+        '404':
+          $ref: '#/components/responses/DocumentNotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  '/api/v1/advisory/documents/{id}/file':
+    parameters:
+      -
+        name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: advisoryOriginal
+      summary: 'Descargar el original autorizado'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        '200':
+          description: 'Archivo protegido, con cabeceras private, no-store y nosniff.'
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/DocumentUnauthorized'
+        '403':
+          $ref: '#/components/responses/DocumentForbidden'
+        '404':
+          $ref: '#/components/responses/DocumentNotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  '/api/v1/advisory/documents/{id}/supporting-files/{fileId}':
+    parameters:
+      -
+        name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      -
+        name: fileId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: advisorySupportingFile
+      summary: 'Descargar un justificante autorizado'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        '200':
+          description: 'Archivo protegido, con cabeceras private, no-store y nosniff.'
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/DocumentUnauthorized'
+        '403':
+          $ref: '#/components/responses/DocumentForbidden'
+        '404':
+          $ref: '#/components/responses/DocumentNotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  '/api/v1/advisory/documents/{id}/validate':
+    parameters:
+      -
+        name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: advisoryvalidate
+      summary: 'Validar con datos revisados'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        '200':
+          description: 'Registro persistido con la versión actual. No se cachea.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/DocumentUnauthorized'
+        '403':
+          $ref: '#/components/responses/DocumentForbidden'
+        '404':
+          $ref: '#/components/responses/DocumentNotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/DocumentConflict'
+        '413':
+          $ref: '#/components/responses/DocumentTooLarge'
+        '415':
+          $ref: '#/components/responses/DocumentMediaType'
+        '422':
+          $ref: '#/components/responses/DocumentValidation'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentEdit'
+  '/api/v1/advisory/documents/{id}/reject':
+    parameters:
+      -
+        name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: advisoryreject
+      summary: 'Rechazar con motivo'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        '200':
+          description: 'Registro persistido con la versión actual. No se cachea.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/DocumentUnauthorized'
+        '403':
+          $ref: '#/components/responses/DocumentForbidden'
+        '404':
+          $ref: '#/components/responses/DocumentNotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/DocumentConflict'
+        '413':
+          $ref: '#/components/responses/DocumentTooLarge'
+        '415':
+          $ref: '#/components/responses/DocumentMediaType'
+        '422':
+          $ref: '#/components/responses/DocumentValidation'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentReason'
+  '/api/v1/advisory/documents/{id}/request-supporting-file':
+    parameters:
+      -
+        name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: advisoryrequest_supporting_file
+      summary: 'Solicitar un justificante adicional'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        '200':
+          description: 'Registro persistido con la versión actual. No se cachea.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/DocumentUnauthorized'
+        '403':
+          $ref: '#/components/responses/DocumentForbidden'
+        '404':
+          $ref: '#/components/responses/DocumentNotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/DocumentConflict'
+        '413':
+          $ref: '#/components/responses/DocumentTooLarge'
+        '415':
+          $ref: '#/components/responses/DocumentMediaType'
+        '422':
+          $ref: '#/components/responses/DocumentValidation'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentReason'
 components:
   securitySchemes:
     bearerAuth:
@@ -131,21 +873,34 @@ components:
     Error:
       type: object
       additionalProperties: false
-      required: [error]
+      required:
+        - error
       properties:
         error:
           type: object
           additionalProperties: false
-          required: [code, message]
+          required:
+            - code
+            - message
           properties:
             code:
               type: string
             message:
               type: string
+            fields:
+              type: array
+              items:
+                type: string
+              description: 'Campos de la API que faltan para confirmar o validar, cuando corresponde.'
     CurrentUser:
       type: object
       additionalProperties: false
-      required: [id, email, role, firm_id, activated]
+      required:
+        - id
+        - email
+        - role
+        - firm_id
+        - activated
       properties:
         id:
           type: string
@@ -155,26 +910,461 @@ components:
           format: email
         role:
           type: string
-          enum: [superadmin, firm_admin, advisor, client]
+          enum:
+            - superadmin
+            - firm_admin
+            - advisor
+            - client
         firm_id:
           type: string
           format: uuid
           nullable: true
         activated:
           type: boolean
-          enum: [true]
+          enum:
+            - true
+    DocumentDetails:
+      type: object
+      additionalProperties: false
+      required:
+        - direction
+        - issued_on
+        - party_name
+        - tax_id
+        - tax
+        - base_cents
+        - tax_rate
+        - tax_cents
+        - surcharge_rate
+        - surcharge_cents
+        - withholding_rate
+        - withholding_cents
+        - total_cents
+      properties:
+        direction:
+          type: string
+          nullable: true
+          enum:
+            - income
+            - expense
+            - null
+        issued_on:
+          type: string
+          nullable: true
+          format: date
+        party_name:
+          type: string
+          nullable: true
+        tax_id:
+          type: string
+          nullable: true
+        tax:
+          type: string
+          enum:
+            - iva
+            - igic
+            - ipsi
+        base_cents:
+          type: integer
+          nullable: true
+          format: int64
+          minimum: 0
+        tax_rate:
+          type: string
+          nullable: true
+          pattern: '^[0-9]+(?:\.[0-9]{1,2})?$'
+        tax_cents:
+          type: integer
+          nullable: true
+          format: int64
+          minimum: 0
+        surcharge_rate:
+          type: string
+          nullable: true
+          pattern: '^[0-9]+(?:\.[0-9]{1,2})?$'
+        surcharge_cents:
+          type: integer
+          nullable: true
+          format: int64
+          minimum: 0
+        withholding_rate:
+          type: string
+          nullable: true
+          pattern: '^[0-9]+(?:\.[0-9]{1,2})?$'
+        withholding_cents:
+          type: integer
+          nullable: true
+          format: int64
+          minimum: 0
+        total_cents:
+          type: integer
+          nullable: true
+          format: int64
+          minimum: 0
+    DocumentEdit:
+      type: object
+      additionalProperties: false
+      required:
+        - version
+      properties:
+        version:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        direction:
+          type: string
+          nullable: true
+          enum:
+            - income
+            - expense
+            - null
+        issued_on:
+          type: string
+          nullable: true
+          format: date
+        party_name:
+          type: string
+          nullable: true
+          maxLength: 120
+        tax_id:
+          type: string
+          nullable: true
+          maxLength: 20
+        base:
+          type: string
+          nullable: true
+          pattern: '^(?:[0-9]{1,9}(?:\.[0-9]{1,2})?)?$'
+          description: 'Cadena decimal con punto, sin separadores de miles. Null o vacío deja el dato sin indicar.'
+        tax_rate:
+          type: string
+          nullable: true
+          pattern: '^(?:[0-9]{1,9}(?:\.[0-9]{1,2})?)?$'
+          description: 'Cadena decimal con punto, sin separadores de miles. Null o vacío deja el dato sin indicar.'
+        surcharge_rate:
+          type: string
+          nullable: true
+          pattern: '^(?:[0-9]{1,9}(?:\.[0-9]{1,2})?)?$'
+          description: 'Cadena decimal con punto, sin separadores de miles. Null o vacío deja el dato sin indicar.'
+        withholding_rate:
+          type: string
+          nullable: true
+          pattern: '^(?:[0-9]{1,9}(?:\.[0-9]{1,2})?)?$'
+          description: 'Cadena decimal con punto, sin separadores de miles. Null o vacío deja el dato sin indicar.'
+    DocumentVersion:
+      type: object
+      additionalProperties: false
+      required:
+        - version
+      properties:
+        version:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+    DocumentReason:
+      type: object
+      additionalProperties: false
+      required:
+        - version
+        - reason
+      properties:
+        version:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 1000
+    SupportingFile:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - original_name
+        - media_type
+        - uploaded_at
+        - url
+      properties:
+        id:
+          type: string
+          format: uuid
+        original_name:
+          type: string
+        media_type:
+          type: string
+        uploaded_at:
+          type: string
+          format: date-time
+        url:
+          type: string
+    DocumentHistory:
+      type: object
+      additionalProperties: false
+      required:
+        - action
+        - actor_id
+        - occurred_at
+        - reason
+        - supporting_file_id
+        - before
+        - after
+      properties:
+        action:
+          type: string
+          enum:
+            - submitted
+            - amended
+            - validated
+            - rejected
+            - requested
+            - attached
+        actor_id:
+          type: string
+          format: uuid
+        occurred_at:
+          type: string
+          format: date-time
+        reason:
+          type: string
+          nullable: true
+        supporting_file_id:
+          type: string
+          nullable: true
+          format: uuid
+        before:
+          $ref: '#/components/schemas/DocumentDetails'
+        after:
+          type: object
+          additionalProperties: false
+          required:
+            - direction
+            - issued_on
+            - party_name
+            - tax_id
+            - tax
+            - base_cents
+            - tax_rate
+            - tax_cents
+            - surcharge_rate
+            - surcharge_cents
+            - withholding_rate
+            - withholding_cents
+            - total_cents
+          properties:
+            direction:
+              type: string
+              nullable: true
+              enum:
+                - income
+                - expense
+                - null
+            issued_on:
+              type: string
+              nullable: true
+              format: date
+            party_name:
+              type: string
+              nullable: true
+            tax_id:
+              type: string
+              nullable: true
+            tax:
+              type: string
+              enum:
+                - iva
+                - igic
+                - ipsi
+            base_cents:
+              type: integer
+              nullable: true
+              format: int64
+              minimum: 0
+            tax_rate:
+              type: string
+              nullable: true
+              pattern: '^[0-9]+(?:\.[0-9]{1,2})?$'
+            tax_cents:
+              type: integer
+              nullable: true
+              format: int64
+              minimum: 0
+            surcharge_rate:
+              type: string
+              nullable: true
+              pattern: '^[0-9]+(?:\.[0-9]{1,2})?$'
+            surcharge_cents:
+              type: integer
+              nullable: true
+              format: int64
+              minimum: 0
+            withholding_rate:
+              type: string
+              nullable: true
+              pattern: '^[0-9]+(?:\.[0-9]{1,2})?$'
+            withholding_cents:
+              type: integer
+              nullable: true
+              format: int64
+              minimum: 0
+            total_cents:
+              type: integer
+              nullable: true
+              format: int64
+              minimum: 0
+          nullable: true
+    Document:
+      type: object
+      additionalProperties: false
+      required:
+        - direction
+        - issued_on
+        - party_name
+        - tax_id
+        - tax
+        - base_cents
+        - tax_rate
+        - tax_cents
+        - surcharge_rate
+        - surcharge_cents
+        - withholding_rate
+        - withholding_cents
+        - total_cents
+        - id
+        - owner_id
+        - firm_id
+        - original_name
+        - media_type
+        - status
+        - version
+        - created_at
+        - proposal
+        - pending_request
+        - file_url
+        - supporting_files
+        - history
+      properties:
+        direction:
+          type: string
+          nullable: true
+          enum:
+            - income
+            - expense
+            - null
+        issued_on:
+          type: string
+          nullable: true
+          format: date
+        party_name:
+          type: string
+          nullable: true
+        tax_id:
+          type: string
+          nullable: true
+        tax:
+          type: string
+          enum:
+            - iva
+            - igic
+            - ipsi
+        base_cents:
+          type: integer
+          nullable: true
+          format: int64
+          minimum: 0
+        tax_rate:
+          type: string
+          nullable: true
+          pattern: '^[0-9]+(?:\.[0-9]{1,2})?$'
+        tax_cents:
+          type: integer
+          nullable: true
+          format: int64
+          minimum: 0
+        surcharge_rate:
+          type: string
+          nullable: true
+          pattern: '^[0-9]+(?:\.[0-9]{1,2})?$'
+        surcharge_cents:
+          type: integer
+          nullable: true
+          format: int64
+          minimum: 0
+        withholding_rate:
+          type: string
+          nullable: true
+          pattern: '^[0-9]+(?:\.[0-9]{1,2})?$'
+        withholding_cents:
+          type: integer
+          nullable: true
+          format: int64
+          minimum: 0
+        total_cents:
+          type: integer
+          nullable: true
+          format: int64
+          minimum: 0
+        id:
+          type: string
+          format: uuid
+        owner_id:
+          type: string
+          format: uuid
+        firm_id:
+          type: string
+          nullable: true
+          format: uuid
+        original_name:
+          type: string
+        media_type:
+          type: string
+        status:
+          type: string
+          enum:
+            - uploaded
+            - extracting
+            - draft
+            - submitted
+            - validated
+            - rejected
+        version:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        created_at:
+          type: string
+          format: date-time
+        proposal:
+          type: string
+          nullable: true
+          enum:
+            - extracted
+            - sample
+            - null
+        pending_request:
+          type: string
+          nullable: true
+        file_url:
+          type: string
+        supporting_files:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupportingFile'
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentHistory'
   responses:
     InvalidRequest:
-      description: JSON mal formado o campos ausentes, incorrectos o no admitidos.
+      description: 'JSON mal formado o campos ausentes, incorrectos o no admitidos.'
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
     MethodNotAllowed:
-      description: Método no permitido.
+      description: 'Método no permitido.'
       headers:
         Allow:
-          description: Métodos admitidos en esta ruta.
+          description: 'Métodos admitidos en esta ruta.'
           schema:
             type: string
       content:
@@ -182,7 +1372,49 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
     InternalError:
-      description: Error interno genérico, sin trazas ni detalles técnicos.
+      description: 'Error interno genérico, sin trazas ni detalles técnicos.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    DocumentNotFound:
+      description: 'Documento o archivo inexistente o no visible para este usuario.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    DocumentConflict:
+      description: 'Versión obsoleta o trimestre cerrado. Consultar de nuevo antes de modificar.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    DocumentValidation:
+      description: 'Datos incompletos o incompatibles, estado no editable, motivo ausente o archivo no admitido. Los campos obligatorios ausentes se indican en error.fields.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    DocumentForbidden:
+      description: 'Papel no autorizado en esta ruta.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    DocumentUnauthorized:
+      description: 'Se requiere un JWT Bearer válido.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    DocumentTooLarge:
+      description: 'El archivo supera los 8 MB o el cuerpo JSON supera los 32 KiB.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    DocumentMediaType:
+      description: 'Usar application/json para cambios y multipart/form-data para subidas.'
       content:
         application/json:
           schema:

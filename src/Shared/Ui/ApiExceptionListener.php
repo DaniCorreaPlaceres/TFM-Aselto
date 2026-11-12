@@ -24,7 +24,8 @@ final class ApiExceptionListener
             404 => ['not_found', 'No encontramos el recurso solicitado.'],
             405 => ['method_not_allowed', 'Este método no está permitido en esta ruta.'],
             413 => ['payload_too_large', 'El contenido de la petición es demasiado grande.'],
-            415 => ['unsupported_media_type', 'Envía el contenido como application/json.'],
+            415 => ['unsupported_media_type', 'El tipo de contenido no es compatible con esta operación.'],
+            422 => ['validation_failed', 'Revisa los datos del registro y el archivo enviado.'],
             default => ['internal_error', 'No hemos podido completar la petición. Vuelve a intentarlo.'],
         };
         $event->setResponse(ApiError::response($status, $code, $message, $error instanceof HttpExceptionInterface ? $error->getHeaders() : []));
