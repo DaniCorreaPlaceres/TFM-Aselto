@@ -18,7 +18,7 @@ Entra una web en la que conviven varias asesorías, aisladas entre sí.
 
 Papeles:
 
-- Superadmin de la plataforma. Da de alta asesorías y también un cliente sin asesoría. No hay planes ni cobros.
+- Superadmin de la plataforma. Gestiona las altas de asesorías y de clientes sin asesoría. La ampliación acordada incluye invitaciones y consulta y edición de sus datos administrativos, incluido el correo del admin de una asesoría. No obtiene acceso a su actividad económica, documentos, trimestres, conversaciones ni archivos privados. La edición ampliada y las licencias se implementarán en las nuevas tareas de la planificación.
 - Admin de una asesoría. Invita gestores, da de alta clientes y también revisa sus registros.
 - Gestor. Revisa documentos, pide justificantes, valida y cierra el trimestre.
 - Cliente. Un acceso por autónomo o por sociedad. Puede usar la plataforma solo o vinculado a una asesoría. Sube documentos y consulta su actividad.
@@ -42,8 +42,23 @@ Cifras, iguales para autónomo y sociedad, calculadas con movimientos validados 
 
 Estados de un documento: `subido`, `extrayendo`, `borrador`, `enviado`, `validado`, `rechazado`. El cliente confirma y el documento pasa a `enviado`. La asesoría lo valida o lo rechaza después. Solo `validado` entra en las cifras validadas de la asesoría. Sin asesoría, la confirmación permite incluirlo en las cifras personales y no equivale a una validación de asesoría.
 
-Queda fuera: la app, los modelos oficiales de Hacienda, la presentación de impuestos, los bancos, el plan contable, el cobro y la factura de la licencia de Aselto, y la emisión de facturas. La licencia existe en el producto, pero aquí se supone que el cliente puede registrarse directamente.
+Queda fuera: la app, los modelos oficiales de Hacienda, la presentación de impuestos, los bancos, el plan contable, el cobro y la factura de la licencia de Aselto, y la emisión de facturas. La ampliación acordada incorpora planes y límites de uso, pero no presupone pasarela de pagos ni emisión de facturas de la plataforma. El registro directo se mantiene; las condiciones de contratación se concretarán en su tarea.
 
+### Ampliación acordada después de la tarea 27
+
+Se divide la antigua entrega final: las siguientes tareas son actualizar el README y verificar una instalación local desde cero. Después se incorporarán, una a una, las necesidades nuevas detalladas en `docs/Tareas.md`; ninguna se considera implementada por estar planificada.
+
+- Completar invitaciones del superadmin a asesorías y profesionales independientes. Reutilizar y revisar los flujos existentes, en lugar de considerar que las invitaciones iniciales cubren automáticamente todos los casos nuevos.
+- Ampliar la administración de asesorías y clientes independientes, delimitando los campos principales y los cambios de identidad. Los permisos administrativos no incluyen documentos, movimientos, cifras, conversaciones ni archivos privados de esas cuentas o de los clientes de una asesoría.
+- Home orientada a la venta, diferenciando autónomos/empresas y asesorías, con tres landings específicas y mayor apoyo visual. Potenciar la ayuda de la IA para organizar documentación y proponer datos, manteniendo la revisión humana. En la home con sesión, la acción se llamará «Tu cuenta»; actualmente sigue «Tu acceso». «Crear cuenta» ya existe como acción secundaria.
+- Footer con páginas informativas y enlaces a privacidad, cookies, precios y las tres landings, e identificación «© [año] Daniel Correa Placeres». Las políticas deberán ajustarse a los tratamientos y proveedores reales; quedan pendientes los datos del titular y la revisión correspondiente.
+- Planes previstos: Gratis con 20 documentos al mes, Profesional por 4,99 €/mes y Asesoría por 2,99 €/mes por cliente. Los límites de los planes de pago, el cómputo de documentos/clientes, el tratamiento de cambios de plan, los impuestos sobre los precios y la contratación se concretarán antes de implementar o publicar una oferta definitiva. No se da por aprobada una pasarela de cobros ni la facturación de la licencia.
+- Redistribuir Ingresos y gastos y facilitar añadir cada tipo de movimiento, conservando el inicio actual y las reglas de revisión. Incorporar «Exento» con cuota de impuesto cero, diferenciándolo del tipo 0 %; concretar compatibilidades y preservar las instantáneas cerradas.
+- Auditoría OWASP con evidencias, alcance y método de puntuación explícitos. Distinguir controles comprobados, incumplidos, no verificados y no aplicables. Las mejoras se decidirán con el usuario a partir de sus resultados.
+- Preparar la versión de producto 1.0.0 para su primera publicación en main. La versión del contrato OpenAPI sigue siendo independiente. La etiqueta y las notas se asociarán a la versión final, no se crean por registrar esta decisión.
+- Publicación en Hostinger e integración GitHub–Hostinger, sujetas a comprobar el plan contratado y sus capacidades. Documentar configuración, servicios, protección de secretos, construcción, migraciones, caché, verificaciones, copias y recuperación. Se solicita automatización alrededor del PR a main; el disparador exacto se decidirá antes de implementarla. Se propone validar en el PR y desplegar producción tras el merge aprobado. Main conserva su protección.
+
+La presentación, el vídeo y la revisión final se prepararán después de estas tareas. La planificación no modifica permisos en ejecución, no activa licencias, no publica precios ni despliega nada por sí misma.
 ## 3. Stack
 
 | Capa | Elección |

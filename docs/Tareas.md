@@ -39,4 +39,45 @@ Estado de las tareas: [x] hecha, [ ] pendiente o en curso. El detalle de cada un
 - [x] 25. Datos de demostración de dos asesorías, equipos y clientes, con documentos, trimestres y comunicación. Carga local repetible y guía en `docs/demo.md`.
 - [x] 26. Rediseño visual de toda la plataforma y home comercial con Bootstrap 5, Sass/SCSS, DataTables con Excel/CSV y visor PDF.js local, manteniendo la marca y las reglas visuales. Límites de revisión de accesibilidad en `docs/diseno/platform-design.md`.
 - [x] 27. Una sola zona para añadir el documento: foto, archivo o arrastrar y soltar, con selección, vista previa de imagen y avisos de validación.
-- [ ] 28. Entrega del máster: README, despliegue, usuarios de prueba, presentación y vídeo.
+## Documentación inmediata
+
+La antigua tarea 28 se divide. Primero se realizarán las tareas 28 y 29; después se abordarán las nuevas funcionalidades una a una. La preparación final de la defensa queda al final de la lista.
+
+- [ ] 28. Actualizar el README para describir el producto implementado, su arquitectura, funciones, requisitos, comprobaciones y enlaces a documentación y demostración.
+- [ ] 29. Documentar y verificar una instalación local desde cero: configuración, Docker, dependencias, migraciones, claves JWT, recursos Sass/AssetMapper, servicios, accesos de demostración y resolución de problemas. Separar instrucciones verificadas de pasos pendientes de comprobar.
+
+## Administración e invitaciones
+
+Las invitaciones a asesorías y a equipos ya tienen una primera implementación en las tareas 9 y 10. Las tareas siguientes completan y revisan el alcance solicitado; no se dan por hechas por existir esos primeros flujos.
+
+- [ ] 30. Completar las invitaciones del superadmin a asesorías y profesionales independientes: enviar por correo un enlace de registro con token de uso único y caducidad, consultar su estado y permitir reenvío sin accesos ambiguos. Concretar los tipos de destinatario y el tratamiento de cuentas existentes antes de implementar.
+- [ ] 31. Administración de asesorías por el superadmin: listar, añadir, consultar y editar sus datos principales y el correo de su admin. Delimitar campos administrativos y proteger los cambios de identidad. No concede acceso a documentos, ingresos, gastos, cifras de trimestres, conversaciones ni archivos privados de la asesoría o de sus clientes.
+- [ ] 32. Administración de clientes independientes por el superadmin: listar, añadir, consultar y editar los datos principales de los clientes sin asesoría. No permite entrar en su actividad económica, documentos, trimestres, conversaciones ni archivos. Revisar expresamente permisos de web, API y descargas.
+
+## Comercialización y contenido público
+
+- [ ] 33. Reorientar la home a la venta del producto: una sección para autónomos y empresas y otra para asesorías, con mensajes y llamadas a la acción diferenciados. Destacar el control de facturas y documentación de los clientes de una asesoría. Cambiar «Tu acceso» por «Tu cuenta» cuando hay sesión iniciada.
+- [ ] 34. Crear tres landing pages enlazadas desde la home: autónomos, empresas y asesorías. Adaptar a cada público los problemas, beneficios, ejemplos y llamadas a la acción.
+- [ ] 35. Reforzar la propuesta de IA en home y landings con textos, iconos e imágenes coherentes con la marca. Explicar cómo ayuda a organizar y extraer información, manteniendo la revisión humana y sin prometer validación fiscal automática o capacidades no implementadas.
+- [ ] 36. Añadir un footer común con «Quiénes somos», privacidad, cookies, precios y enlaces a las landings de autónomos, empresas y asesorías. Incluir «© [año] Daniel Correa Placeres», con el año actualizado.
+- [ ] 37. Preparar las páginas de «Quiénes somos», política de privacidad y política de cookies. Identificar responsable, tratamientos, proveedores y cookies realmente utilizados; concretar la información que debe aportar el titular y dejar señalada la revisión legal pendiente, sin inventar datos ni considerar estos borradores una validación jurídica.
+- [ ] 38. Crear la página de precios: Gratis, Profesional por 4,99 €/mes y Asesoría por 2,99 €/mes por cliente. Explicar los planes y sus llamadas a la acción. Aclarar impuestos incluidos o no, alcance de cada licencia y forma de contratación antes de publicarla como oferta definitiva.
+- [ ] 39. Incorporar las licencias y el límite del plan Gratis de 20 documentos al mes. Acordar cómputo mensual, documentos que consumen cuota, cambios de plan y contabilización de clientes del plan Asesoría. Aplicar los límites de forma coherente en web y API, con avisos comprensibles. No presupone integrar cobros ni facturación.
+
+## Experiencia del cliente e impuestos
+
+- [ ] 40. Mejorar la distribución de «Ingresos y gastos», conservando el inicio actual. Separar con claridad cifras, movimientos, pendientes e histórico y facilitar añadir un ingreso o un gasto desde esa pantalla, reutilizando los casos de uso y las reglas de revisión existentes.
+- [ ] 41. Añadir la opción «Exento» a los registros para que la cuota del impuesto sea cero. Distinguir exención de un tipo del 0 %, conservar el territorio y reflejar el estado en revisión, cálculos, API, exportaciones e instantáneas. Acordar el tratamiento de recargo, retención y registros ya cerrados antes de implementar.
+
+## Seguridad y publicación
+
+- [ ] 42. Auditar la web y API con una lista de controles OWASP aplicables y una metodología reproducible. Documentar alcance, versión de las referencias, evidencias, controles cumplidos, incumplidos, no comprobados y no aplicables. Obtener una puntuación con denominador explícito y acompañarla de riesgos y limitaciones; priorizar después las mejoras junto al usuario.
+- [ ] 43. Corregir y verificar las mejoras que se acuerden tras la auditoría, en tareas o PR separados según su alcance. No marcar hallazgos resueltos sin volver a comprobarlos.
+- [ ] 44. Preparar el versionado 1.0.0 para la primera publicación en main: criterio de versiones, versión visible o consultable, notas de cambios y etiqueta asociada al commit de la versión final. Diferenciar versión del producto y versión del contrato OpenAPI.
+- [ ] 45. Preparar y verificar las instrucciones de publicación en producción en Hostinger: comprobar el plan y sus capacidades, dominio, HTTPS, configuración, secretos, base de datos, archivos privados, correo, JWT, compilación de recursos, Mercure y procesos de fondo. Documentar copias de seguridad, migraciones, caché, comprobación de salud y recuperación, sin asumir que el hosting admite Docker o servicios persistentes.
+- [ ] 46. Configurar y documentar la integración GitHub–Hostinger y el CI/CD de publicación de main: comprobaciones, construcción, transferencia de la versión, migraciones, caché y verificación posterior. Concretar si el despliegue se dispara al abrir el PR o al integrarlo; se propone producción tras el merge aprobado y validación previa en el PR. Proteger secretos, evitar despliegues simultáneos y documentar reversión, límites de las migraciones y el sistema para explicarlo en el TFM. Mantener main protegida.
+
+## Cierre de la entrega
+
+- [ ] 47. Revisar los recorridos completos, cerrar o declarar las comprobaciones manuales pendientes y recopilar evidencias, usuarios de prueba, límites conocidos y documentación definitiva.
+- [ ] 48. Preparar la presentación y el guion del vídeo con los requisitos del máster, incluyendo arquitectura, IA con revisión humana, aislamiento entre asesorías, auditoría y despliegue. Preparar y verificar los materiales finales que se acuerden con el usuario.
