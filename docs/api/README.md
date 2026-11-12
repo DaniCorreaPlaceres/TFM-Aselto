@@ -48,3 +48,13 @@ La prueba de integración usa cuentas sintéticas dentro de una transacción y n
 ```powershell
 docker compose exec -T --user www-data app php tests/Integration/api-authentication-workflow.php
 ```
+
+## Swagger UI
+
+Abrir [la documentación interactiva](http://localhost:8080/api/docs) con Docker arrancado. La página y el [contrato](http://localhost:8080/api/docs/openapi.yaml) son públicos; ejecutar operaciones requiere los permisos habituales.
+
+1. Expandir `POST /api/v1/auth/login`, pulsar «Try it out», introducir las credenciales del entorno y ejecutar.
+2. Copiar el valor `token` de la respuesta y pegarlo en «Authorize», sin el prefijo `Bearer`.
+3. Ejecutar `GET /api/v1/me` o las operaciones documentales. Se utilizan los datos reales del entorno abierto.
+
+El token no se guarda al recargar. Los recursos de Swagger UI 5.34.1 están en `public/swagger-ui/`, proceden de la distribución oficial e incluyen su licencia Apache 2.0. El validador externo está desactivado. Para actualizar, sustituir CSS y bundle desde una misma versión oficial y volver a comprobar la carga y las operaciones.

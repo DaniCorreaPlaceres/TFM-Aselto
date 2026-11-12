@@ -44,6 +44,8 @@ security:
             user_checker: App\Identidad\Infrastructure\Security\ActivatedUserChecker
 
     access_control:
+        - { path: ^/api/docs(?:/openapi\.yaml)?$, roles: PUBLIC_ACCESS }
+        - { path: ^/swagger-ui/, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/auth/login$, roles: PUBLIC_ACCESS }
         - { path: ^/api(?:/|$), roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/salud, roles: PUBLIC_ACCESS }
