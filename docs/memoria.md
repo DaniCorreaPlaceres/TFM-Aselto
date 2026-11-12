@@ -194,7 +194,7 @@ El inicio muestra el saludo, la acción de añadir un documento, los ingresos y 
 - Un ingreso de un autónomo puede llevar retención de IRPF opcional, con IVA, IGIC o IPSI. La persona introduce el porcentaje que figura en el documento; Aselto no decide si corresponde retener ni el tipo fiscal. Se acepta entre 0 y 100 con hasta dos decimales como límite técnico, no como catálogo de tipos. La cuota se calcula sobre la base, se redondea al céntimo y se resta del total. No se admite en gastos ni en ingresos de sociedades; el servidor comprueba el tipo de cliente guardado.
 - La lectura solo propone retención explícita y válida en ingresos de autónomos. No la deduce del IVA ni del perfil y no acepta cuotas o totales calculados por el proveedor. El ejemplo no añade retención.
 - La plataforma, incluida la home comercial, se maqueta con Bootstrap 5. Siguen mandando la marca y las reglas visuales.
-- Añadir un documento acaba en una sola zona: hacer una foto, elegir un archivo o arrastrarlo.
+- Añadir un documento usa una sola zona y un único envío: elegir archivo, hacer una foto mediante el selector nativo o arrastrar y soltar. Muestra nombre, tamaño y vista previa de imágenes; permite quitar o cambiar la selección y avisa de formato y límite de 8 MB. La cámara depende del dispositivo. Sin JavaScript se mantiene la selección nativa y el envío. Los errores del formulario se renderizan con 422 para Turbo. La extracción sigue siendo una propuesta que requiere revisión humana.
 
 ### API prevista
 

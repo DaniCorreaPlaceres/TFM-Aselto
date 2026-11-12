@@ -171,6 +171,27 @@ legend { float: none; width: auto; font-size: 1.125rem; font-weight: 650; paddin
 .firm-contact-card dt { color: #475569; font-weight: 550; font-size: .95rem; margin-bottom: .4rem; }
 .firm-contact-card dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
 .firm-contact-card small { display: block; color: #475569; font-size: .875rem; margin-top: .25rem; }
+.document-upload { max-width: 58rem; margin-top: 2rem; }
+.upload-zone { border: 2px dashed #8eabb2; border-radius: 1.25rem; background: white; padding: clamp(1.25rem, 4vw, 3rem); text-align: center; }
+.upload-zone.is-dragging { border-color: #006b70; background: #e3f1f1; }
+.upload-symbol { display: grid; place-items: center; width: 64px; height: 64px; margin: 0 auto 1rem; background: #e3f1f1; color: #006b70; border-radius: 1rem; }
+.upload-symbol svg { width: 30px; height: 30px; }
+.upload-zone h2 { margin: 0 0 .75rem; font-size: 1.5rem; }
+.upload-choices { display: none; }
+.upload-drag-hint { display: none; }
+.upload-ready .upload-drag-hint { display: block; }
+.upload-ready .upload-choices { display: flex; justify-content: center; flex-wrap: wrap; gap: .75rem; margin: 1.5rem 0; }
+.upload-choices button { margin: 0; }
+.upload-ready .upload-native { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.upload-native input { max-width: 100%; }
+.upload-hint { font-size: .95rem; margin: 1rem 0 0; }
+.upload-selection { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem; padding: 1.25rem; border: 1px solid var(--line); background: white; border-radius: 1rem; }
+.upload-selection[hidden] { display: none; }
+.upload-selection > div { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.upload-selection span { display: block; color: #475569; font-size: .95rem; margin-top: .25rem; }
+.upload-selection button { margin: 0; }
+.upload-preview { max-width: 90px; max-height: 100px; object-fit: contain; border-radius: .5rem; }
+.upload-status { font-size: 1rem; margin-top: 1rem; }
 @media (max-width: 991px) {
   .document-workspace { grid-template-columns: 1fr; }
   .document-original { position: static; }

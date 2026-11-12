@@ -38,5 +38,5 @@ Estado de las tareas: [x] hecha, [ ] pendiente o en curso. El detalle de cada un
   - [x] Comunicación: mensajes, solicitudes y adjuntos.
 - [x] 25. Datos de demostración de dos asesorías, equipos y clientes, con documentos, trimestres y comunicación. Carga local repetible y guía en `docs/demo.md`.
 - [x] 26. Rediseño visual de toda la plataforma y home comercial con Bootstrap 5, Sass/SCSS, DataTables con Excel/CSV y visor PDF.js local, manteniendo la marca y las reglas visuales. Límites de revisión de accesibilidad en `docs/diseno/platform-design.md`.
-- [ ] 27. Una sola zona para añadir el documento: foto, archivo o arrastrar y soltar.
+- [x] 27. Una sola zona para añadir el documento: foto, archivo o arrastrar y soltar, con selección, vista previa de imagen y avisos de validación.
 - [ ] 28. Entrega del máster: README, despliegue, usuarios de prueba, presentación y vídeo.

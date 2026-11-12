@@ -50,6 +50,7 @@ jobs:
           node-version: '22'
       - run: node --test tests/Frontend/live-quarter.test.mjs
       - run: node --test tests/Frontend/table-export.test.mjs
+      - run: node --test tests/Frontend/document-upload.test.mjs
 
   openapi:
     name: OpenAPI
