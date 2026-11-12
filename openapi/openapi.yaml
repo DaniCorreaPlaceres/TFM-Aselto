@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: Aselto API
-  version: 0.4.0
-  description: 'API v1: acceso JWT, identidad, documentos, revisión y trimestres. Reutiliza los casos de uso de la web. Importes calculados en céntimos. Comunicación se incorpora en un bloque posterior.'
+  version: 0.5.0
+  description: 'API v1: acceso JWT, identidad, documentos, revisión, trimestres y comunicación. Reutiliza los casos de uso de la web. Importes calculados en céntimos; conversaciones y adjuntos privados con permisos de la asesoría actual.'
 paths:
   /api/v1/auth/login:
     post:
@@ -1475,6 +1475,631 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/QuarterReopen'
+  /api/v1/conversation-recipients:
+    get:
+      tags:
+        - Comunicación
+      operationId: conversationRecipients
+      summary: 'Consultar destinatarios permitidos'
+      description: 'Cliente vinculado y admin/gestor de su asesoría actual. El superadmin no tiene acceso. Datos privados sin caché. Destinatarios usa owner_id (usuario del cliente); client_id identifica el perfil. Listar no marca lectura; GET del detalle registra solo la secuencia mostrada y devuelve unread=0 para esa secuencia. Responder no marca mensajes ajenos como leídos ni resuelve solicitudes. Solo el equipo crea solicitudes y confirma su resolución. Escrituras serializadas por cliente, sin exigir ni exponer versiones al consumidor. Los adjuntos generales no se incorporan a las cifras fiscales.'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        200:
+          description: 'Operación completada, sin caché.'
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - recipients
+                properties:
+                  recipients:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      required:
+                        - client_id
+                        - owner_id
+                        - name
+                      properties:
+                        client_id:
+                          type: string
+                          format: uuid
+                        owner_id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+        400:
+          description: 'Entrada inválida.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: 'Token ausente, inválido o caducado.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: 'Papel no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: 'conversation_not_found: conversación, destinatario o adjunto no accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        405:
+          description: 'Método no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: 'Error interno sin detalles.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/api/v1/conversation-recipients/{ownerId}/documents':
+    get:
+      tags:
+        - Comunicación
+      operationId: conversationSharedDocuments
+      summary: 'Consultar documentos que pueden enlazarse'
+      description: 'Cliente vinculado y admin/gestor de su asesoría actual. El superadmin no tiene acceso. Datos privados sin caché. Destinatarios usa owner_id (usuario del cliente); client_id identifica el perfil. Listar no marca lectura; GET del detalle registra solo la secuencia mostrada y devuelve unread=0 para esa secuencia. Responder no marca mensajes ajenos como leídos ni resuelve solicitudes. Solo el equipo crea solicitudes y confirma su resolución. Escrituras serializadas por cliente, sin exigir ni exponer versiones al consumidor. Los adjuntos generales no se incorporan a las cifras fiscales.'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        200:
+          description: 'Operación completada, sin caché.'
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - documents
+                properties:
+                  documents:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      required:
+                        - id
+                        - name
+                        - status
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                        status:
+                          type: string
+                          enum:
+                            - submitted
+                            - rejected
+                            - validated
+        400:
+          description: 'Entrada inválida.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: 'Token ausente, inválido o caducado.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: 'Papel no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: 'conversation_not_found: conversación, destinatario o adjunto no accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        405:
+          description: 'Método no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: 'Error interno sin detalles.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+        -
+          name: ownerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+  /api/v1/conversations:
+    get:
+      tags:
+        - Comunicación
+      operationId: conversations
+      summary: 'Listar conversaciones sin marcar lectura'
+      description: 'Cliente vinculado y admin/gestor de su asesoría actual. El superadmin no tiene acceso. Datos privados sin caché. Destinatarios usa owner_id (usuario del cliente); client_id identifica el perfil. Listar no marca lectura; GET del detalle registra solo la secuencia mostrada y devuelve unread=0 para esa secuencia. Responder no marca mensajes ajenos como leídos ni resuelve solicitudes. Solo el equipo crea solicitudes y confirma su resolución. Escrituras serializadas por cliente, sin exigir ni exponer versiones al consumidor. Los adjuntos generales no se incorporan a las cifras fiscales.'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        200:
+          description: 'Operación completada, sin caché.'
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - conversations
+                properties:
+                  conversations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Conversation'
+        400:
+          description: 'Entrada inválida.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: 'Token ausente, inválido o caducado.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: 'Papel no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: 'conversation_not_found: conversación, destinatario o adjunto no accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        405:
+          description: 'Método no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: 'Error interno sin detalles.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Comunicación
+      operationId: startConversation
+      summary: 'Iniciar conversación o solicitud'
+      description: 'Cliente vinculado y admin/gestor de su asesoría actual. El superadmin no tiene acceso. Datos privados sin caché. Destinatarios usa owner_id (usuario del cliente); client_id identifica el perfil. Listar no marca lectura; GET del detalle registra solo la secuencia mostrada y devuelve unread=0 para esa secuencia. Responder no marca mensajes ajenos como leídos ni resuelve solicitudes. Solo el equipo crea solicitudes y confirma su resolución. Escrituras serializadas por cliente, sin exigir ni exponer versiones al consumidor. Los adjuntos generales no se incorporan a las cifras fiscales.'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        201:
+          description: 'Operación completada, sin caché.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+          headers:
+            Location:
+              description: 'Ruta protegida del detalle de la conversación creada.'
+              schema:
+                type: string
+        400:
+          description: 'Entrada inválida.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: 'Token ausente, inválido o caducado.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: 'Papel no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: 'conversation_not_found: conversación, destinatario o adjunto no accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        405:
+          description: 'Método no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: 'Error interno sin detalles.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        422:
+          description: 'invalid_message: asunto, texto, archivo, enlace o estado de resolución no válidos.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        413:
+          description: 'JSON superior a 32768 bytes o adjunto superior a 8000000 bytes.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        415:
+          description: 'Tipo de contenido no admitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConversationCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ConversationCreateUpload'
+  '/api/v1/conversations/{id}':
+    get:
+      tags:
+        - Comunicación
+      operationId: openConversation
+      summary: 'Abrir conversación y registrar lectura individual'
+      description: 'Cliente vinculado y admin/gestor de su asesoría actual. El superadmin no tiene acceso. Datos privados sin caché. Destinatarios usa owner_id (usuario del cliente); client_id identifica el perfil. Listar no marca lectura; GET del detalle registra solo la secuencia mostrada y devuelve unread=0 para esa secuencia. Responder no marca mensajes ajenos como leídos ni resuelve solicitudes. Solo el equipo crea solicitudes y confirma su resolución. Escrituras serializadas por cliente, sin exigir ni exponer versiones al consumidor. Los adjuntos generales no se incorporan a las cifras fiscales.'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        200:
+          description: 'Operación completada, sin caché.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+        400:
+          description: 'Entrada inválida.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: 'Token ausente, inválido o caducado.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: 'Papel no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: 'conversation_not_found: conversación, destinatario o adjunto no accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        405:
+          description: 'Método no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: 'Error interno sin detalles.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+  '/api/v1/conversations/{id}/messages':
+    post:
+      tags:
+        - Comunicación
+      operationId: replyConversation
+      summary: 'Responder sin resolver ni marcar mensajes ajenos como leídos'
+      description: 'Cliente vinculado y admin/gestor de su asesoría actual. El superadmin no tiene acceso. Datos privados sin caché. Destinatarios usa owner_id (usuario del cliente); client_id identifica el perfil. Listar no marca lectura; GET del detalle registra solo la secuencia mostrada y devuelve unread=0 para esa secuencia. Responder no marca mensajes ajenos como leídos ni resuelve solicitudes. Solo el equipo crea solicitudes y confirma su resolución. Escrituras serializadas por cliente, sin exigir ni exponer versiones al consumidor. Los adjuntos generales no se incorporan a las cifras fiscales.'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        200:
+          description: 'Operación completada, sin caché.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+        400:
+          description: 'Entrada inválida.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: 'Token ausente, inválido o caducado.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: 'Papel no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: 'conversation_not_found: conversación, destinatario o adjunto no accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        405:
+          description: 'Método no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: 'Error interno sin detalles.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        422:
+          description: 'invalid_message: asunto, texto, archivo, enlace o estado de resolución no válidos.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        413:
+          description: 'JSON superior a 32768 bytes o adjunto superior a 8000000 bytes.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        415:
+          description: 'Tipo de contenido no admitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConversationReply'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ConversationReplyUpload'
+  '/api/v1/conversations/{id}/resolve':
+    post:
+      tags:
+        - Comunicación
+      operationId: resolveConversation
+      summary: 'Confirmar la resolución de una solicitud como admin o gestor'
+      description: 'Cliente vinculado y admin/gestor de su asesoría actual. El superadmin no tiene acceso. Datos privados sin caché. Destinatarios usa owner_id (usuario del cliente); client_id identifica el perfil. Listar no marca lectura; GET del detalle registra solo la secuencia mostrada y devuelve unread=0 para esa secuencia. Responder no marca mensajes ajenos como leídos ni resuelve solicitudes. Solo el equipo crea solicitudes y confirma su resolución. Escrituras serializadas por cliente, sin exigir ni exponer versiones al consumidor. Los adjuntos generales no se incorporan a las cifras fiscales.'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        204:
+          description: 'Solicitud resuelta; cuerpo vacío.'
+        400:
+          description: 'Entrada inválida.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: 'Token ausente, inválido o caducado.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: 'Papel no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: 'conversation_not_found: conversación, destinatario o adjunto no accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        405:
+          description: 'Método no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: 'Error interno sin detalles.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        422:
+          description: 'invalid_message: asunto, texto, archivo, enlace o estado de resolución no válidos.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        413:
+          description: 'JSON superior a 32768 bytes o adjunto superior a 8000000 bytes.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        415:
+          description: 'Tipo de contenido no admitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              maxProperties: 0
+              example: {  }
+  '/api/v1/conversations/{id}/attachments/{fileId}':
+    get:
+      tags:
+        - Comunicación
+      operationId: conversationAttachment
+      summary: 'Descargar un adjunto privado'
+      description: 'Cliente vinculado y admin/gestor de su asesoría actual. El superadmin no tiene acceso. Datos privados sin caché. Destinatarios usa owner_id (usuario del cliente); client_id identifica el perfil. Listar no marca lectura; GET del detalle registra solo la secuencia mostrada y devuelve unread=0 para esa secuencia. Responder no marca mensajes ajenos como leídos ni resuelve solicitudes. Solo el equipo crea solicitudes y confirma su resolución. Escrituras serializadas por cliente, sin exigir ni exponer versiones al consumidor. Los adjuntos generales no se incorporan a las cifras fiscales.'
+      security:
+        -
+          bearerAuth: {  }
+      responses:
+        200:
+          description: 'Operación completada, sin caché.'
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              description: 'attachment; nombre protegido y compatible con Unicode.'
+              schema:
+                type: string
+        400:
+          description: 'Entrada inválida.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: 'Token ausente, inválido o caducado.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: 'Papel no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: 'conversation_not_found: conversación, destinatario o adjunto no accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        405:
+          description: 'Método no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: 'Error interno sin detalles.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        -
+          name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
 components:
   securitySchemes:
     bearerAuth:
@@ -2262,6 +2887,185 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/QuarterHistory'
+    ConversationCreate:
+      type: object
+      additionalProperties: false
+      required:
+        - owner_id
+        - subject
+        - text
+      properties:
+        owner_id:
+          type: string
+          format: uuid
+        subject:
+          type: string
+          minLength: 1
+          maxLength: 120
+        text:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        request:
+          type: boolean
+          default: false
+        document_id:
+          type: string
+          format: uuid
+          nullable: true
+    ConversationCreateUpload:
+      type: object
+      additionalProperties: false
+      required:
+        - owner_id
+        - subject
+        - text
+      properties:
+        owner_id:
+          type: string
+          format: uuid
+        subject:
+          type: string
+          minLength: 1
+          maxLength: 120
+        text:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        request:
+          type: boolean
+          default: false
+        document_id:
+          type: string
+          format: uuid
+          nullable: true
+        'attachments[]':
+          type: array
+          maxItems: 3
+          items:
+            type: string
+            format: binary
+          description: 'Hasta tres archivos PDF/JPEG/PNG/WebP, máximo 8000000 bytes cada uno. El campo multipart se llama attachments[].'
+    ConversationReply:
+      type: object
+      additionalProperties: false
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 4000
+    ConversationReplyUpload:
+      type: object
+      additionalProperties: false
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        'attachments[]':
+          type: array
+          maxItems: 3
+          items:
+            type: string
+            format: binary
+          description: 'Hasta tres archivos PDF/JPEG/PNG/WebP, máximo 8000000 bytes cada uno. El campo multipart se llama attachments[].'
+    ConversationAttachment:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - media_type
+        - url
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        media_type:
+          type: string
+          enum:
+            - application/pdf
+            - image/jpeg
+            - image/png
+            - image/webp
+        url:
+          type: string
+          description: 'URL relativa; requiere Authorization Bearer al descargar.'
+    ConversationMessage:
+      type: object
+      additionalProperties: false
+      required:
+        - actor_id
+        - at
+        - text
+        - attachments
+      properties:
+        actor_id:
+          type: string
+          format: uuid
+        at:
+          type: string
+          format: date-time
+        text:
+          type: string
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConversationAttachment'
+    Conversation:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - owner_id
+        - firm_id
+        - subject
+        - request
+        - document_id
+        - resolved_by
+        - resolved_at
+        - unread
+        - messages
+      properties:
+        id:
+          type: string
+          format: uuid
+        owner_id:
+          type: string
+          format: uuid
+        firm_id:
+          type: string
+          format: uuid
+        subject:
+          type: string
+        request:
+          type: boolean
+        document_id:
+          type: string
+          format: uuid
+          nullable: true
+        resolved_by:
+          type: string
+          format: uuid
+          nullable: true
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+        unread:
+          type: integer
+          minimum: 0
+        messages:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ConversationMessage'
   responses:
     InvalidRequest:
       description: 'JSON mal formado o campos ausentes, incorrectos o no admitidos.'

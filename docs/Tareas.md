@@ -30,12 +30,12 @@ Estado de las tareas: [x] hecha, [ ] pendiente o en curso. El detalle de cada un
 - [x] 21. Trimestre: cifras, cierre, reapertura y consulta del histórico.
 - [x] 22. Mensajes y solicitudes entre cliente y asesoría, con adjuntos y lectura individual.
 - [x] 23. Actualización en vivo del trimestre.
-- [ ] 24. API `/api/v1` con los mismos casos de uso. En curso.
+- [x] 24. API `/api/v1` con los mismos casos de uso.
   - [x] Acceso JWT y consulta del usuario actual.
   - [x] Documentos y revisión de asesoría, incluidos justificantes y descargas.
   - [x] Consulta de trimestres, cierre, reapertura e histórico.
   - [x] Swagger UI en `/api/docs` con autorización Bearer.
-  - [ ] Comunicación: mensajes, solicitudes y adjuntos.
+  - [x] Comunicación: mensajes, solicitudes y adjuntos.
 - [ ] 25. Datos de demostración de dos asesorías.
 - [ ] 26. Maquetar toda la plataforma con Bootstrap 5, incluida la home comercial, manteniendo la marca y las reglas visuales.
 - [ ] 27. Una sola zona para añadir el documento: foto, archivo o arrastrar y soltar.

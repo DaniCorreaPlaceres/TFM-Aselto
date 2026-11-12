@@ -1,6 +1,6 @@
 # API v1
 
-El acceso permite entrar y consultar la identidad actual; el bloque de [documentos y revisión](documents.md) ya está disponible. El contrato está en [OpenAPI](../../openapi/openapi.yaml). Los [trimestres](quarters.md) permiten consultar cifras, histórico, cierre y reapertura. Los perfiles fiscales y mensajes todavía no tienen rutas API.
+El acceso permite entrar y consultar la identidad actual; el bloque de [documentos y revisión](documents.md) ya está disponible. El contrato está en [OpenAPI](../../openapi/openapi.yaml). Los [trimestres](quarters.md) permiten consultar cifras, histórico, cierre y reapertura. La [comunicación](communication.md) incluye conversaciones, solicitudes, lectura individual y adjuntos privados. Los perfiles fiscales todavía no tienen rutas API.
 
 ## Operaciones disponibles
 
