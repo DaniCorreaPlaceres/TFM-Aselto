@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: Aselto API
-  version: 0.3.0
-  description: 'API v1: acceso JWT, identidad y documentos del cliente y su asesoría. Reutiliza los casos de uso de la web. Los cambios documentales exigen versión. Impuestos e importes calculados no son editables. Trimestres y comunicación se incorporan en bloques posteriores.'
+  version: 0.4.0
+  description: 'API v1: acceso JWT, identidad, documentos, revisión y trimestres. Reutiliza los casos de uso de la web. Importes calculados en céntimos. Comunicación se incorpora en un bloque posterior.'
 paths:
   /api/v1/auth/login:
     post:
@@ -863,6 +863,618 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DocumentReason'
+  '/api/v1/quarters/{year}/{quarter}':
+    get:
+      tags:
+        - Trimestres
+      operationId: clientQuarterView
+      summary: 'Consultar cifras, pendientes e histórico'
+      description: 'Usa los mismos casos de uso y permisos de la web. Importes en céntimos; taxes.output, input y balance también están en céntimos. La respuesta muestra la instantánea si está cerrado y las cifras actuales si está abierto. Los pendientes actuales no alteran la instantánea. history contiene los periodos guardados accesibles, con sus ámbitos y eventos; no incluye periodos nunca cerrados. Admin y gestor gestionan su asesoría; el propietario gestiona sus cierres personales, también tras vincularse. La asesoría solo lee cierres personales. Cada mutación devuelve la versión persistida. Cerrar exige versión y huella de la última consulta; pendientes fechados del periodo o sin fecha bloquean el cierre. Sin caché.'
+      security:
+        -
+          bearerAuth: {  }
+      parameters:
+        -
+          name: year
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 9999
+        -
+          name: quarter
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 4
+        -
+          name: scope
+          in: query
+          required: false
+          description: 'Ámbito actual si se omite. personal permite consultar cierres personales conservados; los permisos se comprueban siempre.'
+          schema:
+            type: string
+            pattern: '^(personal|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$'
+      responses:
+        200:
+          description: 'Trimestre y su histórico accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuarterView'
+        400:
+          description: 'Entrada inválida o periodo fuera de rango.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: 'Token ausente, inválido o caducado.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: 'Papel no permitido en esta ruta.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: 'Cliente, trimestre o ámbito no accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        405:
+          description: 'Método no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: 'Error interno sin detalles.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/api/v1/quarters/{year}/{quarter}/close':
+    post:
+      tags:
+        - Trimestres
+      operationId: clientQuarterClose
+      summary: 'Cerrar el trimestre'
+      description: 'Usa los mismos casos de uso y permisos de la web. Importes en céntimos; taxes.output, input y balance también están en céntimos. La respuesta muestra la instantánea si está cerrado y las cifras actuales si está abierto. Los pendientes actuales no alteran la instantánea. history contiene los periodos guardados accesibles, con sus ámbitos y eventos; no incluye periodos nunca cerrados. Admin y gestor gestionan su asesoría; el propietario gestiona sus cierres personales, también tras vincularse. La asesoría solo lee cierres personales. Cada mutación devuelve la versión persistida. Cerrar exige versión y huella de la última consulta; pendientes fechados del periodo o sin fecha bloquean el cierre. Sin caché.'
+      security:
+        -
+          bearerAuth: {  }
+      parameters:
+        -
+          name: year
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 9999
+        -
+          name: quarter
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 4
+        -
+          name: scope
+          in: query
+          required: false
+          description: 'Ámbito actual si se omite. personal permite consultar cierres personales conservados; los permisos se comprueban siempre.'
+          schema:
+            type: string
+            pattern: '^(personal|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$'
+      responses:
+        200:
+          description: 'Trimestre y su histórico accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuarterView'
+        400:
+          description: 'Entrada inválida o periodo fuera de rango.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: 'Token ausente, inválido o caducado.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: 'Papel no permitido en esta ruta.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: 'Cliente, trimestre o ámbito no accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        405:
+          description: 'Método no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: 'Error interno sin detalles.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        409:
+          description: 'quarter_changed: versión, huella o estado desactualizados.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        413:
+          description: 'Cuerpo superior a 4096 bytes.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        415:
+          description: 'Se exige application/json.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        422:
+          description: 'quarter_has_pending_documents: pendientes del periodo o documentos sin fecha impiden cerrar.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuarterClose'
+  '/api/v1/quarters/{year}/{quarter}/reopen':
+    post:
+      tags:
+        - Trimestres
+      operationId: clientQuarterReopen
+      summary: 'Reabrir el trimestre'
+      description: 'Usa los mismos casos de uso y permisos de la web. Importes en céntimos; taxes.output, input y balance también están en céntimos. La respuesta muestra la instantánea si está cerrado y las cifras actuales si está abierto. Los pendientes actuales no alteran la instantánea. history contiene los periodos guardados accesibles, con sus ámbitos y eventos; no incluye periodos nunca cerrados. Admin y gestor gestionan su asesoría; el propietario gestiona sus cierres personales, también tras vincularse. La asesoría solo lee cierres personales. Cada mutación devuelve la versión persistida. Cerrar exige versión y huella de la última consulta; pendientes fechados del periodo o sin fecha bloquean el cierre. Sin caché.'
+      security:
+        -
+          bearerAuth: {  }
+      parameters:
+        -
+          name: year
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 9999
+        -
+          name: quarter
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 4
+        -
+          name: scope
+          in: query
+          required: false
+          description: 'Ámbito actual si se omite. personal permite consultar cierres personales conservados; los permisos se comprueban siempre.'
+          schema:
+            type: string
+            pattern: '^(personal|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$'
+      responses:
+        200:
+          description: 'Trimestre y su histórico accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuarterView'
+        400:
+          description: 'Entrada inválida o periodo fuera de rango.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: 'Token ausente, inválido o caducado.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: 'Papel no permitido en esta ruta.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: 'Cliente, trimestre o ámbito no accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        405:
+          description: 'Método no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: 'Error interno sin detalles.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        409:
+          description: 'quarter_changed: versión, huella o estado desactualizados.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        413:
+          description: 'Cuerpo superior a 4096 bytes.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        415:
+          description: 'Se exige application/json.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        422:
+          description: 'quarter_has_pending_documents: pendientes del periodo o documentos sin fecha impiden cerrar.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuarterReopen'
+  '/api/v1/advisory/clients/{id}/quarters/{year}/{quarter}':
+    get:
+      tags:
+        - Trimestres
+      operationId: advisoryQuarterView
+      summary: 'Consultar cifras, pendientes e histórico'
+      description: 'Usa los mismos casos de uso y permisos de la web. Importes en céntimos; taxes.output, input y balance también están en céntimos. La respuesta muestra la instantánea si está cerrado y las cifras actuales si está abierto. Los pendientes actuales no alteran la instantánea. history contiene los periodos guardados accesibles, con sus ámbitos y eventos; no incluye periodos nunca cerrados. Admin y gestor gestionan su asesoría; el propietario gestiona sus cierres personales, también tras vincularse. La asesoría solo lee cierres personales. Cada mutación devuelve la versión persistida. Cerrar exige versión y huella de la última consulta; pendientes fechados del periodo o sin fecha bloquean el cierre. Sin caché.'
+      security:
+        -
+          bearerAuth: {  }
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          description: 'Identificador del perfil de cliente, no del usuario.'
+          schema:
+            type: string
+            format: uuid
+        -
+          name: year
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 9999
+        -
+          name: quarter
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 4
+        -
+          name: scope
+          in: query
+          required: false
+          description: 'Ámbito actual si se omite. personal permite consultar cierres personales conservados; los permisos se comprueban siempre.'
+          schema:
+            type: string
+            pattern: '^(personal|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$'
+      responses:
+        200:
+          description: 'Trimestre y su histórico accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuarterView'
+        400:
+          description: 'Entrada inválida o periodo fuera de rango.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: 'Token ausente, inválido o caducado.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: 'Papel no permitido en esta ruta.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: 'Cliente, trimestre o ámbito no accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        405:
+          description: 'Método no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: 'Error interno sin detalles.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/api/v1/advisory/clients/{id}/quarters/{year}/{quarter}/close':
+    post:
+      tags:
+        - Trimestres
+      operationId: advisoryQuarterClose
+      summary: 'Cerrar el trimestre'
+      description: 'Usa los mismos casos de uso y permisos de la web. Importes en céntimos; taxes.output, input y balance también están en céntimos. La respuesta muestra la instantánea si está cerrado y las cifras actuales si está abierto. Los pendientes actuales no alteran la instantánea. history contiene los periodos guardados accesibles, con sus ámbitos y eventos; no incluye periodos nunca cerrados. Admin y gestor gestionan su asesoría; el propietario gestiona sus cierres personales, también tras vincularse. La asesoría solo lee cierres personales. Cada mutación devuelve la versión persistida. Cerrar exige versión y huella de la última consulta; pendientes fechados del periodo o sin fecha bloquean el cierre. Sin caché.'
+      security:
+        -
+          bearerAuth: {  }
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          description: 'Identificador del perfil de cliente, no del usuario.'
+          schema:
+            type: string
+            format: uuid
+        -
+          name: year
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 9999
+        -
+          name: quarter
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 4
+        -
+          name: scope
+          in: query
+          required: false
+          description: 'Ámbito actual si se omite. personal permite consultar cierres personales conservados; los permisos se comprueban siempre.'
+          schema:
+            type: string
+            pattern: '^(personal|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$'
+      responses:
+        200:
+          description: 'Trimestre y su histórico accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuarterView'
+        400:
+          description: 'Entrada inválida o periodo fuera de rango.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: 'Token ausente, inválido o caducado.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: 'Papel no permitido en esta ruta.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: 'Cliente, trimestre o ámbito no accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        405:
+          description: 'Método no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: 'Error interno sin detalles.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        409:
+          description: 'quarter_changed: versión, huella o estado desactualizados.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        413:
+          description: 'Cuerpo superior a 4096 bytes.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        415:
+          description: 'Se exige application/json.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        422:
+          description: 'quarter_has_pending_documents: pendientes del periodo o documentos sin fecha impiden cerrar.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuarterClose'
+  '/api/v1/advisory/clients/{id}/quarters/{year}/{quarter}/reopen':
+    post:
+      tags:
+        - Trimestres
+      operationId: advisoryQuarterReopen
+      summary: 'Reabrir el trimestre'
+      description: 'Usa los mismos casos de uso y permisos de la web. Importes en céntimos; taxes.output, input y balance también están en céntimos. La respuesta muestra la instantánea si está cerrado y las cifras actuales si está abierto. Los pendientes actuales no alteran la instantánea. history contiene los periodos guardados accesibles, con sus ámbitos y eventos; no incluye periodos nunca cerrados. Admin y gestor gestionan su asesoría; el propietario gestiona sus cierres personales, también tras vincularse. La asesoría solo lee cierres personales. Cada mutación devuelve la versión persistida. Cerrar exige versión y huella de la última consulta; pendientes fechados del periodo o sin fecha bloquean el cierre. Sin caché.'
+      security:
+        -
+          bearerAuth: {  }
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          description: 'Identificador del perfil de cliente, no del usuario.'
+          schema:
+            type: string
+            format: uuid
+        -
+          name: year
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 9999
+        -
+          name: quarter
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 4
+        -
+          name: scope
+          in: query
+          required: false
+          description: 'Ámbito actual si se omite. personal permite consultar cierres personales conservados; los permisos se comprueban siempre.'
+          schema:
+            type: string
+            pattern: '^(personal|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$'
+      responses:
+        200:
+          description: 'Trimestre y su histórico accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuarterView'
+        400:
+          description: 'Entrada inválida o periodo fuera de rango.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        401:
+          description: 'Token ausente, inválido o caducado.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: 'Papel no permitido en esta ruta.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: 'Cliente, trimestre o ámbito no accesible.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        405:
+          description: 'Método no permitido.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: 'Error interno sin detalles.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        409:
+          description: 'quarter_changed: versión, huella o estado desactualizados.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        413:
+          description: 'Cuerpo superior a 4096 bytes.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        415:
+          description: 'Se exige application/json.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        422:
+          description: 'quarter_has_pending_documents: pendientes del periodo o documentos sin fecha impiden cerrar.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuarterReopen'
 components:
   securitySchemes:
     bearerAuth:
@@ -1353,6 +1965,303 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DocumentHistory'
+    QuarterClose:
+      type: object
+      additionalProperties: false
+      required:
+        - version
+        - fingerprint
+      properties:
+        version:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+        fingerprint:
+          type: string
+          pattern: '^[0-9a-f]{64}$'
+    QuarterReopen:
+      type: object
+      additionalProperties: false
+      required:
+        - version
+      properties:
+        version:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+    QuarterMovement:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - issued_on
+        - direction
+        - party_name
+        - base_cents
+        - tax
+        - tax_cents
+        - surcharge_cents
+        - withholding_cents
+        - total_cents
+      properties:
+        id:
+          type: string
+          format: uuid
+        issued_on:
+          type: string
+          format: date
+        direction:
+          type: string
+          enum:
+            - income
+            - expense
+        party_name:
+          type: string
+        base_cents:
+          type: integer
+          format: int64
+        tax:
+          type: string
+          enum:
+            - iva
+            - igic
+            - ipsi
+        tax_cents:
+          type: integer
+          format: int64
+        surcharge_cents:
+          type: integer
+          format: int64
+        withholding_cents:
+          type: integer
+          format: int64
+        total_cents:
+          type: integer
+          format: int64
+    QuarterSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - income_cents
+        - expense_cents
+        - result_cents
+        - taxes
+        - surcharge_cents
+        - withholding_cents
+        - movements
+      properties:
+        income_cents:
+          type: integer
+          format: int64
+        expense_cents:
+          type: integer
+          format: int64
+        result_cents:
+          type: integer
+          format: int64
+        taxes:
+          type: object
+          additionalProperties: false
+          required:
+            - iva
+            - igic
+            - ipsi
+          properties:
+            iva:
+              type: object
+              additionalProperties: false
+              required:
+                - output
+                - input
+                - balance
+              properties:
+                output:
+                  type: integer
+                  format: int64
+                input:
+                  type: integer
+                  format: int64
+                balance:
+                  type: integer
+                  format: int64
+            igic:
+              type: object
+              additionalProperties: false
+              required:
+                - output
+                - input
+                - balance
+              properties:
+                output:
+                  type: integer
+                  format: int64
+                input:
+                  type: integer
+                  format: int64
+                balance:
+                  type: integer
+                  format: int64
+            ipsi:
+              type: object
+              additionalProperties: false
+              required:
+                - output
+                - input
+                - balance
+              properties:
+                output:
+                  type: integer
+                  format: int64
+                input:
+                  type: integer
+                  format: int64
+                balance:
+                  type: integer
+                  format: int64
+        surcharge_cents:
+          type: integer
+          format: int64
+        withholding_cents:
+          type: integer
+          format: int64
+        movements:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuarterMovement'
+    QuarterEvent:
+      type: object
+      additionalProperties: false
+      required:
+        - closed
+        - actor_id
+        - at
+        - snapshot
+      properties:
+        closed:
+          type: boolean
+        actor_id:
+          type: string
+          format: uuid
+        at:
+          type: string
+          format: date-time
+        snapshot:
+          $ref: '#/components/schemas/QuarterSummary'
+    QuarterHistory:
+      type: object
+      additionalProperties: false
+      required:
+        - year
+        - quarter
+        - scope
+        - closed
+        - version
+        - snapshot
+        - events
+      properties:
+        year:
+          type: integer
+          minimum: 1
+          maximum: 9999
+        quarter:
+          type: integer
+          minimum: 1
+          maximum: 4
+        scope:
+          type: string
+          pattern: '^(personal|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$'
+        closed:
+          type: boolean
+        version:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+        snapshot:
+          $ref: '#/components/schemas/QuarterSummary'
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuarterEvent'
+    QuarterView:
+      type: object
+      additionalProperties: false
+      required:
+        - client_id
+        - year
+        - quarter
+        - scope
+        - firm_id
+        - closed
+        - version
+        - fingerprint
+        - can_manage
+        - summary
+        - pending
+        - events
+        - history
+      properties:
+        client_id:
+          type: string
+          format: uuid
+        year:
+          type: integer
+          minimum: 1
+          maximum: 9999
+        quarter:
+          type: integer
+          minimum: 1
+          maximum: 4
+        scope:
+          type: string
+          pattern: '^(personal|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$'
+        firm_id:
+          type: string
+          format: uuid
+          nullable: true
+        closed:
+          type: boolean
+        version:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+        fingerprint:
+          type: string
+          pattern: '^[0-9a-f]{64}$'
+        can_manage:
+          type: boolean
+        summary:
+          $ref: '#/components/schemas/QuarterSummary'
+        pending:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - id
+              - issued_on
+              - status
+              - version
+            properties:
+              id:
+                type: string
+                format: uuid
+              issued_on:
+                type: string
+                format: date
+                nullable: true
+              status:
+                type: string
+              version:
+                type: integer
+                minimum: 1
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuarterEvent'
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuarterHistory'
   responses:
     InvalidRequest:
       description: 'JSON mal formado o campos ausentes, incorrectos o no admitidos.'
