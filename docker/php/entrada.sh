@@ -14,4 +14,7 @@ fi
 chown www-data:www-data var/cache
 chmod 2775 var/cache
 umask 0002
+if [ "$1" = "php-fpm" ]; then
+    su -s /bin/sh www-data -c 'php bin/console sass:build'
+fi
 exec "$@"

@@ -3,10 +3,19 @@
 {% block client_title %}Mi asesoría{% endblock %}
 
 {% block client_body %}
-    <p><a href="{{ path('messages') }}">Mensajes y solicitudes</a></p>
     <h1>Mi asesoría</h1>
-    {% if firmName %}
-        <p>Tu asesoría es {{ firmName }}.</p>
+    {% if firmContact %}
+        <p>Los datos de contacto de tu equipo de asesoría.</p>
+        <section class="firm-contact-card" aria-labelledby="firm-name">
+            <div class="eyebrow">Tu asesoría</div>
+            <h2 id="firm-name">{{ firmContact.name }}</h2>
+            <dl>
+                <div><dt>Teléfono</dt><dd>{% if firmContact.phone %}<a href="tel:{{ firmContact.phone }}">{{ firmContact.phone }}</a>{% else %}Todavía no indicado{% endif %}</dd></div>
+                <div><dt>Correo de contacto</dt><dd>{% if firmContact.email %}<a href="mailto:{{ firmContact.email }}">{{ firmContact.email }}</a><small>Administrador de la asesoría</small>{% else %}Todavía no indicado{% endif %}</dd></div>
+                <div><dt>Dirección</dt><dd>{% if firmContact.street %}{{ firmContact.street }}<br>{{ firmContact.postalCode }} {{ firmContact.municipality }}{% if firmContact.province %}<br>{{ firmContact.province }}{% endif %}{% else %}Todavía no indicada{% endif %}</dd></div>
+            </dl>
+            <a class="action" href="{{ path('messages') }}">Mensajes y solicitudes</a>
+        </section>
     {% else %}
         <p>Todavía no tienes asesoría. Puedes usar Aselto por tu cuenta.</p>
     {% endif %}

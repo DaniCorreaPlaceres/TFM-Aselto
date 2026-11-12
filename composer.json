@@ -34,7 +34,8 @@
         "symfony/ux-turbo": "^3.7",
         "symfony/validator": "7.4.*",
         "symfony/yaml": "7.4.*",
-        "symfonycasts/tailwind-bundle": "^1.0"
+        "symfonycasts/sass-bundle": "^0.10.0",
+        "twbs/bootstrap": "^5.3"
     },
     "config": {
         "allow-plugins": {

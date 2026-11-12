@@ -1,0 +1,12 @@
+{% import 'finance/_quarter_content.html.twig' as amount %}
+<div class="table-card" data-controller="table" data-table-filter-column-value="1">
+<table class="table"><caption>Registros incluidos en estas cifras</caption><thead><tr>
+<th>Fecha</th><th>Tipo</th><th>Tercero</th><th>Base</th><th>Impuesto</th><th>Total</th><th class="no-export">Registro</th>
+</tr></thead><tbody>{% for movement in summary.movements %}<tr>
+<td data-order="{{ movement.date|date('Y-m-d') }}" data-export="{{ movement.date|date('Y-m-d') }}">{{ movement.date|date('d/m/Y') }}</td>
+<td>{{ movement.income ? 'Ingreso' : 'Gasto' }}</td><td>{{ movement.partyName }}</td>
+<td data-order="{{ movement.baseCents }}" data-export="{{ (movement.baseCents / 100)|number_format(2, '.', '') }}">{{ amount.money(movement.baseCents) }}</td>
+<td>{{ movement.tax|upper }}: {{ amount.money(movement.taxCents) }}</td>
+<td data-order="{{ movement.totalCents }}" data-export="{{ (movement.totalCents / 100)|number_format(2, '.', '') }}">{{ amount.money(movement.totalCents) }}</td>
+<td>{% if quarter.access.owner %}<a href="{{ path('client_document', {id: movement.id}) }}">Ver registro</a>{% elseif quarter.firmId %}<a href="{{ path('firm_document', {id: movement.id}) }}">Ver registro</a>{% else %}Histórico personal{% endif %}</td>
+</tr>{% endfor %}</tbody></table></div>

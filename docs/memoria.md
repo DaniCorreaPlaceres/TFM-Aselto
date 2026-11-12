@@ -53,7 +53,7 @@ Queda fuera: la app, los modelos oficiales de Hacienda, la presentación de impu
 | Base de datos | MySQL 8.4 |
 | Persistencia | Doctrine ORM y migraciones |
 | Web | Twig, Stimulus, Turbo y AssetMapper |
-| Estilos | Hoja propia con la paleta de esta memoria. Tailwind queda disponible en el proyecto y no es obligatorio para maquetar. |
+| Estilos | Bootstrap 5 personalizado con Sass/SCSS, SymfonyCasts SassBundle y AssetMapper. DataTables con Responsive y Buttons para listados y exportación Excel/CSV, con recursos locales y datos ya autorizados. Tipografía Inter local y marca oficial. Tailwind se retira para mantener una única compilación de estilos. PDF.js local muestra el original en la revisión documental con sus permisos existentes. |
 | Tiempo real | Mercure 1.1, con avisos privados y consulta autorizada de fragmentos |
 | Trabajos en segundo plano | Symfony Messenger con transporte Doctrine |
 | API | JSON en `/api/v1`, misma lógica que la web, autenticación JWT |
@@ -129,7 +129,7 @@ Orden de construcción acordado:
 
 ### Identidad visual
 
-Profesional y cercano, con mucho espacio. Una acción principal por pantalla. Comprensible para alguien con poca experiencia digital.
+Profesional y cercano, con mucho espacio. La tarea 26 concreta un aspecto SaaS con Inter local, Bootstrap personalizado mediante Sass/SCSS, navegación compartida por papel y listados DataTables con exportación Excel/CSV. Componentes y compilación en `docs/diseno/platform-design.md`. Mi asesoría muestra al cliente vinculado los contactos de su asesoría: nombre, teléfono, dirección y correo de su admin activo, además del acceso a mensajes. Una acción principal por pantalla. Comprensible para alguien con poca experiencia digital.
 
 Paleta:
 

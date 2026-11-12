@@ -15,10 +15,7 @@
 <ul class="plain-list">{% for tax, totals in summary.taxes %}<li><strong>{{ tax|upper }}</strong> · En ingresos: {{ amount.money(totals.output) }} · En gastos: {{ amount.money(totals.input) }} · Diferencia: {{ amount.money(totals.balance) }}</li>{% endfor %}</ul>
 <p>Recargo de equivalencia en gastos: {{ amount.money(summary.surchargeCents) }}. Retención de IRPF en ingresos: {{ amount.money(summary.withholdingCents) }}. Se muestran por separado.</p>
 <h2>Registros incluidos</h2>
-<ul class="plain-list">{% for movement in summary.movements %}
-<li><strong>{{ movement.date|date('d/m/Y') }} · {{ movement.income ? 'Ingreso' : 'Gasto' }}</strong> · {{ movement.partyName }} · Base: {{ amount.money(movement.baseCents) }} · {{ movement.tax|upper }}: {{ amount.money(movement.taxCents) }} · Total: {{ amount.money(movement.totalCents) }}
-{% if quarter.access.owner %}<a href="{{ path('client_document', {id: movement.id}) }}">Ver registro</a>{% elseif quarter.firmId %}<a href="{{ path('firm_document', {id: movement.id}) }}">Ver registro</a>{% endif %}</li>
-{% else %}<li>No hay registros incluidos en estas cifras.</li>{% endfor %}</ul>
+{% if summary.movements is not empty %}{{ include('finance/_movements_table.html.twig') }}{% else %}<p class="empty-state">No hay registros incluidos en estas cifras.</p>{% endif %}
 <h2>Pendientes actuales · {{ quarter.calculation.pending|length }}</h2>
 <p>Los registros pendientes del trimestre y todos los documentos sin fecha impiden cerrar. Tras un cierre, los nuevos documentos se muestran aquí sin cambiar sus cifras guardadas.</p>
 <ul class="plain-list">{% for record in quarter.calculation.pending %}<li>{{ record.partyName }} · {{ record.date ? record.date|date('d/m/Y') : 'Sin fecha: revisar antes de cerrar' }}

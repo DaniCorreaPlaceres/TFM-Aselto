@@ -2,6 +2,7 @@
 
 namespace App\Cliente\Ui;
 
+use App\Cliente\Application\ShowClientFirmContact;
 use App\Cliente\Application\ShowClientHome;
 use App\Documento\Application\ListClientDocuments;
 use App\Documento\Ui\DocumentLabel;
@@ -49,9 +50,15 @@ final class ClientHomeController extends AbstractController
     }
 
     #[Route('/mi-asesoria', name: 'client_firm', methods: ['GET'])]
-    public function firm(ShowClientHome $showClientHome): Response
+    public function firm(ShowClientHome $showClientHome, ShowClientFirmContact $contact): Response
     {
-        return $this->render('client/firm.html.twig', $this->view('asesoria', $showClientHome));
+        $view = $this->view('asesoria', $showClientHome);
+        $actor = $this->getUser();
+        if (!$actor instanceof SecurityUser) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $this->render('client/firm.html.twig', [...$view, 'firmContact' => $contact->execute($actor->id())], new Response(headers: ['Cache-Control' => 'private, no-store']));
     }
 
     #[Route('/ayuda', name: 'client_help', methods: ['GET'])]

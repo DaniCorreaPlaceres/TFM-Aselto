@@ -2,13 +2,6 @@
 
 {% block body %}
     <main class="panel wide review-layout">
-        <img class="client-logo" src="{{ asset('aselto-logo-eslogan-v2.png') }}" alt="Aselto. Tus finanzas bajo control" width="220" height="82">
-        <nav class="review-nav" aria-label="Asesoría">
-            <a href="{{ path('firm_inbox') }}">Bandeja</a>
-            <a href="{{ path('clients') }}">Clientes</a>
-            {% set attention = message_attention() %}<a href="{{ path('messages') }}">Mensajes · {{ attention.unread }} nuevos · {{ attention.requests }} solicitudes</a>
-            <a href="{{ path('account') }}">Tu acceso</a>
-        </nav>
         {% for message in app.flashes('success') %}<p class="success" role="status">{{ message }}</p>{% endfor %}
         {% for message in app.flashes('error') %}<p class="error" role="alert">{{ message }}</p>{% endfor %}
         {% block review_body %}{% endblock %}

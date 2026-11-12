@@ -20,6 +20,21 @@ services:
       mailpit:
         condition: service_started
 
+  styles:
+    build: .
+    restart: unless-stopped
+    user: www-data
+    entrypoint: ["sh", "/var/www/html/docker/php/styles.sh"]
+    environment:
+      APP_ENV: dev
+    volumes:
+      - .:/var/www/html
+      - app_vendor:/var/www/html/vendor
+      - app_cache:/var/www/html/var/cache
+    depends_on:
+      app:
+        condition: service_started
+
   quarter_updates:
     build: .
     restart: unless-stopped

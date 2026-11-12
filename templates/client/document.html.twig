@@ -6,12 +6,15 @@
     <h1>Revisar documento</h1>
     <p>{{ document.originalName }} · {{ document.status }}</p>
 
+    <div class="document-workspace"><aside class="document-original">
+    <h2>Documento original</h2>
     {% if document.image %}
         <img class="document-preview" src="{{ path('client_document_file', {id: document.id}) }}" alt="Vista del documento">
     {% else %}
-        <p><a href="{{ path('client_document_file', {id: document.id}) }}">Ver archivo</a></p>
+        {{ include('document/_pdf_preview.html.twig', {pdfUrl: path('client_document_file', {id: document.id})}) }}
     {% endif %}
-
+    <a class="quiet-link" href="{{ path('client_document_file', {id: document.id}) }}" target="_blank" rel="noopener">Ver archivo</a>
+    </aside><section class="document-data" aria-label="Revisión del registro">
     {% if document.statusCode == 'rejected' %}
         <p class="error">La asesoría ha rechazado el registro. Consulta el motivo, corrige los datos y vuelve a confirmar.</p>
     {% endif %}
@@ -30,7 +33,7 @@
         </section>
     {% endif %}
     {{ include('document/_supporting_files.html.twig', {supportingRoute: 'client_supporting_file'}) }}
-    {{ include('document/_review_history.html.twig') }}
+
 
     {% if canAmendPersonal %}
         <form method="post" action="{{ path('client_document_amend', {id: document.id}) }}">
@@ -54,4 +57,6 @@
         <p>{% if document.statusCode == 'validated' %}Tu asesoría ha validado este registro.{% elseif document.pendingRequest %}Falta el justificante solicitado. El registro sigue pendiente de revisión.{% elseif hasFirm %}Has confirmado el registro. Tu asesoría todavía no lo ha validado.{% else %}Has confirmado el registro.{% endif %}</p>
         {{ include('document/_amount_summary.html.twig') }}
     {% endif %}
+    {{ include('document/_review_history.html.twig') }}
+    </section></div>
 {% endblock %}

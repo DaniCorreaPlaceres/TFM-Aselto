@@ -15,12 +15,26 @@
 
     <div class="home">
         <section class="home-hero">
+            <div>
+            <div class="eyebrow">Claridad para tu día a día</div>
             <h1>Tus finanzas, por fin en un solo sitio</h1>
             <p>Aselto junta los ingresos, los gastos y los documentos de autónomos y sociedades. Proponemos los datos del documento y una persona los confirma. Úsalo por tu cuenta o con tu asesoría.</p>
+            <div class="hero-actions">
             <a class="action" href="{{ entryPath }}">{{ entryLabel }}</a>
             {% if not signedIn %}
-                <a class="quiet-link" href="{{ path('client_register') }}">Crear acceso</a>
+                <a class="action action-secondary" href="{{ path('client_register') }}">Crear cuenta</a>
             {% endif %}
+            </div>
+            </div>
+            <aside class="hero-preview" aria-label="Ejemplo ilustrativo con datos ficticios">
+                <div class="preview-top"><img src="{{ asset('icono.png') }}" alt="" width="36" height="36"><span>Ejemplo · Tu trimestre</span></div>
+                <div class="preview-label">Tu actividad, con perspectiva</div>
+                <div class="preview-amount">Todo en su sitio.</div>
+                <div class="preview-row"><strong>Documentos</strong><span>Ordenados y accesibles</span></div>
+                <div class="preview-row"><strong>Ingresos y gastos</strong><span>El trimestre a la vista</span></div>
+                <div class="preview-row"><strong>Tu asesoría</strong><span>Conectada contigo</span></div>
+                <div class="preview-note">Tú revisas. Tú confirmas.<br>La información queda bajo tu control.</div>
+            </aside>
         </section>
 
         <section class="home-grid" aria-label="A quién va dirigido">
