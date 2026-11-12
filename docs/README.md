@@ -10,6 +10,7 @@ Toda la documentación del proyecto vive en esta carpeta, en la raíz del reposi
 - [Tareas.md](Tareas.md). Lista de tareas del proyecto, sin el detalle de cada una.
 - [producto/Aselto_Documento_introductorio.docx](producto/Aselto_Documento_introductorio.docx). Texto de presentación del proyecto.
 - [diseno/reglas-visuales.md](diseno/reglas-visuales.md). Reglas de interfaz. Los bocetos están en [diseno/bocetos](diseno/bocetos).
+- [diseno/platform-design.md](diseno/platform-design.md). Componentes de la interfaz, listados, visor y compilación Sass.
 - [marca](marca). Logotipo oficial e icono. No se redibujan.
 - [sdd](sdd/README.md). Una ficha por tarea, escrita antes de implementar.
 

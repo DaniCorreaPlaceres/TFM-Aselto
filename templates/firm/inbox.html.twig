@@ -13,14 +13,14 @@
     {% if documents is empty %}
         <p>No hay registros en esta vista.</p>
     {% else %}
-        <ul class="plain-list">
+        <div class="table-card" data-controller="table" data-table-filter-column-value="1"><table class="table"><caption>Registros de esta vista</caption><thead><tr><th>Cliente y documento</th><th>Estado</th><th>Total</th></tr></thead><tbody>
             {% for document in documents %}
-                <li>
+                <tr><td>
                     <a href="{{ path('firm_document', {id: document.id}) }}">{{ document.client }} · {{ document.name }}</a>
-                    <span>{{ document.status }}</span>
-                    <span>{{ document.total }} €</span>
-                </li>
+                    </td><td><span class="status-pill">{{ document.status }}</span>
+                    </td><td data-order="{{ document.total|replace({'.': '', ',': '.'}) }}" data-export="{{ document.total|replace({'.': '', ',': '.'}) }}">{{ document.total }} €
+                </td></tr>
             {% endfor %}
-        </ul>
+        </tbody></table></div>
     {% endif %}
 {% endblock %}

@@ -1,4 +1,4 @@
-        <form method="post" novalidate data-controller="document-review" data-document-review-tax-name-value="{{ document.taxName }}" data-action="input->document-review#recalculate change->document-review#recalculate submit->document-review#submit">
+        <form class="document-form" method="post" novalidate data-controller="document-review" data-document-review-tax-name-value="{{ document.taxName }}" data-action="input->document-review#recalculate change->document-review#recalculate submit->document-review#submit">
             <fieldset data-field="direction" data-message="Indica si es un ingreso o un gasto.">
                 <legend>Tipo</legend>
                 <label class="choice">
@@ -12,6 +12,7 @@
                 <p id="direction-error" class="field-error" {% if fieldErrors.direction is not defined %}hidden{% endif %}>{{ fieldErrors.direction|default('') }}</p>
             </fieldset>
 
+            <div class="document-fields">
             <div data-field="issuedOn" data-message="Indica la fecha.">
                 <label for="issued_on">Fecha</label>
                 <input id="issued_on" name="issued_on" type="date" value="{{ document.issuedOn }}" {% if fieldErrors.issuedOn is defined %}aria-invalid="true" aria-describedby="issuedOn-error"{% endif %}>
@@ -79,11 +80,11 @@
                 </div>
             {% endif %}
 
-            <label for="total">Total</label>
+            </div><div class="total-summary"><label for="total">Total del documento</label>
             <input id="total" type="text" readonly value="{{ document.total }}" data-document-review-target="total" aria-describedby="total-hint">
             <p id="total-hint" class="client-hint">Suma la base, la cuota de {{ document.taxName }} y el recargo, si lo hay.</p>
 
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token(csrfId|default('save_document')) }}">
+            </div><div class="form-actions"><input type="hidden" name="_csrf_token" value="{{ csrf_token(csrfId|default('save_document')) }}">
             <input type="hidden" name="version" value="{{ document.version }}">
             {% if reviewer|default(false) %}
                 <button type="submit" name="intent" value="confirm">Validar registro</button>
@@ -91,4 +92,5 @@
                 <button type="submit" name="intent" value="confirm">Confirmar registro</button>
                 <button type="submit" name="intent" value="draft" class="quiet">Guardar borrador</button>
             {% endif %}
+            </div>
         </form>

@@ -34,8 +34,8 @@ Verificar cada combinación en sus estados reales. Los gastos habituales no se p
 
 ## Tipografía y espacio
 
-- Usar una sans serif de alta legibilidad, con caracteres bien diferenciados y soporte de español y símbolo de euro. Fuente concreta pendiente de elección.
-- Propuesta base: cuerpo de 18 px; texto auxiliar de 16 px; títulos de 24–32 px. En móvil, respetar la escala de texto del sistema.
+- Usar una sans serif de alta legibilidad, con caracteres bien diferenciados y soporte de español y símbolo de euro. Inter local, elegida para el rediseño de la tarea 26.
+- Propuesta base: cuerpo de 18 px; texto auxiliar de 16 px; títulos de 28–40 px en la aplicación; la home comercial admite mayor escala. En móvil, respetar la escala de texto del sistema.
 - Interlineado aproximado de 1,5 para lectura. Evitar párrafos en mayúsculas y pesos demasiado finos.
 - Escala de espaciado basada en 8 px, con ajustes de 4 px. Márgenes móviles iniciales de 16–24 px.
 - No fijar alturas que recorten texto al ampliarlo. Las etiquetas pueden ocupar más de una línea.
@@ -87,3 +87,7 @@ Objetivo de implementación: WCAG 2.2 nivel AA para web y criterios equivalentes
 ## Uso de los bocetos
 
 Los bocetos son imágenes conceptuales con datos ficticios. No constituyen especificaciones exactas de píxeles ni evidencias de pruebas de accesibilidad. Ante diferencias entre un boceto y estas reglas, priorizar claridad, legibilidad y comportamiento accesible. Registrar nuevas decisiones en versiones sucesivas de este documento.
+
+## Aplicación de la tarea 26
+
+El rediseño SaaS, Sass/SCSS, DataTables con exportación Excel/CSV y PDF.js se acordaron con el usuario. Componentes, compilación y límites de verificación en [platform-design.md](platform-design.md).

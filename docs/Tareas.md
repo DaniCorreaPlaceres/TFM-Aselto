@@ -37,6 +37,6 @@ Estado de las tareas: [x] hecha, [ ] pendiente o en curso. El detalle de cada un
   - [x] Swagger UI en `/api/docs` con autorización Bearer.
   - [x] Comunicación: mensajes, solicitudes y adjuntos.
 - [x] 25. Datos de demostración de dos asesorías, equipos y clientes, con documentos, trimestres y comunicación. Carga local repetible y guía en `docs/demo.md`.
-- [ ] 26. Maquetar toda la plataforma con Bootstrap 5, incluida la home comercial, manteniendo la marca y las reglas visuales.
+- [x] 26. Rediseño visual de toda la plataforma y home comercial con Bootstrap 5, Sass/SCSS, DataTables con Excel/CSV y visor PDF.js local, manteniendo la marca y las reglas visuales. Límites de revisión de accesibilidad en `docs/diseno/platform-design.md`.
 - [ ] 27. Una sola zona para añadir el documento: foto, archivo o arrastrar y soltar.
 - [ ] 28. Entrega del máster: README, despliegue, usuarios de prueba, presentación y vídeo.

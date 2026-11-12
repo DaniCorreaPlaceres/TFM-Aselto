@@ -5,6 +5,8 @@ framework:
             - assets/
             - docs/marca/
         missing_import_mode: strict
+        excluded_patterns:
+            - '**/assets/styles/**/_*.scss'
 
 when@prod:
     framework:

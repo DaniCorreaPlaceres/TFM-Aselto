@@ -16,16 +16,16 @@
         {% if clients is empty %}
             <p>Todavía no hay clientes.</p>
         {% else %}
-            <ul class="plain-list">
+            <div class="table-card" data-controller="table" data-table-filter-column-value="1"><table class="table"><caption>Clientes de tu ámbito</caption><thead><tr><th>Nombre</th><th>Tipo</th><th>Correo</th>{% if not unlinked %}<th class="no-export">Acciones</th>{% endif %}</tr></thead><tbody>
                 {% for client in clients %}
-                    <li>
+                    <tr><td>
                         <strong><a href="{{ path('client_fiscal', {id: client.id}) }}">{{ client.name }}</a></strong>
-                        <span>{{ client.kind }}</span>
-                        <span>{{ client.email }}</span>
-                        {% if not unlinked %}<a href="{{ path('firm_client_quarter', {id: client.id}) }}">Ver trimestre</a>{% endif %}
-                    </li>
+                        </td><td>{{ client.kind }}
+                        </td><td>{{ client.email }}
+                        {% if not unlinked %}</td><td><a href="{{ path('firm_client_quarter', {id: client.id}) }}">Ver trimestre</a>{% endif %}
+                    </td></tr>
                 {% endfor %}
-            </ul>
+            </tbody></table></div>
         {% endif %}
 
         {% if canCreate %}

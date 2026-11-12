@@ -3,7 +3,7 @@
 {% block title %}Equipo{% endblock %}
 
 {% block body %}
-    <main class="panel">
+    <main class="panel wide">
         <h1>Equipo</h1>
 
         {% for message in app.flashes('success') %}
@@ -13,14 +13,14 @@
         {% if team is empty %}
             <p>Todavía no hay gestores.</p>
         {% else %}
-            <ul class="plain-list">
+            <div class="table-card" data-controller="table" data-table-filter-column-value="1"><table class="table"><caption>Personas del equipo</caption><thead><tr><th>Correo</th><th>Papel</th></tr></thead><tbody>
                 {% for member in team %}
-                    <li>
+                    <tr><td>
                         <strong>{{ member.email }}</strong>
-                        <span>{{ member.role }}</span>
-                    </li>
+                        </td><td>{{ member.role }}
+                    </td></tr>
                 {% endfor %}
-            </ul>
+            </tbody></table></div>
         {% endif %}
 
         <h2>Invitar a un gestor</h2>

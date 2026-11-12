@@ -9,14 +9,14 @@
     {% if documents is empty %}
         <p>Todavía no hay documentos.</p>
     {% else %}
-        <ul class="plain-list">
+        <div class="table-card" data-controller="table" data-table-filter-column-value="2"><table class="table"><caption>Todos tus documentos</caption><thead><tr><th>Documento</th><th>Tipo</th><th>Estado</th></tr></thead><tbody>
             {% for document in documents %}
-                <li>
+                <tr><td>
                     <a href="{{ path('client_document', {id: document.id}) }}">{{ document.name }}</a>
-                    <span>{{ document.direction }}</span>
-                    <span>{{ document.status }}</span>
-                </li>
+                    </td><td>{{ document.direction }}
+                    </td><td><span class="status-pill">{{ document.status }}</span>
+                </td></tr>
             {% endfor %}
-        </ul>
+        </tbody></table></div>
     {% endif %}
 {% endblock %}

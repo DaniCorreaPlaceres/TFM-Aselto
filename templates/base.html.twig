@@ -4,6 +4,9 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{% block title %}Aselto{% endblock %}</title>
+        <link rel="icon" href="{{ asset('icono.png') }}">
+        <link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
+        <script src="{{ asset('vendor/datatables/datatables.min.js') }}" data-turbo-track="reload"></script>
         {% block stylesheets %}
         {% endblock %}
 
@@ -18,7 +21,34 @@
         <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
         {% endif %}
     </head>
-    <body>
+    {% set commercial = app.request.attributes.get('_route') == 'commercial_home' %}
+    {% set workspace = app.user and not commercial %}
+    <body class="{{ workspace ? 'workspace-page' : (commercial ? 'commercial-page' : 'guest-page') }}">
+        <a class="skip-link" href="#main-content">Ir al contenido</a>
+        {% if workspace %}
+        <div class="workspace">
+            <aside class="workspace-sidebar" data-controller="mobile-menu" data-action="keydown.esc->mobile-menu#escape">
+                <div class="workspace-mobile-header">
+                <a class="workspace-brand" href="{{ path(is_granted('ROLE_CLIENT') ? 'client_home' : 'account') }}"><img src="{{ asset('aselto-logo-eslogan-v2.png') }}" alt="Aselto. Tus finanzas bajo control" width="220" height="110"></a>
+                <button class="navigation-toggle" type="button" hidden data-mobile-menu-target="toggle" data-action="mobile-menu#toggle" aria-controls="workspace-navigation" aria-expanded="false" aria-label="Abrir menú de navegación">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Menú</span>
+                </button>
+                </div>
+                <p class="workspace-caption">Tu espacio de trabajo</p>
+                <nav class="workspace-nav" id="workspace-navigation" aria-label="Navegación principal" data-action="click->mobile-menu#navigate">{{ include('ui/_navigation.html.twig') }}</nav>
+                <footer>Menos papeles.<br>Más claridad.</footer>
+            </aside>
+            <div class="workspace-main">
+                <header class="workspace-top">
+                    <div><p>{{ is_granted('ROLE_CLIENT') ? 'Tu actividad, en un solo lugar' : (is_granted('ROLE_SUPERADMIN') ? 'Administración de Aselto' : 'Espacio de asesoría') }}</p><strong>{{ app.user.userIdentifier }}</strong></div>
+                    <form method="post" action="{{ path('logout') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}"><button class="quiet" type="submit">Salir</button></form>
+                </header>
+                <div class="workspace-content" id="main-content" tabindex="-1">
+        {% elseif not commercial %}
+            <a class="guest-brand" href="{{ path('commercial_home') }}"><img src="{{ asset('aselto-logo-eslogan-v2.png') }}" alt="Aselto. Tus finanzas bajo control" width="220" height="110"></a>
+            <div id="main-content" tabindex="-1">
+        {% else %}<div id="main-content" tabindex="-1">{% endif %}
         {% block body %}{% endblock %}
+        {% if workspace %}</div></div></div>{% else %}</div>{% endif %}
     </body>
 </html>

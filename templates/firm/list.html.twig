@@ -13,14 +13,14 @@
         {% if firms is empty %}
             <p>Todavía no hay asesorías.</p>
         {% else %}
-            <ul class="plain-list">
+            <div class="table-card" data-controller="table"><table class="table"><caption>Asesorías de la plataforma</caption><thead><tr><th>Asesoría</th><th>Correo del admin</th></tr></thead><tbody>
                 {% for firm in firms %}
-                    <li>
+                    <tr><td>
                         <strong>{{ firm.name }}</strong>
-                        <span>{{ firm.adminEmail }}</span>
-                    </li>
+                        </td><td>{{ firm.adminEmail }}
+                    </td></tr>
                 {% endfor %}
-            </ul>
+            </tbody></table></div>
         {% endif %}
 
         <a class="action" href="{{ path('firm_new') }}">Dar de alta una asesoría</a>

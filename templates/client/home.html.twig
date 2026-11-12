@@ -3,10 +3,11 @@
 {% block client_title %}Inicio{% endblock %}
 
 {% block client_body %}
-    <h1>{% if name %}Hola, {{ name }}{% else %}Hola{% endif %}</h1>
-    <p>Este es el resumen de tu actividad.</p>
-
-    <a class="action" href="{{ path('client_document_new') }}">Añadir documento</a>
+    <div class="page-heading"><div>
+        <div class="eyebrow">Tu actividad, con perspectiva</div>
+        <h1>{% if name %}Hola, {{ name }}{% else %}Hola{% endif %}</h1>
+        <p>Este es el resumen de tu actividad.</p>
+    </div><a class="action" href="{{ path('client_document_new') }}"><span aria-hidden="true">＋</span> Añadir documento</a></div>
     <p class="client-hint">Tus facturas y justificantes se reúnen en Documentos.</p>
 
     <div data-controller="live-quarter" data-live-quarter-auth-value="{{ path('quarter_subscription') }}" data-live-quarter-url-value="{{ app.request.requestUri }}">

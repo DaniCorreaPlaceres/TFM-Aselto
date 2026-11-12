@@ -5,12 +5,15 @@
 {% block review_body %}
     <h1>Revisar registro</h1>
     <p>{{ clientName }} · {{ document.status }}</p>
+    <div class="document-workspace"><aside class="document-original">
     <h2>Documento original</h2>
-    <p><a href="{{ path('firm_document_file', {id: document.id}) }}">{{ document.originalName }}</a></p>
     {% if document.image %}
         <img class="document-preview" src="{{ path('firm_document_file', {id: document.id}) }}" alt="Vista del documento original">
+    {% else %}
+        {{ include('document/_pdf_preview.html.twig', {pdfUrl: path('firm_document_file', {id: document.id})}) }}
     {% endif %}
-    {{ include('document/_supporting_files.html.twig', {supportingRoute: 'firm_supporting_file'}) }}
+    <a class="quiet-link" href="{{ path('firm_document_file', {id: document.id}) }}" target="_blank" rel="noopener">{{ document.originalName }}</a>
+    </aside><section class="document-data" aria-label="Datos y revisión del registro">    {{ include('document/_supporting_files.html.twig', {supportingRoute: 'firm_supporting_file'}) }}
     {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
     {% if document.pendingRequest %}
         <p class="client-hint review-reason">Esperando justificante: {{ document.pendingRequest }}</p>
@@ -39,4 +42,5 @@
         <p>El registro está validado y no admite más cambios desde esta pantalla.</p>
     {% endif %}
     {{ include('document/_review_history.html.twig') }}
+    </section></div>
 {% endblock %}

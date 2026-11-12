@@ -1,0 +1,10 @@
+symfonycasts_sass:
+    root_sass:
+        - 'assets/styles/app.scss'
+
+when@prod:
+    symfonycasts_sass:
+        sass_options:
+            style: compressed
+            source_map: false
+            embed_source_map: false
