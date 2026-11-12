@@ -63,3 +63,7 @@ Ficha con nombre, teléfono enlazado, correo del admin activo identificado como 
 ## Ajustes finales de la home
 
 Por petición del usuario, Crear acceso pasa a Crear cuenta y se presenta como botón secundario de borde petróleo junto a la acción principal. Compilación Sass y Twig de la home correctos.
+
+## Corrección de preparación de CI
+
+El trabajo PHPUnit falló en asset-map:compile porque Composer se instala con --no-scripts y no había descargado Stimulus. Se añade importmap:install --env=test antes de compilar Sass y AssetMapper. La secuencia completa se ejecutó correctamente en Docker; la ejecución nueva en GitHub verificará la descarga desde un checkout limpio.

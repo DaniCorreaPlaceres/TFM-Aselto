@@ -42,6 +42,7 @@ jobs:
           coverage: none
       - run: composer install --no-interaction --prefer-dist --no-scripts
       - run: vendor/bin/phpunit
+      - run: php bin/console importmap:install --env=test
       - run: php bin/console sass:build --env=test
       - run: php bin/console asset-map:compile --env=test
       - uses: actions/setup-node@v4
