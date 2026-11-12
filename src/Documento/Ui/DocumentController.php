@@ -97,7 +97,7 @@ final class DocumentController extends AbstractController
             }
         }
 
-        return $this->render('client/document_new.html.twig', $this->layout($showClientHome, $user, 'documentos'));
+        return $this->render('client/document_new.html.twig', $this->layout($showClientHome, $user, 'documentos'), new Response(status: $request->isMethod('POST') ? 422 : 200, headers: ['Cache-Control' => 'private, no-store']));
     }
 
     #[Route('/documentos/{id}', name: 'client_document', methods: ['GET', 'POST'], requirements: ['id' => self::ID])]
