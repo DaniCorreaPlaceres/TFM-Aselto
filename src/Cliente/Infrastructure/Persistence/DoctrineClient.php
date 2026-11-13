@@ -9,13 +9,15 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'client_profile')]
+#[ORM\UniqueConstraint(name: 'uniq_client_profile_user', columns: ['user_id'])]
+#[ORM\Index(name: 'idx_client_profile_firm', columns: ['firm_id'])]
 class DoctrineClient
 {
     #[ORM\Id]
-    #[ORM\Column(length: 36)]
+    #[ORM\Column(length: 36, options: ['fixed' => true])]
     private string $id;
 
-    #[ORM\Column(length: 36, unique: true)]
+    #[ORM\Column(length: 36, options: ['fixed' => true])]
     private string $userId;
 
     #[ORM\Column(length: 32)]
@@ -24,25 +26,25 @@ class DoctrineClient
     #[ORM\Column(length: 120)]
     private string $name;
 
-    #[ORM\Column(length: 36, nullable: true)]
+    #[ORM\Column(length: 36, nullable: true, options: ['fixed' => true])]
     private ?string $firmId = null;
 
-    #[ORM\Column(length: 16)]
+    #[ORM\Column(length: 16, options: ['default' => ''])]
     private string $taxId = '';
 
-    #[ORM\Column(length: 16)]
+    #[ORM\Column(length: 16, options: ['default' => ''])]
     private string $phone = '';
 
-    #[ORM\Column(length: 120)]
+    #[ORM\Column(length: 120, options: ['default' => ''])]
     private string $street = '';
 
-    #[ORM\Column(length: 5)]
+    #[ORM\Column(length: 5, options: ['default' => ''])]
     private string $postalCode = '';
 
-    #[ORM\Column(length: 80)]
+    #[ORM\Column(length: 80, options: ['default' => ''])]
     private string $municipality = '';
 
-    #[ORM\Column(length: 40)]
+    #[ORM\Column(length: 40, options: ['default' => ''])]
     private string $province = '';
 
     public function apply(Client $client): void

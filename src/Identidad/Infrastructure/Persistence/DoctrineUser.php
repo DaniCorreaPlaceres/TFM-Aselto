@@ -8,13 +8,14 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'identity_user')]
+#[ORM\UniqueConstraint(name: 'uniq_identity_user_email', columns: ['email'])]
 class DoctrineUser
 {
     #[ORM\Id]
-    #[ORM\Column(length: 36)]
+    #[ORM\Column(length: 36, options: ['fixed' => true])]
     private string $id;
 
-    #[ORM\Column(length: 180, unique: true)]
+    #[ORM\Column(length: 180)]
     private string $email;
 
     #[ORM\Column(length: 255)]
@@ -23,10 +24,10 @@ class DoctrineUser
     #[ORM\Column(length: 32, enumType: Role::class)]
     private Role $role;
 
-    #[ORM\Column(length: 36, nullable: true)]
+    #[ORM\Column(length: 36, nullable: true, options: ['fixed' => true])]
     private ?string $firmId = null;
 
-    #[ORM\Column]
+    #[ORM\Column(options: ['default' => 0])]
     private bool $activated = false;
 
     public function apply(User $user): void

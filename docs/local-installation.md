@@ -53,11 +53,12 @@ docker compose exec -T --user www-data app php bin/console lexik:jwt:generate-ke
 docker compose exec -T --user www-data app php bin/console doctrine:migrations:migrate --no-interaction
 docker compose exec -T --user www-data app php bin/console sass:build
 docker compose exec -T --user www-data app php bin/console doctrine:migrations:status
+docker compose exec -T --user www-data app php bin/console doctrine:schema:validate
 ```
 
 Importmap descarga los módulos JavaScript a `assets/vendor`: la instalación de Composer del contenedor omite sus scripts y no hace este paso automáticamente. JWT genera `config/jwt/private.pem` y `public.pem`, sin reemplazar claves existentes. No compartir ni versionar la clave privada o `.env.local`; cambiar la contraseña de unas claves existentes no las vuelve a cifrar.
 
-MySQL crea la base vacía con las credenciales de Compose. Las migraciones crean su estructura: al terminar, el estado debe mostrar cero migraciones nuevas. No sustituirlas por `doctrine:schema:update --force`.
+MySQL crea la base vacía con las credenciales de Compose. Las migraciones crean su estructura: al terminar, el estado debe mostrar cero migraciones nuevas y la validación debe indicar que los mapeos y el esquema son correctos. No sustituirlas por `doctrine:schema:update --force`.
 
 ## 5. Demostración y servicios auxiliares
 
@@ -108,7 +109,7 @@ En desarrollo AssetMapper sirve los recursos sin compilación estática. `asset-
 - **No se encuentra Stimulus o Turbo:** ejecutar `importmap:install` y comprobar acceso a jsDelivr. Los paquetes se sirven localmente después de descargarse.
 - **API no puede firmar tokens:** comprobar las claves JWT y que se conserva la contraseña con la que se generaron.
 - **Trimestres sin actualización automática:** revisar `quarter_updates`, Mercure y las URL públicas. La actualización manual sigue disponible.
-- **Validación de esquema de Doctrine:** en esta versión `doctrine:schema:validate` valida los mapeos, pero informa diferencias de esquema tras las 14 migraciones. El diagnóstico de solo lectura propone incluso borrar `quarter_update_outbox`, que utiliza SQL directo. También detecta índices y tipos distintos. Queda pendiente revisar esa comparación en una tarea específica; no ejecutar automáticamente el SQL propuesto. Las migraciones y los recorridos HTTP comprobados sí terminaron correctamente.
+- **Diferencias de esquema de Doctrine:** la incidencia encontrada en la instalación inicial quedó resuelta en la tarea [Coherencia del esquema](sdd/doctrine-schema-alignment.md). Los metadatos describen los tipos, valores por defecto, comentarios e índices existentes; un listener de generación de esquema incluye `quarter_update_outbox`, cuya escritura sigue usando SQL directo. No se oculta la tabla con filtros. No hace falta una migración adicional: se conserva el esquema existente. Si aparecen nuevas diferencias, diagnosticarlas con `doctrine:schema:update --dump-sql` y revisar su origen; no aplicar automáticamente el SQL propuesto.
 
 ## Alcance de la verificación
 
@@ -116,4 +117,6 @@ Prueba realizada el 12 de noviembre de 2026 en Windows con Docker Desktop, conte
 
 Comprobado: construcción, descarga de dependencias y Sass, Importmap, claves nuevas, 14 migraciones sin pendientes, demostración y repetición sin reinicio, compilación de 25 recursos, siete servicios activos, salud/home/login/Swagger/OpenAPI/PDF.js por HTTP, acceso web hasta `/cuenta`, recursos CSS y JavaScript con respuesta 200, JWT y consultas de identidad/documentos/trimestre con respuesta 200. Registro ficticio con recepción de un correo en Mailpit y enlace con la URL de la copia aislada.
 
-No se ha comprobado en esta tarea: instalación nativa en Linux/macOS, equipo ARM, extracción con IA real, entrega de correo externo, interacción visual completa, apertura del enlace de activación ni suscripción Mercure de extremo a extremo. El arranque del publicador y del hub no equivale a esa prueba. La diferencia de esquema indicada arriba permanece registrada.
+No se ha comprobado en la tarea de instalación: instalación nativa en Linux/macOS, equipo ARM, extracción con IA real, entrega de correo externo, interacción visual completa, apertura del enlace de activación ni suscripción Mercure de extremo a extremo. El arranque del publicador y del hub no equivale a esa prueba.
+
+Verificación adicional del esquema el 13 de noviembre de 2026: las 14 migraciones aplicadas a un MySQL 8.4 temporal pasan `doctrine:schema:validate` y no requieren SQL de actualización. También pasa la validación de solo lectura de la base existente. La regresión de esquema comprueba conservación de registros y notificaciones pendientes; el flujo de actualizaciones en tiempo real pasó sus 36 comprobaciones contra la base temporal y el hub local. El CI incorpora un trabajo MySQL para detectar futuras diferencias automáticamente; su ejecución remota se comprobará al abrir el PR.

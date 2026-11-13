@@ -83,6 +83,7 @@ Cada PR hacia `develop` o `main`, y cada push a esas ramas, ejecuta el [flujo de
 - PHPStan nivel 6 para análisis estático.
 - PHPUnit, compilación de recursos y pruebas JavaScript de trimestre, exportación y subida.
 - Validación del contrato OpenAPI.
+- Migraciones y validación de esquema en MySQL 8.4, con prueba de conservación de registros y notificaciones pendientes.
 
 Ejemplos de ejecución local:
 
@@ -91,7 +92,7 @@ docker compose exec -T --user www-data app php vendor/bin/phpunit
 node --test tests/Frontend/live-quarter.test.mjs tests/Frontend/table-export.test.mjs tests/Frontend/document-upload.test.mjs
 ```
 
-Las pruebas de integración de [tests/Integration](tests/Integration) se ejecutan expresamente contra MySQL y el entorno local preparado; no forman parte automáticamente de los cuatro trabajos de CI. Cada ficha describe los requisitos y las verificaciones realizadas. Antes de ejecutarlas, consultar su documentación y evitar ediciones manuales concurrentes sobre los datos que contrastan.
+La prueba de integración `schema-workflow.php` se ejecuta en el quinto trabajo de CI, contra un MySQL temporal creado desde cero con las migraciones. Las demás pruebas de [tests/Integration](tests/Integration) se ejecutan expresamente contra MySQL y el entorno local preparado. Cada ficha describe los requisitos y las verificaciones realizadas. Antes de ejecutarlas, consultar su documentación y evitar ediciones manuales concurrentes sobre los datos que contrastan.
 
 ## Documentación y estado del proyecto
 

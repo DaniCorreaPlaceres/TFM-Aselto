@@ -14,16 +14,18 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'client_document')]
+#[ORM\Index(name: 'idx_client_document_owner', columns: ['client_user_id'])]
+#[ORM\Index(name: 'idx_client_document_firm', columns: ['firm_id'])]
 class DoctrineDocument
 {
     #[ORM\Id]
-    #[ORM\Column(length: 36)]
+    #[ORM\Column(length: 36, options: ['fixed' => true])]
     private string $id;
 
-    #[ORM\Column(length: 36)]
+    #[ORM\Column(length: 36, options: ['fixed' => true])]
     private string $clientUserId;
 
-    #[ORM\Column(length: 36, nullable: true)]
+    #[ORM\Column(length: 36, nullable: true, options: ['fixed' => true])]
     private ?string $firmId = null;
 
     #[ORM\Column(length: 180)]
@@ -41,7 +43,7 @@ class DoctrineDocument
     #[ORM\Column(length: 16, nullable: true)]
     private ?string $direction = null;
 
-    #[ORM\Column(type: 'date_immutable', nullable: true)]
+    #[ORM\Column(type: 'date_immutable', nullable: true, options: ['comment' => '(DC2Type:date_immutable)'])]
     private ?\DateTimeImmutable $issuedOn = null;
 
     #[ORM\Column(length: 120, nullable: true)]
@@ -95,7 +97,7 @@ class DoctrineDocument
     #[ORM\Column(length: 16, nullable: true)]
     private ?string $proposal = null;
 
-    #[ORM\Column]
+    #[ORM\Column(options: ['comment' => '(DC2Type:datetime_immutable)'])]
     private \DateTimeImmutable $createdAt;
 
     public function apply(Document $document): void
