@@ -1,1 +1,1 @@
-docker/php/entrada.sh text eol=lf
+docker/php/*.sh text eol=lf

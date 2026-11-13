@@ -49,7 +49,7 @@ Se necesita Git y Docker Desktop con Docker Compose, además de puertos libres p
 docker compose up --build -d
 ```
 
-Este comando no sustituye la configuración inicial, las migraciones o la preparación de claves y recursos. La guía completa y su verificación desde una instalación limpia corresponden a la **tarea 29**, todavía pendiente.
+Para preparar una copia nueva, seguir la [guía de instalación local](docs/local-installation.md): configuración privada, claves, migraciones, recursos y demostración, con los resultados y límites de la verificación realizada.
 
 Servicios del entorno local:
 

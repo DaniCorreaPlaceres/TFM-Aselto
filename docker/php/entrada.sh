@@ -10,9 +10,10 @@ if [ ! -f vendor/autoload.php ] || [ "$lock_hash" != "$installed_hash" ]; then
     printf '%s\n' "$lock_hash" > vendor/.aselto-lock-hash
 fi
 
-# The cache volume is owned by root when Docker creates it.
-chown www-data:www-data var/cache
-chmod 2775 var/cache
+# Docker creates these runtime directories as root on a clean installation.
+# Sass also downloads its compiler directly into var.
+chown www-data:www-data var var/cache var/log var/share var/storage
+chmod 2775 var var/cache var/log var/share var/storage
 umask 0002
 if [ "$1" = "php-fpm" ]; then
     su -s /bin/sh www-data -c 'php bin/console sass:build'
