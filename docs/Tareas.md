@@ -44,7 +44,7 @@ Estado de las tareas: [x] hecha, [ ] pendiente o en curso. El detalle de cada un
 La antigua tarea 28 se divide. Primero se realizarán las tareas 28 y 29; después se abordarán las nuevas funcionalidades una a una. La preparación final de la defensa queda al final de la lista.
 
 - [x] 28. Actualizar el README para describir el producto implementado, su arquitectura, funciones, requisitos, comprobaciones y enlaces a documentación y demostración.
-- [ ] 29. Documentar y verificar una instalación local desde cero: configuración, Docker, dependencias, migraciones, claves JWT, recursos Sass/AssetMapper, servicios, accesos de demostración y resolución de problemas. Separar instrucciones verificadas de pasos pendientes de comprobar.
+- [x] 29. Documentar y verificar una instalación local desde cero: configuración, Docker, dependencias, migraciones, claves JWT, recursos Sass/AssetMapper, servicios, accesos de demostración y resolución de problemas. Separar instrucciones verificadas de pasos pendientes de comprobar. Guía y limitaciones en `local-installation.md`.
 
 ## Administración e invitaciones
 

@@ -7,6 +7,7 @@ Toda la documentación del proyecto vive en esta carpeta, en la raíz del reposi
 - [memoria.md](memoria.md). Punto de partida: producto, stack, herramientas, arquitectura y especificaciones.
 - [api/README.md](api/README.md). Acceso y uso de la API v1.
 - [demo.md](demo.md). Carga local de demostración, accesos ficticios y recorridos para el TFM.
+- [local-installation.md](local-installation.md). Instalación desde cero con Docker, comprobaciones y problemas conocidos.
 - [Tareas.md](Tareas.md). Lista de tareas del proyecto, sin el detalle de cada una.
 - [producto/Aselto_Documento_introductorio.docx](producto/Aselto_Documento_introductorio.docx). Texto de presentación del proyecto.
 - [diseno/reglas-visuales.md](diseno/reglas-visuales.md). Reglas de interfaz. Los bocetos están en [diseno/bocetos](diseno/bocetos).
