@@ -11,28 +11,28 @@ use Doctrine\ORM\Mapping as ORM;
 class DoctrineFirm
 {
     #[ORM\Id]
-    #[ORM\Column(length: 36)]
+    #[ORM\Column(length: 36, options: ['fixed' => true])]
     private string $id;
 
     #[ORM\Column(length: 120)]
     private string $name;
 
-    #[ORM\Column(length: 16)]
+    #[ORM\Column(length: 16, options: ['default' => ''])]
     private string $taxId = '';
 
-    #[ORM\Column(length: 16)]
+    #[ORM\Column(length: 16, options: ['default' => ''])]
     private string $phone = '';
 
-    #[ORM\Column(length: 120)]
+    #[ORM\Column(length: 120, options: ['default' => ''])]
     private string $street = '';
 
-    #[ORM\Column(length: 5)]
+    #[ORM\Column(length: 5, options: ['default' => ''])]
     private string $postalCode = '';
 
-    #[ORM\Column(length: 80)]
+    #[ORM\Column(length: 80, options: ['default' => ''])]
     private string $municipality = '';
 
-    #[ORM\Column(length: 40)]
+    #[ORM\Column(length: 40, options: ['default' => ''])]
     private string $province = '';
 
     public function apply(Firm $firm): void

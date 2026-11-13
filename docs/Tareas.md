@@ -45,6 +45,7 @@ La antigua tarea 28 se divide. Primero se realizarán las tareas 28 y 29; despu�
 
 - [x] 28. Actualizar el README para describir el producto implementado, su arquitectura, funciones, requisitos, comprobaciones y enlaces a documentación y demostración.
 - [x] 29. Documentar y verificar una instalación local desde cero: configuración, Docker, dependencias, migraciones, claves JWT, recursos Sass/AssetMapper, servicios, accesos de demostración y resolución de problemas. Separar instrucciones verificadas de pasos pendientes de comprobar. Guía y limitaciones en `local-installation.md`.
+- [x] 29a. Resolver la diferencia de esquema detectada durante la instalación: alinear metadatos con tipos, valores por defecto, comentarios e índices existentes y describir la cola SQL para su validación. Sin modificar datos ni migraciones publicadas. Verificación automática en MySQL y detalle en `sdd/doctrine-schema-alignment.md`.
 
 ## Administración e invitaciones
 
