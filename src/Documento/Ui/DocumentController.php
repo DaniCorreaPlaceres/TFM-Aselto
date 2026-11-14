@@ -60,6 +60,7 @@ final class DocumentController extends AbstractController
     public function upload(Request $request, ShowClientHome $showClientHome, StoreClientDocument $storeClientDocument): Response
     {
         $user = $this->client();
+        $entryDirection = self::entryDirection($request);
 
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('upload_document', (string) $request->request->get('_csrf_token'))) {
@@ -85,7 +86,7 @@ final class DocumentController extends AbstractController
                     };
                     $this->addFlash($kind, $message);
 
-                    return $this->redirectToRoute('client_document', ['id' => $document->id()]);
+                    return $this->redirectToRoute('client_document', array_filter(['id' => $document->id(), 'direction' => $entryDirection], static fn (?string $value): bool => null !== $value));
                 } catch (DocumentQuotaExceeded) {
                     $this->addFlash('error', 'Has alcanzado los 20 documentos de este mes en Gratis. Puedes consultar tus registros. Espera al próximo mes o solicita un cambio de plan desde Mi plan.');
                 } catch (UnsupportedFile) {
@@ -100,7 +101,7 @@ final class DocumentController extends AbstractController
             }
         }
 
-        return $this->render('client/document_new.html.twig', $this->layout($showClientHome, $user, 'documentos'), new Response(status: $request->isMethod('POST') ? 422 : 200, headers: ['Cache-Control' => 'private, no-store']));
+        return $this->render('client/document_new.html.twig', [...$this->layout($showClientHome, $user, 'documentos'), 'entryDirection' => $entryDirection], new Response(status: $request->isMethod('POST') ? 422 : 200, headers: ['Cache-Control' => 'private, no-store']));
     }
 
     #[Route('/documentos/{id}', name: 'client_document', methods: ['GET', 'POST'], requirements: ['id' => self::ID])]
@@ -126,6 +127,12 @@ final class DocumentController extends AbstractController
 
         $fieldErrors = [];
         $input = $form->inputFromDocument($document);
+        $entryDirection = $request->isMethod('GET') && $document->isEditable() && 1 === $document->version() ? self::entryDirection($request) : null;
+        if (null !== $entryDirection) {
+            // This is only a form default. The proposal is unchanged until the person saves.
+            $input['direction'] = $entryDirection;
+            $input['ingreso' === $entryDirection ? 'surcharge' : 'withholdingRate'] = '';
+        }
 
         if ($request->isMethod('POST') && $document->isEditable()) {
             $input = $form->inputFromRequest($request);
@@ -175,6 +182,7 @@ final class DocumentController extends AbstractController
             'history' => $presenter->history($document),
             'supportingFiles' => $presenter->files($document),
             'fieldErrors' => $fieldErrors,
+            'entryDirection' => $entryDirection,
             'hasFirm' => null !== $document->firmId(),
             'canAmendPersonal' => null === $clients->findByUserId($user->id())?->firmId() && null === $document->firmId() && \App\Documento\Domain\DocumentStatus::Submitted === $document->status(),
         ]);
@@ -215,6 +223,13 @@ final class DocumentController extends AbstractController
         }
 
         return DocumentFileResponse::create($contents, $document->mediaType(), $document->originalName());
+    }
+
+    private static function entryDirection(Request $request): ?string
+    {
+        $value = $request->isMethod('POST') ? $request->request->getString('_entry_direction') : $request->query->getString('direction');
+
+        return in_array($value, ['ingreso', 'gasto'], true) ? $value : null;
     }
 
     private function client(): SecurityUser

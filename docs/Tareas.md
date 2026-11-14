@@ -57,7 +57,7 @@ Las invitaciones a asesorías y a equipos ya tienen una primera implementación 
 
 ## Comercialización y contenido público
 
-Tareas 34–39 implementadas en seis ramas y PR independientes, pendientes de merge en `develop`. Decisiones confirmadas y evidencias conjuntas en [public-content-batch.md](public-content-batch.md).
+Tareas 34–39 integradas en `develop` mediante seis ramas y PR independientes. Decisiones confirmadas y evidencias conjuntas en [public-content-batch.md](public-content-batch.md).
 
 - [x] 33. Reorientar la home a la venta del producto: secciones para autónomos/empresas y asesorías, beneficios y acciones diferenciados, ejemplo documental ilustrativo y proceso en tres pasos. Acciones conectadas al registro y acceso existentes; «Tu cuenta» con sesión iniciada. Detalle en `sdd/commercial-home.md`.
 - [x] 34. Crear tres landing pages enlazadas desde la home: autónomos, empresas y asesorías. Adaptar a cada público los problemas, beneficios, ejemplos y llamadas a la acción.
@@ -69,7 +69,7 @@ Tareas 34–39 implementadas en seis ramas y PR independientes, pendientes de me
 
 ## Experiencia del cliente e impuestos
 
-- [ ] 40. Mejorar la distribución de «Ingresos y gastos», conservando el inicio actual. Separar con claridad cifras, movimientos, pendientes e histórico y facilitar añadir un ingreso o un gasto desde esa pantalla, reutilizando los casos de uso y las reglas de revisión existentes.
+- [x] 40. Mejorar la distribución de «Ingresos y gastos», conservando el inicio actual. Separar con claridad cifras, movimientos, pendientes e histórico y facilitar añadir un ingreso o un gasto desde esa pantalla, reutilizando los casos de uso y las reglas de revisión existentes. Implementación y evidencias en `sdd/client-movements-layout.md`.
 - [ ] 41. Añadir la opción «Exento» a los registros para que la cuota del impuesto sea cero. Distinguir exención de un tipo del 0 %, conservar el territorio y reflejar el estado en revisión, cálculos, API, exportaciones e instantáneas. Acordar el tratamiento de recargo, retención y registros ya cerrados antes de implementar.
 
 ## Seguridad y publicación

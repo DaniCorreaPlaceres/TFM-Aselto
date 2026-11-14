@@ -1,0 +1,32 @@
+.quarter-view {
+    .quarter-heading, .quarter-section-heading { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }
+    .quarter-heading h1 { margin-bottom: .75rem; }
+    .quarter-heading p { margin-bottom: .5rem; }
+    .quarter-actions { display: flex; gap: .75rem; flex-wrap: wrap; padding-top: .5rem; }
+    .quarter-actions .action { display: inline-flex; align-items: center; gap: .5rem; margin: 0; }
+    .quarter-actions svg { width: 20px; height: 20px; }
+    .quarter-entry-hint, .quarter-note { color: #475569; font-size: 1rem; }
+    .quarter-period { display: flex; flex-wrap: wrap; align-items: end; gap: 1rem; background: white; padding: 1.25rem; border: 1px solid var(--line); border-radius: 1rem; margin: 1.5rem 0; }
+    .quarter-period div { flex: 1 1 10rem; min-width: 0; }
+    .quarter-period label, .quarter-period button { margin: 0; }
+    .quarter-period label { margin-bottom: .5rem; }
+    .quarter-navigation { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .quarter-navigation a { display: inline-flex; align-items: center; min-height: 48px; padding: .6rem 1rem; border: 1px solid #bed3d8; border-radius: .65rem; background: white; text-decoration: none; font-weight: 550; }
+    .quarter-navigation a:hover { background: #e3f1f1; }
+    .quarter-section { margin: 2rem 0; scroll-margin-top: 1.5rem; min-width: 0; }
+    .quarter-section h2 { font-size: 1.4rem; margin: 0 0 1rem; }
+    .quarter-state { background: #e3f1f1; color: #17464b; padding: .45rem .8rem; border-radius: .5rem; font-size: .95rem; font-weight: 600; }
+    .quarter-pending, .quarter-management { padding: clamp(1rem, 2.5vw, 1.5rem); border: 1px solid var(--line); border-radius: 1rem; background: white; }
+    .quarter-pending { border-left: 4px solid #7b9197; }
+    .quarter-record-meta { display: block; color: #475569; font-size: .95rem; margin-top: .35rem; }
+    .quarter-section .table-card { margin-bottom: 0; overflow-x: auto; }
+    summary { min-height: 48px; padding: .65rem 0; font-weight: 600; cursor: pointer; }
+    .quarter-tax { margin-top: 1.5rem; }
+    @media (max-width: 600px) {
+        .quarter-actions { width: 100%; }
+        .quarter-actions .action { flex: 1 1 100%; justify-content: center; }
+        .quarter-period button { width: 100%; }
+        .quarter-navigation a { flex: 1 1 calc(50% - .5rem); justify-content: center; }
+        .quarter-section .table-card { padding: 1rem; }
+    }
+}

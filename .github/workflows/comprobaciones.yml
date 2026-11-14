@@ -51,6 +51,7 @@ jobs:
       - run: node --test tests/Frontend/live-quarter.test.mjs
       - run: node --test tests/Frontend/table-export.test.mjs
       - run: node --test tests/Frontend/document-upload.test.mjs
+      - run: node --test tests/Frontend/section-navigation.test.mjs
 
   schema:
     name: Esquema MySQL

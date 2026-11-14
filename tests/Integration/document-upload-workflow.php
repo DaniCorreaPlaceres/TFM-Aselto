@@ -102,13 +102,40 @@ try {
     $check(200 === $http((string) $response->headers->get('Location'))->getStatusCode(), 'Review page renders.');
     $download = $http('/documentos/'.$stored[0]->id().'/archivo');
     $check(200 === $download->getStatusCode() && $pdf === $download->getContent(), 'Original remains downloadable and byte-exact.');
+    $check(str_contains($http('/documentos/nuevo?direction=invalid')->getContent(), '<h1>Añadir documento</h1>'), 'Unknown entry direction is ignored.');
+    foreach (['ingreso', 'gasto'] as $direction) {
+        $expectedDirection = 'ingreso' === $direction ? App\Documento\Domain\MovementDirection::Income : App\Documento\Domain\MovementDirection::Expense;
+        $entry = $http('/documentos/nuevo?direction='.$direction);
+        $check(200 === $entry->getStatusCode() && str_contains($entry->getContent(), 'name="_entry_direction" value="'.$direction.'"'), 'Upload keeps the chosen entry direction.');
+        $failed = $http('/documentos/nuevo', 'POST', ['_csrf_token' => $csrf, '_entry_direction' => $direction]);
+        $check(422 === $failed->getStatusCode() && str_contains($failed->getContent(), 'name="_entry_direction" value="'.$direction.'"'), 'Failed upload keeps the direction for retry.');
+        $created = $http('/documentos/nuevo', 'POST', ['_csrf_token' => $csrf, '_entry_direction' => $direction], $upload());
+        $location = (string) $created->headers->get('Location');
+        $check(302 === $created->getStatusCode() && str_contains($location, 'direction='.$direction), 'Successful upload carries the choice to review.');
+        $review = $http($location);
+        $reviewHtml = new DOMDocument();
+        @$reviewHtml->loadHTML($review->getContent());
+        $reviewFields = new DOMXPath($reviewHtml);
+        $check($direction === $reviewFields->evaluate('string(//input[@name="direction" and @checked]/@value)'), 'Review preselects the chosen direction instead of the proposal.');
+        $reviewUrl = (string) parse_url($location, PHP_URL_PATH);
+        $documentId = basename($reviewUrl);
+        $check(DocumentStatus::Draft === $documents->find($documentId)->status() && App\Documento\Domain\MovementDirection::Expense === $documents->find($documentId)->direction(), 'Preselection does not save or confirm over the synthetic expense proposal.');
+        $save = ['_csrf_token' => (string) $reviewFields->evaluate('string(//form[contains(@class,"document-form")]//input[@name="_csrf_token"]/@value)'), 'version' => 1, 'intent' => 'confirm', 'direction' => $direction, 'issued_on' => '2026-11-01', 'party_name' => 'Contraparte ficticia', 'tax_id' => '00000000T', 'base' => '100', 'tax_rate' => '21', 'surcharge' => '', 'withholding_rate' => ''];
+        $check(302 === $http($reviewUrl, 'POST', $save)->getStatusCode(), 'The existing confirmation form accepts the reviewed entry.');
+        $check(DocumentStatus::Submitted === $documents->find($documentId)->status() && $expectedDirection === $documents->find($documentId)->direction(), 'Explicit confirmation persists the chosen direction.');
+        $http($reviewUrl.'?direction='.('ingreso' === $direction ? 'gasto' : 'ingreso'));
+        $check($expectedDirection === $documents->find($documentId)->direction(), 'A query hint never changes a confirmed record.');
+    }
+    $expectedDocumentCount = count($documents->findByOwner($ownerId));
     $month = App\Shared\Domain\MonthlyQuota::month(new DateTimeImmutable('now', new DateTimeZone('UTC')));
-    for ($i = 1; $i < 20; ++$i) {
+    $used = (int) $db->fetchOne('SELECT COUNT(*) FROM document_usage WHERE owner_id=? AND month=?', [$ownerId, $month]);
+    $check(3 === $used, 'Review and confirmation consume no extra quota.');
+    for ($i = $used; $i < 20; ++$i) {
         $db->insert('document_usage', ['document_id' => Uuid::v4()->toRfc4122(), 'owner_id' => $ownerId, 'month' => $month]);
     }
     $response = $http('/documentos/nuevo', 'POST', ['_csrf_token' => $csrf], $upload());
     $check(422 === $response->getStatusCode() && str_contains($response->getContent(), 'Has alcanzado los 20 documentos'), 'Web upload displays the shared quota error.');
-    $check(1 === count($documents->findByOwner($ownerId)), 'Quota rejection creates no document.');
+    $check($expectedDocumentCount === count($documents->findByOwner($ownerId)), 'Quota rejection creates no document.');
     $check(200 === $http('/mi-plan')->getStatusCode(), 'Owner can consult plan and usage.');
     $check(403 === $http('/licencias')->getStatusCode(), 'Client cannot open license administration.');
     $user = new User(Uuid::v4()->toRfc4122(), Uuid::v4()->toRfc4122().'@example.test', 'synthetic', Role::Superadmin, null, true);
