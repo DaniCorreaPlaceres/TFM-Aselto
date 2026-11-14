@@ -47,6 +47,21 @@ final class DocumentRegistrationTest extends TestCase
 
     private const DOCUMENT = '00000000-0000-4000-8000-000000000031';
 
+    public function testQuotaIsCheckedBeforeWritingOrExtractingAFile(): void
+    {
+        $quota = $this->createMock(\App\Shared\Domain\DocumentQuota::class);
+        $quota->expects(self::once())->method('consume')->willThrowException(new \App\Shared\Domain\DocumentQuotaExceeded());
+        $files = $this->createMock(DocumentFileStore::class);
+        $files->expects(self::never())->method('write');
+        $extractor = $this->createMock(DocumentExtractor::class);
+        $extractor->expects(self::never())->method('propose');
+        $documents = $this->createMock(DocumentRepository::class);
+        $documents->expects(self::never())->method('save');
+        $store = new StoreClientDocument($this->clients(), $documents, $files, $extractor, new RegistrationIds(self::DOCUMENT), new RegistrationClock(), new RegistrationTransaction(), $quota);
+        $this->expectException(\App\Shared\Domain\DocumentQuotaExceeded::class);
+        $store->execute(self::CLIENT, 'synthetic.pdf', 'application/pdf', "%PDF-1.4\n%%EOF");
+    }
+
     public function testAFileThatIsNotPdfOrImageIsRejected(): void
     {
         $this->expectException(UnsupportedFile::class);
@@ -292,7 +307,7 @@ final class DocumentRegistrationTest extends TestCase
         $files->expects($this->never())->method('write');
         $extractor = $this->createMock(DocumentExtractor::class);
         $extractor->expects($this->never())->method('propose');
-        $store = new StoreClientDocument($clients, new RegistrationDocumentRepository(), $files, $extractor, new RegistrationIds(self::DOCUMENT), new RegistrationClock(), new RegistrationTransaction());
+        $store = new StoreClientDocument($clients, new RegistrationDocumentRepository(), $files, $extractor, new RegistrationIds(self::DOCUMENT), new RegistrationClock(), new RegistrationTransaction(), $this->createStub(\App\Shared\Domain\DocumentQuota::class));
         $this->expectException(MissingFiscalProvince::class);
         $store->execute(self::CLIENT, 'ticket.png', 'image/png', 'png');
     }
@@ -344,6 +359,7 @@ final class DocumentRegistrationTest extends TestCase
             new RegistrationIds(self::DOCUMENT),
             new RegistrationClock(),
             new RegistrationTransaction(),
+            $this->createStub(\App\Shared\Domain\DocumentQuota::class),
         );
     }
 

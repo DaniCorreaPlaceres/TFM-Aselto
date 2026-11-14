@@ -13,6 +13,7 @@ use App\Documento\Domain\MissingClientProfile;
 use App\Documento\Domain\MissingFiscalProvince;
 use App\Documento\Domain\UnsupportedFile;
 use App\Shared\Domain\ClosedPeriod;
+use App\Shared\Domain\DocumentQuotaExceeded;
 use App\Shared\Ui\ApiError;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -28,6 +29,7 @@ final class ApiDocumentExceptionListener
         }
         $error = $event->getThrowable();
         $result = match (true) {
+            $error instanceof DocumentQuotaExceeded => [409, 'document_quota_exceeded', 'Has alcanzado los 20 documentos de este mes en Gratis. Espera al próximo mes o solicita un cambio de plan.'],
             $error instanceof DocumentNotFound, $error instanceof MissingClientProfile => [404, 'document_not_found', 'No encontramos el documento solicitado.'],
             $error instanceof DocumentChanged => [409, 'document_changed', 'El registro ha cambiado. Consulta su versión actual antes de guardar.'],
             $error instanceof ClosedPeriod => [409, 'quarter_closed', 'El trimestre está cerrado. Reábrelo antes de modificar sus registros.'],

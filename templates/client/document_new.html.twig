@@ -4,6 +4,7 @@
     <div class="eyebrow">Tus documentos, en un solo lugar</div>
     <h1>Añadir documento</h1>
     <p>Sube una factura o un justificante. Después revisarás los datos antes de confirmarlos.</p>
+    <p><a href="{{ path('own_license') }}">Consulta tu plan y el consumo de este mes</a>. Gratis permite 20 documentos por mes natural en horario de Canarias.</p>
     <form class="document-upload" method="post" enctype="multipart/form-data" novalidate data-controller="document-upload" data-action="submit->document-upload#submit turbo:submit-end->document-upload#finished">
         <div class="upload-zone" data-document-upload-target="zone" data-action="dragenter->document-upload#dragEnter dragover->document-upload#dragOver dragleave->document-upload#dragLeave drop->document-upload#drop">
             <div class="upload-symbol" aria-hidden="true">{{ include('ui/_icon.html.twig', {icon: 'document'}) }}</div>

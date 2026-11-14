@@ -241,6 +241,19 @@ try {
     file_put_contents($source, $pdf.str_repeat('x', 8_000_001 - strlen($pdf)));
     clearstatcache(true, $source);
     $check(413 === $uploadFor('linked')->getStatusCode(), 'A file over eight million bytes must be rejected.');
+    file_put_contents($source, $pdf);
+    clearstatcache(true, $source);
+    $month = App\Shared\Domain\MonthlyQuota::month(new DateTimeImmutable('now', new DateTimeZone('UTC')));
+    $usage = (int) $db->fetchOne('SELECT COUNT(*) FROM document_usage WHERE owner_id=? AND month=?', [$accounts['personal']->id(), $month]);
+    for ($i = $usage; $i < 20; ++$i) {
+        $db->insert('document_usage', ['document_id' => $uuid(), 'owner_id' => $accounts['personal']->id(), 'month' => $month]);
+    }
+    $beforeQuota = (int) $db->fetchOne('SELECT COUNT(*) FROM client_document WHERE client_user_id=?', [$accounts['personal']->id()]);
+    $response = $uploadFor('personal');
+    $check(409 === $response->getStatusCode() && 'document_quota_exceeded' === $json($response)['error']['code'], 'API reports the same exhausted monthly quota.');
+    $check($beforeQuota === (int) $db->fetchOne('SELECT COUNT(*) FROM client_document WHERE client_user_id=?', [$accounts['personal']->id()]), 'Rejected API upload creates no record.');
+    (new App\Shared\Infrastructure\DoctrineLicenses($db))->assign('client', $accounts['personal']->id(), App\Shared\Domain\LicensePlan::Professional, $accounts['root']->id(), new DateTimeImmutable());
+    $check(201 === $uploadFor('personal')->getStatusCode(), 'Professional removes the monthly API upload limit immediately.');
     echo 'API document integration checks: '.$checks." passed.\n";
 } finally {
     $paths = [];

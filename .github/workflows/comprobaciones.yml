@@ -81,9 +81,10 @@ jobs:
           extensions: pdo_mysql
           coverage: none
       - run: composer install --no-interaction --prefer-dist --no-scripts
-      - run: php bin/console doctrine:migrations:migrate --no-interaction
+      - run: php tests/Integration/license-backfill-workflow.php
       - run: php bin/console doctrine:schema:validate
       - run: php tests/Integration/schema-workflow.php
+      - run: php tests/Integration/licenses-workflow.php
 
   openapi:
     name: OpenAPI

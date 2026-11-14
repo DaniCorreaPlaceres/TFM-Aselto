@@ -102,6 +102,15 @@ try {
     $check(200 === $http((string) $response->headers->get('Location'))->getStatusCode(), 'Review page renders.');
     $download = $http('/documentos/'.$stored[0]->id().'/archivo');
     $check(200 === $download->getStatusCode() && $pdf === $download->getContent(), 'Original remains downloadable and byte-exact.');
+    $month = App\Shared\Domain\MonthlyQuota::month(new DateTimeImmutable('now', new DateTimeZone('UTC')));
+    for ($i = 1; $i < 20; ++$i) {
+        $db->insert('document_usage', ['document_id' => Uuid::v4()->toRfc4122(), 'owner_id' => $ownerId, 'month' => $month]);
+    }
+    $response = $http('/documentos/nuevo', 'POST', ['_csrf_token' => $csrf], $upload());
+    $check(422 === $response->getStatusCode() && str_contains($response->getContent(), 'Has alcanzado los 20 documentos'), 'Web upload displays the shared quota error.');
+    $check(1 === count($documents->findByOwner($ownerId)), 'Quota rejection creates no document.');
+    $check(200 === $http('/mi-plan')->getStatusCode(), 'Owner can consult plan and usage.');
+    $check(403 === $http('/licencias')->getStatusCode(), 'Client cannot open license administration.');
 } finally {
     $paths = array_map(static fn ($document): string => $document->storedPath(), $documents->findByOwner($ownerId));
     $db->rollBack();

@@ -24,6 +24,7 @@ use App\Documento\Domain\UnsupportedFile;
 use App\Identidad\Domain\Role;
 use App\Identidad\Infrastructure\Security\SecurityUser;
 use App\Shared\Domain\ClosedPeriod;
+use App\Shared\Domain\DocumentQuotaExceeded;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
@@ -85,6 +86,8 @@ final class DocumentController extends AbstractController
                     $this->addFlash($kind, $message);
 
                     return $this->redirectToRoute('client_document', ['id' => $document->id()]);
+                } catch (DocumentQuotaExceeded) {
+                    $this->addFlash('error', 'Has alcanzado los 20 documentos de este mes en Gratis. Puedes consultar tus registros. Espera al próximo mes o solicita un cambio de plan desde Mi plan.');
                 } catch (UnsupportedFile) {
                     $this->addFlash('error', 'El archivo tiene que ser PDF, JPEG, PNG o WebP, y ocupar menos de 8 MB.');
                 } catch (MissingFiscalProvince) {

@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+{% block title %}Licencias · Aselto{% endblock %}
+{% block body %}
+<main class="panel">
+    <p class="eyebrow">Administración de cuentas</p><h1>Licencias</h1>
+    <p>Activación manual, sin cobros automáticos. Los cambios se aplican al guardar y conservan los documentos y el consumo del mes.</p>
+    <p>Gratis: 20 documentos por mes. Profesional: 4,99 €/mes. Asesoría: 2,99 €/mes por cliente vinculado con cuenta activada. Impuestos incluidos. Los planes de pago no tienen límite mensual de documentos.</p>
+    {% for message in app.flashes('success') %}<p class="success" role="status">{{ message }}</p>{% endfor %}
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    {% for subject in subjects %}
+    <section class="license-subject">
+        <h2>{{ subject.name }}</h2><p>{{ subject.kind == 'firm' ? 'Asesoría' : 'Cliente independiente' }}</p>
+        <form method="post">
+            <label for="plan-{{ subject.id }}">Plan de {{ subject.name }}</label>
+            <select id="plan-{{ subject.id }}" name="plan"><option value="free" {{ subject.plan == 'free' ? 'selected' : '' }}>Gratis</option>{% if subject.kind == 'firm' %}<option value="advisory" {{ subject.plan == 'advisory' ? 'selected' : '' }}>Asesoría</option>{% else %}<option value="professional" {{ subject.plan == 'professional' ? 'selected' : '' }}>Profesional</option>{% endif %}</select>
+            <input type="hidden" name="subject" value="{{ subject.id }}"><input type="hidden" name="kind" value="{{ subject.kind }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('license_' ~ subject.kind ~ '_' ~ subject.id) }}">
+            <button type="submit">Guardar plan</button>
+        </form>
+    </section>
+    {% else %}<p>Todavía no hay cuentas a las que asignar un plan.</p>{% endfor %}
+</main>
+{% endblock %}
