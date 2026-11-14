@@ -2172,6 +2172,7 @@ components:
         - tax
         - base_cents
         - tax_rate
+        - tax_exempt
         - tax_cents
         - surcharge_rate
         - surcharge_cents
@@ -2207,6 +2208,10 @@ components:
           nullable: true
           format: int64
           minimum: 0
+        tax_exempt:
+          type: boolean
+          default: false
+          description: 'Exención indicada por una persona, distinta de un tipo cero. True exige tax_rate y surcharge_rate vacíos o null; cuota cero con base conocida, conserva territorio y retención permitida. Omitido equivale a false.'
         tax_rate:
           type: string
           nullable: true
@@ -2273,6 +2278,10 @@ components:
           nullable: true
           pattern: '^(?:[0-9]{1,9}(?:\.[0-9]{1,2})?)?$'
           description: 'Cadena decimal con punto, sin separadores de miles. Null o vacío deja el dato sin indicar.'
+        tax_exempt:
+          type: boolean
+          default: false
+          description: 'Exención indicada por una persona, distinta de un tipo cero. True exige tax_rate y surcharge_rate vacíos o null; cuota cero con base conocida, conserva territorio y retención permitida. Omitido equivale a false.'
         tax_rate:
           type: string
           nullable: true
@@ -2382,6 +2391,7 @@ components:
             - tax
             - base_cents
             - tax_rate
+            - tax_exempt
             - tax_cents
             - surcharge_rate
             - surcharge_cents
@@ -2417,6 +2427,10 @@ components:
               nullable: true
               format: int64
               minimum: 0
+            tax_exempt:
+              type: boolean
+              default: false
+              description: 'Exención indicada por una persona, distinta de un tipo cero. True exige tax_rate y surcharge_rate vacíos o null; cuota cero con base conocida, conserva territorio y retención permitida. Omitido equivale a false.'
             tax_rate:
               type: string
               nullable: true
@@ -2461,6 +2475,7 @@ components:
         - tax
         - base_cents
         - tax_rate
+        - tax_exempt
         - tax_cents
         - surcharge_rate
         - surcharge_cents
@@ -2509,6 +2524,10 @@ components:
           nullable: true
           format: int64
           minimum: 0
+        tax_exempt:
+          type: boolean
+          default: false
+          description: 'Exención indicada por una persona, distinta de un tipo cero. True exige tax_rate y surcharge_rate vacíos o null; cuota cero con base conocida, conserva territorio y retención permitida. Omitido equivale a false.'
         tax_rate:
           type: string
           nullable: true
@@ -2626,6 +2645,7 @@ components:
         - base_cents
         - tax
         - tax_cents
+        - tax_exempt
         - surcharge_cents
         - withholding_cents
         - total_cents
@@ -2652,6 +2672,8 @@ components:
             - iva
             - igic
             - ipsi
+        tax_exempt:
+          type: boolean
         tax_cents:
           type: integer
           format: int64

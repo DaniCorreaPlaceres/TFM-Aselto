@@ -14,7 +14,11 @@ final class DocumentDetails
         private readonly Tax $tax = Tax::Vat,
         private readonly ?EquivalenceSurcharge $surcharge = null,
         private readonly ?WithholdingRate $withholdingRate = null,
+        private readonly bool $taxExempt = false,
     ) {
+        if ($taxExempt && (null !== $taxRate || null !== $surcharge)) {
+            throw new InvalidTaxExemption('An exempt record cannot have a tax rate or surcharge.');
+        }
         if (null !== $withholdingRate && MovementDirection::Income !== $direction) {
             throw new InvalidWithholding('Withholding is only available for income.');
         }
@@ -77,6 +81,9 @@ final class DocumentDetails
 
     public function quotaCents(): ?int
     {
+        if ($this->taxExempt) {
+            return null === $this->baseCents ? null : 0;
+        }
         if (null === $this->baseCents || null === $this->taxRate) {
             return null;
         }
@@ -87,6 +94,11 @@ final class DocumentDetails
     public function surcharge(): ?EquivalenceSurcharge
     {
         return $this->surcharge;
+    }
+
+    public function isTaxExempt(): bool
+    {
+        return $this->taxExempt;
     }
 
     public function surchargeQuotaCents(): ?int

@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus';
 
 export default class extends Controller {
-    static targets = ['base', 'rate', 'total', 'quota', 'surcharge', 'surchargeGroup', 'surchargeQuota', 'withholding', 'withholdingGroup', 'withholdingQuota'];
+    static targets = ['base', 'rate', 'rateGroup', 'exemption', 'total', 'quota', 'surcharge', 'surchargeGroup', 'surchargeQuota', 'withholding', 'withholdingGroup', 'withholdingQuota'];
     static values = { taxName: String };
 
     connect() {
@@ -9,6 +9,11 @@ export default class extends Controller {
     }
 
     recalculate(event) {
+        if (this.hasExemptionTarget) {
+            this.rateTarget.disabled = this.isExempt();
+            this.rateGroupTarget.hidden = this.isExempt();
+            if (this.isExempt()) this.rateTarget.value = '';
+        }
         const edited = event?.target instanceof HTMLElement ? event.target.closest('[data-field]') : null;
 
         if (edited instanceof HTMLElement && !this.isEmpty(edited) && !(edited.contains(this.baseTarget) && this.invalidBase()) && !(edited.contains(this.rateTarget) && this.invalidRate()) && !(this.hasWithholdingTarget && edited.contains(this.withholdingTarget) && this.invalidWithholding())) {
@@ -34,7 +39,7 @@ export default class extends Controller {
         }
 
         const quota = Math.floor((base * rate + 5000) / 10000);
-        this.quotaTarget.textContent = `Cuota de ${this.taxNameValue}: ${this.euros(quota)} €`;
+        this.quotaTarget.textContent = `Cuota de ${this.taxNameValue}: ${this.euros(quota)} €${this.isExempt() ? ' (exento)' : ''}`;
         const surchargeQuota = Math.floor((base * surchargeRate + 5000) / 10000);
         if (this.hasSurchargeQuotaTarget) {
             this.surchargeQuotaTarget.textContent = '' === this.surchargeTarget.value ? 'Sin recargo.' : `Cuota de recargo: ${this.euros(surchargeQuota)} €`;
@@ -52,7 +57,7 @@ export default class extends Controller {
         }
 
         const direction = this.element.querySelector('input[name="direction"]:checked')?.value;
-        const allowed = 'IVA' === this.taxNameValue && 'gasto' === direction;
+        const allowed = !this.isExempt() && 'IVA' === this.taxNameValue && 'gasto' === direction;
         const rate = this.rateBasisPoints();
 
         this.surchargeGroupTarget.hidden = !allowed;
@@ -155,6 +160,7 @@ export default class extends Controller {
     }
 
     rateBasisPoints() {
+        if (this.isExempt()) return 0;
         const text = this.rateTarget.value.trim().replace(',', '.');
 
         if ('' === text) {
@@ -172,6 +178,7 @@ export default class extends Controller {
     }
 
     isEmpty(group) {
+        if ('taxRate' === group.dataset.field && this.isExempt()) return false;
         if ('direction' === group.dataset.field) {
             return null === group.querySelector('input:checked');
         }
@@ -244,5 +251,9 @@ export default class extends Controller {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
         }).format(cents / 100);
+    }
+
+    isExempt() {
+        return this.hasExemptionTarget && this.exemptionTarget.checked;
     }
 }

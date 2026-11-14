@@ -51,6 +51,8 @@ docker compose exec -T --user www-data app php tests/Integration/api-authenticat
 
 ## Swagger UI
 
+Los registros admiten `tax_exempt` como booleano explícito, distinto del tipo cero, conservando IVA, IGIC o IPSI. La cuota es cero y no admite porcentaje ni recargo; puede conservar IRPF en ingresos de autónomos. Ver [exenciones y ejemplos](../tax-exempt-records.md). El contrato detalla las entradas y las respuestas de documentos, revisión e instantáneas.
+
 Abrir [la documentación interactiva](http://localhost:8080/api/docs) con Docker arrancado. La página y el [contrato](http://localhost:8080/api/docs/openapi.yaml) son públicos; ejecutar operaciones requiere los permisos habituales.
 
 1. Expandir `POST /api/v1/auth/login`, pulsar «Try it out», introducir las credenciales del entorno y ejecutar.

@@ -22,7 +22,7 @@ final class QuarterData
     /** @param list<array<string, mixed>> $data */
     public static function restoreSummary(array $data): QuarterSummary
     {
-        return new QuarterSummary(array_map(static fn (array $row): QuarterMovement => new QuarterMovement((string) $row['id'], new \DateTimeImmutable((string) $row['date']), (bool) $row['income'], (string) $row['partyName'], (int) $row['baseCents'], (string) $row['tax'], (int) $row['taxCents'], (int) $row['surchargeCents'], (int) $row['withholdingCents'], (int) $row['totalCents']), $data));
+        return new QuarterSummary(array_map(static fn (array $row): QuarterMovement => new QuarterMovement((string) $row['id'], new \DateTimeImmutable((string) $row['date']), (bool) $row['income'], (string) $row['partyName'], (int) $row['baseCents'], (string) $row['tax'], (int) $row['taxCents'], (int) $row['surchargeCents'], (int) $row['withholdingCents'], (int) $row['totalCents'], (bool) ($row['taxExempt'] ?? false)), $data));
     }
 
     /** @return array<string, mixed> */

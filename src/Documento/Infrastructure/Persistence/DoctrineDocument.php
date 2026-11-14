@@ -61,6 +61,9 @@ class DoctrineDocument
     #[ORM\Column(length: 4, options: ['default' => 'iva'])]
     private string $tax = 'iva';
 
+    #[ORM\Column(options: ['default' => 0])]
+    private bool $taxExempt = false;
+
     #[ORM\Column(nullable: true)]
     private ?int $quotaCents = null;
 
@@ -116,6 +119,7 @@ class DoctrineDocument
         $this->baseCents = $document->baseCents();
         $this->taxRate = $document->taxRate()?->basisPoints();
         $this->tax = $document->tax()->value;
+        $this->taxExempt = $document->isTaxExempt();
         $this->quotaCents = $document->quotaCents();
         $this->totalCents = $document->totalCents();
         $this->surcharge = $document->surcharge()?->value;
@@ -158,6 +162,7 @@ class DoctrineDocument
             array_map(DocumentReviewData::restoreFile(...), $this->supportingFiles ?? []),
             $this->pendingRequest,
             $this->version,
+            $this->taxExempt,
         );
     }
 }

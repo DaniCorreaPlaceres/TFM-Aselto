@@ -42,7 +42,11 @@ final class Document
         private readonly array $supportingFiles = [],
         private readonly ?string $pendingRequest = null,
         private readonly int $version = 1,
+        private readonly bool $taxExempt = false,
     ) {
+        if ($taxExempt && (null !== $taxRate || null !== $surcharge || $quotaCents !== (null === $baseCents ? null : 0) || $totalCents !== (null === $baseCents ? null : $baseCents - ($withholdingQuotaCents ?? 0)))) {
+            throw new InvalidTaxExemption('Exemption requires no rate, no surcharge and a zero tax quota.');
+        }
         if (null !== $withholdingRate && MovementDirection::Income !== $direction) {
             throw new InvalidWithholding('Withholding is only available for income.');
         }
@@ -122,6 +126,9 @@ final class Document
 
     public function propose(DocumentDetails $details, ProposalOrigin $origin): self
     {
+        if ($details->isTaxExempt()) {
+            throw new InvalidTaxExemption('Exemption requires a human review.');
+        }
         $this->assertTax($details);
 
         if (DocumentStatus::Uploaded !== $this->status && DocumentStatus::Extracting !== $this->status) {
@@ -248,7 +255,7 @@ final class Document
             $missing[] = 'base';
         }
 
-        if (null === $details->taxRate()) {
+        if (null === $details->taxRate() && !$details->isTaxExempt()) {
             $missing[] = 'taxRate';
         }
 
@@ -347,6 +354,11 @@ final class Document
         return $this->tax;
     }
 
+    public function isTaxExempt(): bool
+    {
+        return $this->taxExempt;
+    }
+
     public function quotaCents(): ?int
     {
         return $this->quotaCents;
@@ -389,7 +401,7 @@ final class Document
 
     public function details(): DocumentDetails
     {
-        return new DocumentDetails($this->direction, $this->issuedOn, $this->partyName, $this->taxId, $this->baseCents, $this->taxRate, $this->tax, $this->surcharge, $this->withholdingRate);
+        return new DocumentDetails($this->direction, $this->issuedOn, $this->partyName, $this->taxId, $this->baseCents, $this->taxRate, $this->tax, $this->surcharge, $this->withholdingRate, $this->taxExempt);
     }
 
     /** @return list<ReviewRecord> */
@@ -463,6 +475,7 @@ final class Document
             $files ?? $this->supportingFiles,
             $pendingRequest,
             $this->version,
+            $details->isTaxExempt(),
         );
     }
 

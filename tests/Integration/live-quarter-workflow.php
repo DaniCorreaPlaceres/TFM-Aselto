@@ -240,15 +240,17 @@ try {
         $response->cancel();
     }
     $response = $http($admin, '/bandeja/'.$documentId);
-    $data = [...$data, ...$fields($response)];
+    $data = [...$data, ...$fields($response), 'tax_exempt' => '1', 'tax_rate' => '', 'surcharge' => ''];
     $check(302 === $http($admin, '/bandeja/'.$documentId, 'POST', $data)->getStatusCode(), 'Advisory validation must succeed with notifications enabled.');
     $fragment = $http($owner, '/ingresos?year=2026&quarter=4', fragment: true);
     $check(str_contains($fragment->getContent(), '100,00') && str_contains($fragment->getContent(), 'Pendientes actuales · 0'), 'A refreshed fragment must show validated figures and resolved pending counts.');
+    $check(str_contains($fragment->getContent(), 'IGIC · Exento') || str_contains($fragment->getContent(), 'IVA · Exento'), 'Refreshed movement rows must explicitly label exemption.');
     $url = '/clientes/'.$profileId.'/trimestre?year=2026&quarter=4';
     $response = $http($admin, $url);
     $check(302 === $http($admin, $url, 'POST', [...$fields($response), 'intent' => 'close'])->getStatusCode(), 'Closing must work with notification persistence.');
     $fragment = $http($owner, '/ingresos?year=2026&quarter=4', fragment: true);
     $check(str_contains($fragment->getContent(), 'Cerrado:') && str_contains($fragment->getContent(), '100,00'), 'The refreshed fragment must use the frozen snapshot.');
+    $check(str_contains($fragment->getContent(), '· Exento'), 'Frozen snapshots must retain the exemption label.');
     $response = $http($admin, $url);
     $check(302 === $http($admin, $url, 'POST', [...$fields($response), 'intent' => 'reopen'])->getStatusCode(), 'Reopening must work with notifications.');
     $check(str_contains($http($owner, '/ingresos?year=2026&quarter=4', fragment: true)->getContent(), 'Abierto:'), 'The refreshed fragment must show the reopened state.');

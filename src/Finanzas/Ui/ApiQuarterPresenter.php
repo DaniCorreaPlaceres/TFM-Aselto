@@ -39,7 +39,7 @@ final class ApiQuarterPresenter
             'taxes' => $summary->taxes(),
             'surcharge_cents' => $summary->surchargeCents(),
             'withholding_cents' => $summary->withholdingCents(),
-            'movements' => array_map(static fn ($movement): array => ['id' => $movement->id, 'issued_on' => $movement->date->format('Y-m-d'), 'direction' => $movement->income ? 'income' : 'expense', 'party_name' => $movement->partyName, 'base_cents' => $movement->baseCents, 'tax' => $movement->tax, 'tax_cents' => $movement->taxCents, 'surcharge_cents' => $movement->surchargeCents, 'withholding_cents' => $movement->withholdingCents, 'total_cents' => $movement->totalCents], $summary->movements),
+            'movements' => array_map(static fn ($movement): array => ['id' => $movement->id, 'issued_on' => $movement->date->format('Y-m-d'), 'direction' => $movement->income ? 'income' : 'expense', 'party_name' => $movement->partyName, 'base_cents' => $movement->baseCents, 'tax' => $movement->tax, 'tax_exempt' => $movement->taxExempt, 'tax_cents' => $movement->taxCents, 'surcharge_cents' => $movement->surchargeCents, 'withholding_cents' => $movement->withholdingCents, 'total_cents' => $movement->totalCents], $summary->movements),
         ];
     }
 

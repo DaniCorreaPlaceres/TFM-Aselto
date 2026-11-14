@@ -99,6 +99,8 @@ final class FirmInboxController extends AbstractController
                 } catch (IncompleteDocument $exception) {
                     $fieldErrors = $form->fieldErrors($exception, $document->tax());
                     $error = 'Completa los campos marcados antes de validar.';
+                } catch (\App\Documento\Domain\InvalidTaxExemption) {
+                    $error = 'Un registro exento no puede tener porcentaje de impuesto ni recargo.';
                 } catch (InvalidTaxRate) {
                     $fieldErrors['taxRate'] = $form->rateError($document->tax());
                     $error = 'Revisa el porcentaje del impuesto.';

@@ -69,9 +69,9 @@ final class ApiDocumentController extends AbstractController
         $data = $this->input->json($request, ApiDocumentInput::FIELDS);
         $arguments = $this->input->arguments($data);
         if ('api_document_confirm' === $request->attributes->get('_route')) {
-            $confirm->execute($actor->id(), $id, ...$arguments, expectedVersion: $this->input->version($data));
+            $confirm->execute($actor->id(), $id, ...$arguments, expectedVersion: $this->input->version($data), taxExempt: $data['tax_exempt'] ?? false);
         } else {
-            $save->execute($actor->id(), $id, ...$arguments, expectedVersion: $this->input->version($data));
+            $save->execute($actor->id(), $id, ...$arguments, expectedVersion: $this->input->version($data), taxExempt: $data['tax_exempt'] ?? false);
         }
 
         return $this->documentResponse($request, $actor, $id);

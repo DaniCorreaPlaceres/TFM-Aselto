@@ -19,7 +19,7 @@ final class DoctrineFinancialRecords implements FinancialRecords
         if (null !== $firmId) {
             $parameters['firm'] = $firmId;
         }
-        $rows = $this->entityManager->getConnection()->fetchAllAssociative('SELECT id, issued_on, status, direction, party_name, original_name, base_cents, tax, quota_cents, surcharge_quota_cents, withholding_quota_cents, total_cents, pending_request, version FROM client_document WHERE client_user_id = :owner AND '.$where.' ORDER BY id', $parameters);
+        $rows = $this->entityManager->getConnection()->fetchAllAssociative('SELECT id, issued_on, status, direction, party_name, original_name, base_cents, tax, tax_exempt, quota_cents, surcharge_quota_cents, withholding_quota_cents, total_cents, pending_request, version FROM client_document WHERE client_user_id = :owner AND '.$where.' ORDER BY id', $parameters);
 
         return array_map(static fn (array $row): FinancialRecord => new FinancialRecord(
             (string) $row['id'],
@@ -35,6 +35,7 @@ final class DoctrineFinancialRecords implements FinancialRecords
             (int) ($row['withholding_quota_cents'] ?? 0),
             null === $row['total_cents'] ? null : (int) $row['total_cents'],
             (int) $row['version'],
+            (bool) $row['tax_exempt'],
         ), $rows);
     }
 }

@@ -1,4 +1,6 @@
         <form class="document-form" method="post" novalidate data-controller="document-review" data-document-review-tax-name-value="{{ document.taxName }}" data-action="input->document-review#recalculate change->document-review#recalculate submit->document-review#submit">
+            <label class="choice"><input type="checkbox" name="tax_exempt" value="1" {{ document.taxExempt ? 'checked' : '' }} data-document-review-target="exemption" aria-describedby="exemption-hint"> Exento de {{ document.taxName }}</label>
+            <p id="exemption-hint" class="client-hint">Márcalo solo si el documento está exento. Es distinto del tipo 0 %. Al marcarlo se eliminan el porcentaje del impuesto y el recargo. La retención de IRPF, si corresponde, se conserva. Aselto no decide si procede la exención.</p>
             <fieldset data-field="direction" data-message="Indica si es un ingreso o un gasto.">
                 <legend>Tipo</legend>
                 <label class="choice">
@@ -37,7 +39,7 @@
                 <p id="base-error" class="field-error" {% if fieldErrors.base is not defined %}hidden{% endif %}>{{ fieldErrors.base|default('') }}</p>
             </div>
 
-            <div data-field="taxRate" data-message="{{ document.rateMessage }}" data-invalid="{{ document.rateError }}">
+            <div data-field="taxRate" data-document-review-target="rateGroup" data-message="{{ document.rateMessage }}" data-invalid="{{ document.rateError }}">
                 <label for="tax_rate">{% if document.manualTaxRate %}Porcentaje de IPSI{% else %}Tipo de {{ document.taxName }}{% endif %}</label>
                 {% if document.manualTaxRate %}
                     <input id="tax_rate" name="tax_rate" type="text" inputmode="decimal" value="{{ document.taxRate|replace({'.': ','}) }}" data-document-review-target="rate" aria-describedby="tax-rate-hint{% if fieldErrors.taxRate is defined %} taxRate-error{% endif %}" {% if fieldErrors.taxRate is defined %}aria-invalid="true"{% endif %}>
