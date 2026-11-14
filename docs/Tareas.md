@@ -57,7 +57,7 @@ Las invitaciones a asesorías y a equipos ya tienen una primera implementación 
 
 ## Comercialización y contenido público
 
-- [ ] 33. Reorientar la home a la venta del producto: una sección para autónomos y empresas y otra para asesorías, con mensajes y llamadas a la acción diferenciados. Destacar el control de facturas y documentación de los clientes de una asesoría. Cambiar «Tu acceso» por «Tu cuenta» cuando hay sesión iniciada.
+- [x] 33. Reorientar la home a la venta del producto: secciones para autónomos/empresas y asesorías, beneficios y acciones diferenciados, ejemplo documental ilustrativo y proceso en tres pasos. Acciones conectadas al registro y acceso existentes; «Tu cuenta» con sesión iniciada. Detalle en `sdd/commercial-home.md`.
 - [ ] 34. Crear tres landing pages enlazadas desde la home: autónomos, empresas y asesorías. Adaptar a cada público los problemas, beneficios, ejemplos y llamadas a la acción.
 - [ ] 35. Reforzar la propuesta de IA en home y landings con textos, iconos e imágenes coherentes con la marca. Explicar cómo ayuda a organizar y extraer información, manteniendo la revisión humana y sin prometer validación fiscal automática o capacidades no implementadas.
 - [ ] 36. Añadir un footer común con «Quiénes somos», privacidad, cookies, precios y enlaces a las landings de autónomos, empresas y asesorías. Incluir «© [año] Daniel Correa Placeres», con el año actualizado.
