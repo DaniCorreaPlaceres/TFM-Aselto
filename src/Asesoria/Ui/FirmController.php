@@ -6,6 +6,7 @@ use App\Asesoria\Application\CreateFirm;
 use App\Asesoria\Application\ListFirms;
 use App\Asesoria\Domain\InvalidFirm;
 use App\Identidad\Domain\EmailAlreadyUsed;
+use App\Identidad\Infrastructure\Security\SecurityUser;
 use App\Shared\Domain\InvalidFiscalContact;
 use App\Shared\Domain\SpanishProvince;
 use App\Shared\Ui\FiscalContactForm;
@@ -19,8 +20,13 @@ final class FirmController extends AbstractController
     #[Route('/asesorias', name: 'firms', methods: ['GET'])]
     public function list(ListFirms $listFirms): Response
     {
+        $user = $this->getUser();
+        if (!$user instanceof SecurityUser) {
+            throw $this->createAccessDeniedException();
+        }
+
         return $this->render('firm/list.html.twig', [
-            'firms' => $listFirms->execute(),
+            'firms' => $listFirms->execute($user->id()),
         ]);
     }
 

@@ -16,8 +16,8 @@
             <div class="table-card" data-controller="table"><table class="table"><caption>Asesorías de la plataforma</caption><thead><tr><th>Asesoría</th><th>Correo del admin</th></tr></thead><tbody>
                 {% for firm in firms %}
                     <tr><td>
-                        <strong>{{ firm.name }}</strong>
-                        </td><td>{{ firm.adminEmail }}
+                        <a href="{{ path('platform_firm_detail', {id: firm.id}) }}"><strong>{{ firm.name }}</strong></a>
+                        </td><td>{{ firm.adminEmail ?: 'Sin un admin único' }}
                     </td></tr>
                 {% endfor %}
             </tbody></table></div>

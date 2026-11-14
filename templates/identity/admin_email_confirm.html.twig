@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+{% block title %}Confirmar correo{% endblock %}
+{% block body %}
+<main class="panel">
+    <h1>{{ done ? 'Correo confirmado' : 'Confirmar nuevo correo' }}</h1>
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    {% if done %}
+        <p>Ya puedes entrar con el nuevo correo y tu contraseña habitual. Se han invalidado tus accesos y enlaces anteriores.</p>
+        <a class="action" href="{{ path('login') }}">Entrar</a>
+        <p>Si todavía no habías creado tu contraseña, solicítala desde <a href="{{ path('password_reset_request') }}">He olvidado mi contraseña</a> con el nuevo correo.</p>
+    {% elseif change %}
+        <p>Confirma que quieres usar <strong>{{ change.newEmail }}</strong> para tu cuenta de admin de asesoría. Tu cuenta y permisos se conservan.</p>
+        <p>Al confirmar se invalidan tus accesos y enlaces anteriores. Abrir este enlace no realiza ningún cambio.</p>
+        <form method="post"><input type="hidden" name="_csrf_token" value="{{ csrf_token('confirm_admin_email_' ~ change.userId) }}"><button type="submit">Confirmar nuevo correo</button></form>
+    {% else %}<a class="action" href="{{ path('login') }}">Ir a entrar</a>{% endif %}
+</main>
+{% endblock %}

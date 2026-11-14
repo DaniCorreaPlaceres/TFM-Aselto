@@ -4,10 +4,11 @@ namespace App\Identidad\Infrastructure\Security;
 
 use App\Identidad\Domain\Role;
 use App\Identidad\Domain\User;
+use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-final class SecurityUser implements UserInterface, PasswordAuthenticatedUserInterface
+final class SecurityUser implements UserInterface, PasswordAuthenticatedUserInterface, EquatableInterface
 {
     /**
      * @param list<string> $roles
@@ -20,6 +21,7 @@ final class SecurityUser implements UserInterface, PasswordAuthenticatedUserInte
         private readonly Role $role,
         private readonly ?string $firmId,
         private readonly bool $activated,
+        private readonly int $authVersion,
     ) {
     }
 
@@ -33,6 +35,7 @@ final class SecurityUser implements UserInterface, PasswordAuthenticatedUserInte
             $user->role(),
             $user->firmId(),
             $user->isActivated(),
+            $user->authVersion(),
         );
     }
 
@@ -73,6 +76,23 @@ final class SecurityUser implements UserInterface, PasswordAuthenticatedUserInte
 
     public function eraseCredentials(): void
     {
+    }
+
+    public function authVersion(): int
+    {
+        return $this->authVersion;
+    }
+
+    public function isEqualTo(UserInterface $user): bool
+    {
+        // Sessions serialized before authVersion existed must be reauthenticated.
+        $version = get_object_vars($this)['authVersion'] ?? null;
+        $otherVersion = $user instanceof self ? (get_object_vars($user)['authVersion'] ?? null) : null;
+
+        return $user instanceof self && is_int($version) && $version === $otherVersion
+            && $this->id === $user->id && $this->email === $user->email
+            && $this->passwordHash === $user->passwordHash
+            && $this->role === $user->role && $this->firmId === $user->firmId && $this->activated === $user->activated;
     }
 
     private static function securityRole(Role $role): string

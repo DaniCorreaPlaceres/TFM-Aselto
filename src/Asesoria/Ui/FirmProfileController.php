@@ -4,6 +4,7 @@ namespace App\Asesoria\Ui;
 
 use App\Asesoria\Application\OpenFirmProfile;
 use App\Asesoria\Application\SaveFirmProfile;
+use App\Asesoria\Domain\FirmChanged;
 use App\Asesoria\Domain\FirmProfileDenied;
 use App\Asesoria\Domain\MissingFirm;
 use App\Identidad\Infrastructure\Security\SecurityUser;
@@ -33,6 +34,7 @@ final class FirmProfileController extends AbstractController
         }
 
         $error = null;
+        $status = 422;
         $fields = [
             'taxId' => $firm->contact()->taxId(),
             'phone' => $firm->contact()->phone(),
@@ -49,12 +51,15 @@ final class FirmProfileController extends AbstractController
                 $fields = self::input($request);
 
                 try {
-                    $saveFirmProfile->execute($user->id(), FiscalContactForm::read(...array_values($fields)));
+                    $saveFirmProfile->execute($user->id(), FiscalContactForm::read(...array_values($fields)), $request->request->getInt('version'));
                     $this->addFlash('success', 'Los datos fiscales están guardados.');
 
                     return $this->redirectToRoute('firm_profile');
                 } catch (InvalidFiscalContact $exception) {
                     $error = FiscalContactForm::message($exception);
+                } catch (FirmChanged) {
+                    $error = 'Los datos han cambiado. Recarga la página antes de guardar.';
+                    $status = 409;
                 } catch (FirmProfileDenied) {
                     throw $this->createAccessDeniedException();
                 }
@@ -63,10 +68,11 @@ final class FirmProfileController extends AbstractController
 
         return $this->render('firm/profile.html.twig', [
             'name' => $firm->name(),
+            'version' => $request->isMethod('POST') ? $request->request->getInt('version') : $firm->version(),
             'error' => $error,
             'provinces' => SpanishProvince::names(),
             ...$fields,
-        ]);
+        ], new Response(status: null === $error ? 200 : $status));
     }
 
     /**

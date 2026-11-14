@@ -5,12 +5,12 @@ namespace App\Identidad\Application;
 use App\Identidad\Domain\AccessPurpose;
 use App\Identidad\Domain\AccessToken;
 use App\Identidad\Domain\AccessTokenRepository;
+use App\Identidad\Domain\AccountTransaction;
 use App\Identidad\Domain\InvalidAccessToken;
 use App\Identidad\Domain\PasswordHasher;
 use App\Identidad\Domain\PasswordTooShort;
 use App\Identidad\Domain\UserRepository;
 use App\Shared\Domain\Clock;
-use App\Shared\Domain\Transaction;
 
 final class ChoosePassword
 {
@@ -19,7 +19,7 @@ final class ChoosePassword
         private readonly UserRepository $users,
         private readonly PasswordHasher $passwords,
         private readonly Clock $clock,
-        private readonly Transaction $transaction,
+        private readonly AccountTransaction $transaction,
     ) {
     }
 
@@ -36,13 +36,9 @@ final class ChoosePassword
             throw new PasswordTooShort('The password is too short.');
         }
 
-        $user = $this->users->find($token->userId());
-
-        if (null === $user) {
-            throw new InvalidAccessToken('The account does not exist.');
-        }
-
-        $this->transaction->run(function () use ($user, $plainPassword, $token): void {
+        $this->transaction->forUser($token->userId(), function () use ($rawToken, $plainPassword, $purpose): void {
+            $token = $this->usableToken($rawToken, $purpose);
+            $user = $this->users->find($token->userId()) ?? throw new InvalidAccessToken('The account does not exist.');
             $this->users->save($user->withPassword($this->passwords->hash($plainPassword)));
             $this->tokens->save($token->use($this->clock->now()));
         });

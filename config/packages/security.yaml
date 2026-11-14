@@ -53,6 +53,7 @@ security:
         - { path: ^/registro, roles: PUBLIC_ACCESS }
         - { path: ^/invitacion/, roles: PUBLIC_ACCESS }
         - { path: ^/activar, roles: PUBLIC_ACCESS }
+        - { path: ^/confirmar-correo-admin/, roles: PUBLIC_ACCESS }
         - { path: ^/recuperar, roles: PUBLIC_ACCESS }
         - { path: ^/$, roles: PUBLIC_ACCESS }
         - { path: ^/asesorias, roles: ROLE_SUPERADMIN }

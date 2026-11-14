@@ -30,6 +30,9 @@ class DoctrineUser
     #[ORM\Column(options: ['default' => 0])]
     private bool $activated = false;
 
+    #[ORM\Column(options: ['default' => 1])]
+    private int $authVersion = 1;
+
     public function apply(User $user): void
     {
         $this->id = $user->id();
@@ -38,10 +41,11 @@ class DoctrineUser
         $this->role = $user->role();
         $this->firmId = $user->firmId();
         $this->activated = $user->isActivated();
+        $this->authVersion = $user->authVersion();
     }
 
     public function toDomain(): User
     {
-        return new User($this->id, $this->email, $this->passwordHash, $this->role, $this->firmId, $this->activated);
+        return new User($this->id, $this->email, $this->passwordHash, $this->role, $this->firmId, $this->activated, $this->authVersion);
     }
 }

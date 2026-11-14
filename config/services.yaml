@@ -31,6 +31,7 @@ services:
             - '../src/Identidad/Infrastructure/Persistence/DoctrineUser.php'
             - '../src/Identidad/Infrastructure/Persistence/DoctrineAccessToken.php'
             - '../src/Identidad/Infrastructure/Persistence/DoctrineInvitation.php'
+            - '../src/Identidad/Infrastructure/Persistence/DoctrineAdminEmailChange.php'
             - '../src/Asesoria/Infrastructure/Persistence/DoctrineFirm.php'
             - '../src/Cliente/Infrastructure/Persistence/DoctrineClient.php'
             - '../src/Documento/Infrastructure/Persistence/DoctrineDocument.php'
@@ -54,6 +55,18 @@ services:
 
     App\Identidad\Domain\InvitationNotifier:
         alias: App\Identidad\Infrastructure\Mail\SymfonyInvitationNotifier
+
+    App\Identidad\Domain\AdminEmailChangeRepository:
+        alias: App\Identidad\Infrastructure\Persistence\DoctrineAdminEmailChangeRepository
+
+    App\Identidad\Domain\AccountTransaction:
+        alias: App\Identidad\Infrastructure\Persistence\DoctrineAccountTransaction
+
+    App\Identidad\Domain\EmailChangeNotifier:
+        alias: App\Identidad\Infrastructure\Mail\SymfonyEmailChangeNotifier
+
+    App\Asesoria\Domain\FirmAdministrationTransaction:
+        alias: App\Asesoria\Infrastructure\Persistence\DoctrineFirmAdministrationTransaction
 
     App\Identidad\Domain\TokenGenerator:
         alias: App\Identidad\Infrastructure\Security\RandomTokenGenerator

@@ -3,8 +3,10 @@
 namespace App\Asesoria\Infrastructure\Persistence;
 
 use App\Asesoria\Domain\Firm;
+use App\Asesoria\Domain\FirmChanged;
 use App\Asesoria\Domain\FirmRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\OptimisticLockException;
 
 final class DoctrineFirmRepository implements FirmRepository
 {
@@ -36,10 +38,16 @@ final class DoctrineFirmRepository implements FirmRepository
 
         if (!$record instanceof DoctrineFirm) {
             $record = new DoctrineFirm();
+        } elseif ($record->version() !== $firm->version()) {
+            throw new FirmChanged('The firm changed.');
         }
 
         $record->apply($firm);
         $this->entityManager->persist($record);
-        $this->entityManager->flush();
+        try {
+            $this->entityManager->flush();
+        } catch (OptimisticLockException $error) {
+            throw new FirmChanged('The firm changed.', previous: $error);
+        }
     }
 }

@@ -35,6 +35,15 @@ class DoctrineFirm
     #[ORM\Column(length: 40, options: ['default' => ''])]
     private string $province = '';
 
+    #[ORM\Version]
+    #[ORM\Column(type: 'integer', options: ['default' => 1])]
+    private int $version = 1;
+
+    public function version(): int
+    {
+        return $this->version;
+    }
+
     public function apply(Firm $firm): void
     {
         $this->id = $firm->id();
@@ -53,6 +62,7 @@ class DoctrineFirm
             $this->id,
             $this->name,
             FiscalContact::stored($this->taxId, $this->phone, $this->street, $this->postalCode, $this->municipality, $this->province),
+            $this->version,
         );
     }
 }
