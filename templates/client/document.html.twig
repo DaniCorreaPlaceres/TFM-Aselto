@@ -44,6 +44,7 @@
         </form>
     {% endif %}
     {% if document.editable %}
+        {% if entryDirection %}<p class="warning">Has elegido añadir un {{ entryDirection }}. El tipo está preseleccionado para que lo revises; todavía no se ha guardado este cambio. Comprueba todos los datos antes de confirmar.</p>{% endif %}
         {% if document.proposal == 'extracted' %}
             <p>Hemos extraído estos datos. Revísalos antes de confirmar.</p>
         {% elseif document.proposal == 'sample' %}

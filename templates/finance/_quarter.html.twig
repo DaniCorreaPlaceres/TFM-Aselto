@@ -1,11 +1,18 @@
-<div class="quarter-view" data-controller="live-quarter" data-live-quarter-auth-value="{{ path('quarter_subscription') }}" data-live-quarter-url-value="{{ app.request.requestUri }}">
-    <h1>Ingresos y gastos</h1>
-<p>{{ quarter.access.clientName }} · {{ quarter.firmId ? 'Validado por la asesoría' : 'Control personal' }}</p>
-    <form method="get">
-<label for="quarter-year">Año</label><input id="quarter-year" name="year" type="number" min="1" max="9999" value="{{ quarter.period.year }}" required>
-<label for="quarter-number">Trimestre</label><select id="quarter-number" name="quarter">{% for number in 1..4 %}<option value="{{ number }}" {{ quarter.period.number == number ? 'selected' : '' }}>{{ number }}.º trimestre</option>{% endfor %}</select>
-<input type="hidden" name="scope" value="{{ quarter.firmId ?? 'personal' }}"><button type="submit">Consultar</button>
-</form>
+<div class="quarter-view" data-controller="live-quarter section-navigation" data-action="click->section-navigation#navigate" data-live-quarter-auth-value="{{ path('quarter_subscription') }}" data-live-quarter-url-value="{{ app.request.requestUri }}">
+    <header class="quarter-heading">
+        <div><p class="eyebrow">Tu actividad, con perspectiva</p><h1>Ingresos y gastos</h1><p>{{ quarter.access.clientName }} · {{ quarter.firmId ? 'Validado por la asesoría' : 'Control personal' }}</p></div>
+        {% if quarter.access.owner %}<div class="quarter-actions" aria-label="Añadir un registro">
+            <a class="action" href="{{ path('client_document_new', {direction: 'ingreso'}) }}">{{ include('ui/_icon.html.twig', {icon: 'document'}) }} Añadir ingreso</a>
+            <a class="action action-secondary" href="{{ path('client_document_new', {direction: 'gasto'}) }}">{{ include('ui/_icon.html.twig', {icon: 'document'}) }} Añadir gasto</a>
+        </div>{% endif %}
+    </header>
+    {% if quarter.access.owner %}<p class="quarter-entry-hint">Añade el documento y revisa sus datos antes de confirmar. Su fecha determinará el trimestre al que pertenece.</p>{% endif %}
+    <form method="get" class="quarter-period" aria-label="Consultar un periodo">
+        <div><label for="quarter-year">Año</label><input id="quarter-year" name="year" type="number" min="1" max="9999" value="{{ quarter.period.year }}" required></div>
+        <div><label for="quarter-number">Trimestre</label><select id="quarter-number" name="quarter">{% for number in 1..4 %}<option value="{{ number }}" {{ quarter.period.number == number ? 'selected' : '' }}>{{ number }}.º trimestre</option>{% endfor %}</select></div>
+        <input type="hidden" name="scope" value="{{ quarter.firmId ?? 'personal' }}"><button type="submit">Consultar periodo</button>
+    </form>
+    <nav class="quarter-navigation" aria-label="Apartados del trimestre"><a href="#quarter-summary" data-turbo="false">Resumen</a><a href="#quarter-movements" data-turbo="false">Movimientos</a><a href="#quarter-pending" data-turbo="false">Pendientes</a><a href="#quarter-history" data-turbo="false">Histórico</a></nav>
     {{ include('finance/_live_status.html.twig') }}
     <div data-live-quarter-target="content">{{ include('finance/_quarter_content.html.twig') }}</div>
 </div>
