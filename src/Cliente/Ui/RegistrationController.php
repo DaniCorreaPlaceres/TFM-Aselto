@@ -22,7 +22,7 @@ final class RegistrationController extends AbstractController
     {
         $name = (string) $request->request->get('name', '');
         $email = (string) $request->request->get('email', '');
-        $kind = (string) $request->request->get('kind', '');
+        $kind = $request->request->getString('kind', $request->isMethod('GET') ? $request->query->getString('kind') : '');
         $taxId = (string) $request->request->get('taxId', '');
         $phone = (string) $request->request->get('phone', '');
         $street = (string) $request->request->get('street', '');
