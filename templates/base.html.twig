@@ -21,7 +21,7 @@
         <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
         {% endif %}
     </head>
-    {% set commercial = app.request.attributes.get('_route') == 'commercial_home' %}
+    {% set commercial = app.request.attributes.get('_route') starts with 'commercial_' %}
     {% set workspace = app.user and not commercial %}
     <body class="{{ workspace ? 'workspace-page' : (commercial ? 'commercial-page' : 'guest-page') }}">
         <a class="skip-link" href="#main-content" data-turbo="false">Ir al contenido</a>

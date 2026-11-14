@@ -44,7 +44,7 @@
                     <p>Reúne las facturas y justificantes de tu actividad. Consulta tus ingresos y gastos y distingue lo pendiente de lo confirmado.</p>
                     <ul><li>Tus documentos, ordenados y a mano.</li><li>El trimestre con cifras y pendientes.</li><li>Por tu cuenta o con tu asesoría.</li></ul>
                     <p class="home-audience-detail">Sin asesoría, confirmas para tu control personal. Con asesoría, su equipo revisa y valida.</p>
-                    <a class="action action-secondary" href="{{ signedIn ? entryPath : path('client_register') }}">{{ signedIn ? 'Tu cuenta' : 'Crear mi cuenta' }} <span aria-hidden="true">→</span></a>
+                    <div class="hero-actions"><a class="action action-secondary" href="{{ path('commercial_self_employed') }}">Soy autónomo</a><a class="action action-secondary" href="{{ path('commercial_company') }}">Soy empresa</a></div>
                 </article>
                 <article class="home-audience home-audience-advisory" id="asesorias">
                     <div class="home-audience-icon">{{ include('ui/_icon.html.twig', {icon: 'people'}) }}</div>
@@ -52,7 +52,7 @@
                     <p>Controla la documentación de cada cliente desde una bandeja compartida. Revisa, pide lo que falta y valida antes de cerrar el trimestre.</p>
                     <ul><li>Facturas y justificantes por cliente.</li><li>Mensajes y solicitudes en el mismo lugar.</li><li>Cifras validadas, cierres e histórico.</li></ul>
                     <p class="home-audience-detail">Admin y gestores trabajan dentro de su asesoría. Cada cliente conserva su propio espacio.</p>
-                    <a class="action action-secondary" href="#acceso-asesorias">Cómo acceder como asesoría <span aria-hidden="true">→</span></a>
+                    <a class="action action-secondary" href="{{ path('commercial_advisory') }}">Descubre Aselto para asesorías <span aria-hidden="true">→</span></a>
                 </article>
             </div>
         </section>
