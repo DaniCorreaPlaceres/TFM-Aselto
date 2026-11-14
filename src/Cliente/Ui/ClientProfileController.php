@@ -5,6 +5,7 @@ namespace App\Cliente\Ui;
 use App\Cliente\Application\OpenClientFiscalProfile;
 use App\Cliente\Application\SaveClientFiscalProfile;
 use App\Cliente\Application\ShowClientHome;
+use App\Cliente\Domain\ClientChanged;
 use App\Cliente\Domain\ClientProfileLocked;
 use App\Cliente\Domain\UnknownClient;
 use App\Identidad\Domain\Role;
@@ -34,6 +35,7 @@ final class ClientProfileController extends AbstractController
 
         $error = null;
         $fields = self::fromContact($access->client()->contact());
+        $home = $showClientHome->execute($user->id());
 
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('save_client_profile', (string) $request->request->get('_csrf_token'))) {
@@ -42,17 +44,19 @@ final class ClientProfileController extends AbstractController
                 $fields = self::input($request);
 
                 try {
-                    $saveClientFiscalProfile->own($user->id(), FiscalContactForm::read(...array_values($fields)));
+                    $saveClientFiscalProfile->own($user->id(), FiscalContactForm::read(...array_values($fields)), $request->request->getInt('version'));
                     $this->addFlash('success', 'Los datos fiscales están guardados.');
 
                     return $this->redirectToRoute('client_profile');
                 } catch (InvalidFiscalContact $exception) {
                     $error = FiscalContactForm::message($exception);
+                } catch (ClientChanged) {
+                    $error = 'Los datos han cambiado. Recarga la página antes de guardar.';
+                } catch (UnknownClient) {
+                    throw $this->createNotFoundException();
                 }
             }
         }
-
-        $home = $showClientHome->execute($user->id());
 
         return $this->render('client/profile.html.twig', [
             'section' => '',
@@ -61,9 +65,10 @@ final class ClientProfileController extends AbstractController
             'firmName' => $home->firmName(),
             'error' => $error,
             'csrf' => 'save_client_profile',
+            'version' => $request->isMethod('POST') ? $request->request->getInt('version') : $access->client()->version(),
             'provinces' => SpanishProvince::names(),
             ...$fields,
-        ]);
+        ], new Response(status: null === $error ? 200 : 422));
     }
 
     #[Route('/clientes/{id}', name: 'client_fiscal', methods: ['GET', 'POST'], requirements: ['id' => self::ID])]
@@ -75,6 +80,14 @@ final class ClientProfileController extends AbstractController
             $access = $openClientFiscalProfile->forActor($user->id(), $id);
         } catch (UnknownClient) {
             throw $this->createNotFoundException();
+        }
+
+        if (Role::Superadmin === $user->role()) {
+            if ($request->isMethod('POST')) {
+                throw $this->createAccessDeniedException();
+            }
+
+            return $this->redirectToRoute('platform_independent_client', ['id' => $id]);
         }
 
         $error = null;
@@ -91,7 +104,7 @@ final class ClientProfileController extends AbstractController
                 $fields = self::input($request);
 
                 try {
-                    $saveClientFiscalProfile->byActor($user->id(), $id, FiscalContactForm::read(...array_values($fields)));
+                    $saveClientFiscalProfile->byActor($user->id(), $id, FiscalContactForm::read(...array_values($fields)), $request->request->getInt('version'));
                     $this->addFlash('success', 'Los datos fiscales están guardados.');
 
                     return $this->redirectToRoute('client_fiscal', ['id' => $id]);
@@ -99,6 +112,10 @@ final class ClientProfileController extends AbstractController
                     $error = FiscalContactForm::message($exception);
                 } catch (ClientProfileLocked) {
                     throw $this->createAccessDeniedException();
+                } catch (ClientChanged) {
+                    $error = 'Los datos han cambiado. Recarga la página antes de guardar.';
+                } catch (UnknownClient) {
+                    throw $this->createNotFoundException();
                 }
             }
         }
@@ -110,9 +127,10 @@ final class ClientProfileController extends AbstractController
             'editable' => $access->editable(),
             'error' => $error,
             'csrf' => 'save_client_fiscal',
+            'version' => $request->isMethod('POST') ? $request->request->getInt('version') : $access->client()->version(),
             'provinces' => SpanishProvince::names(),
             ...$fields,
-        ]);
+        ], new Response(status: null === $error ? 200 : 422));
     }
 
     private function client(): SecurityUser

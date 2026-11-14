@@ -3,8 +3,10 @@
 namespace App\Cliente\Infrastructure\Persistence;
 
 use App\Cliente\Domain\Client;
+use App\Cliente\Domain\ClientChanged;
 use App\Cliente\Domain\ClientRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\OptimisticLockException;
 
 final class DoctrineClientRepository implements ClientRepository
 {
@@ -60,11 +62,17 @@ final class DoctrineClientRepository implements ClientRepository
 
         if (!$record instanceof DoctrineClient) {
             $record = new DoctrineClient();
+        } elseif ($record->version() !== $client->version()) {
+            throw new ClientChanged('Client profile changed.');
         }
 
         $record->apply($client);
         $this->entityManager->persist($record);
-        $this->entityManager->flush();
+        try {
+            $this->entityManager->flush();
+        } catch (OptimisticLockException $error) {
+            throw new ClientChanged('Client profile changed.', previous: $error);
+        }
     }
 
     /**

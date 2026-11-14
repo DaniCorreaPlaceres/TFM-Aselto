@@ -20,7 +20,7 @@ final class OpenClientFiscalProfile
         $user = $this->users->find($userId);
         $client = $this->clients->findByUserId($userId);
 
-        if (null === $user || null === $client || Role::Client !== $user->role()) {
+        if (null === $user || !$user->isActivated() || null === $client || Role::Client !== $user->role() || $user->firmId() !== $client->firmId()) {
             throw new UnknownClient('The client does not exist.');
         }
 
@@ -32,13 +32,13 @@ final class OpenClientFiscalProfile
         $actor = $this->users->find($actorId);
         $client = $this->clients->find($clientId);
 
-        if (null === $actor || null === $client) {
+        if (null === $actor || !$actor->isActivated() || null === $client) {
             throw new UnknownClient('The client does not exist.');
         }
 
         $owner = $this->users->find($client->userId());
 
-        if (null === $owner) {
+        if (null === $owner || Role::Client !== $owner->role() || $owner->firmId() !== $client->firmId()) {
             throw new UnknownClient('The client does not exist.');
         }
 

@@ -12,8 +12,8 @@ use App\Cliente\Domain\UnknownClient;
 use App\Identidad\Domain\Role;
 use App\Identidad\Domain\User;
 use App\Identidad\Domain\UserRepository;
+use App\Shared\Domain\ClientTransaction;
 use App\Shared\Domain\FiscalContact;
-use App\Shared\Domain\Transaction;
 use PHPUnit\Framework\TestCase;
 
 final class ClientFiscalProfileTest extends TestCase
@@ -186,10 +186,10 @@ final class ProfileUserRepository implements UserRepository
     }
 }
 
-final class ProfileTransaction implements Transaction
+final class ProfileTransaction implements ClientTransaction
 {
-    public function run(callable $operation): void
+    public function run(string $ownerId, callable $operation): mixed
     {
-        $operation();
+        return $operation();
     }
 }

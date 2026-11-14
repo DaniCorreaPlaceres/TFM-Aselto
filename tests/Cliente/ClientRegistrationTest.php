@@ -90,10 +90,14 @@ final class ClientRegistrationTest extends TestCase
             ->execute('Taller Sur', ClientKind::Company, 'sur@example.test', $firm->id(), $this->contact('B12345674'));
 
         self::assertSame($firm->id(), $client->firmId());
-        $listings = (new ListClients($clients, $users))->execute($firm->id());
+        $adminId = '00000000-0000-4000-8000-000000000090';
+        $rootId = '00000000-0000-4000-8000-000000000091';
+        $users->save(new User($adminId, 'admin-list@example.test', 'hash', Role::FirmAdmin, $firm->id(), true));
+        $users->save(new User($rootId, 'root-list@example.test', 'hash', Role::Superadmin, null, true));
+        $listings = (new ListClients($clients, $users))->execute($adminId);
         self::assertCount(1, $listings);
         self::assertSame('sur@example.test', $listings[0]->email());
-        self::assertSame([], (new ListClients($clients, $users))->execute(null));
+        self::assertSame([], (new ListClients($clients, $users))->execute($rootId));
     }
 
     public function testAMissingFirmIsRejected(): void
@@ -130,7 +134,9 @@ final class ClientRegistrationTest extends TestCase
         $this->useCase($firms, $users, $clients)
             ->execute('Ana', ClientKind::SelfEmployed, 'ana@example.test', $north->id(), $this->contact());
 
-        self::assertSame([], (new ListClients($clients, $users))->execute($south->id()));
+        $adminId = '00000000-0000-4000-8000-000000000092';
+        $users->save(new User($adminId, 'south-list@example.test', 'hash', Role::FirmAdmin, $south->id(), true));
+        self::assertSame([], (new ListClients($clients, $users))->execute($adminId));
     }
 
     private function contact(string $taxId = '00000000T'): FiscalContact

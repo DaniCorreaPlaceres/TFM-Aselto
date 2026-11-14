@@ -77,7 +77,7 @@ final class ClientController extends AbstractController
 
         $clients = [];
 
-        foreach ($listClients->execute($firmId) as $client) {
+        foreach ($listClients->execute($current->id()) as $client) {
             $clients[] = [
                 'id' => $client->id(),
                 'name' => $client->name(),
@@ -101,7 +101,7 @@ final class ClientController extends AbstractController
             'province' => $province,
             'provinces' => SpanishProvince::names(),
             'error' => $error,
-        ]);
+        ], new Response(status: null === $error ? 200 : 422));
     }
 
     private static function kind(string $value): ClientKind
