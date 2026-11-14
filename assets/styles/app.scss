@@ -138,6 +138,7 @@ legend { float: none; width: auto; font-size: 1.125rem; font-weight: 650; paddin
 .home-close h2, .home-close p { color: white; }
 .home-close-inner { padding-top: 3.5rem; padding-bottom: 3.5rem; }
 .home-note { text-align: center; padding-top: .5rem; padding-bottom: 1.5rem; }
+@import 'pricing';
 .toast { display: block; opacity: 1; background: white; color: var(--ink); padding: 1rem; border: 1px solid var(--line); border-left: 4px solid #006b70; }
 .toasts .toast:not(.show) { display: flex; align-items: center; justify-content: space-between; gap: .75rem; opacity: 1; font-size: 1rem; }
 .toasts .toast-error { border-left-color: #b42318; }
