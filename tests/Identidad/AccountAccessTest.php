@@ -10,6 +10,7 @@ use App\Identidad\Domain\AccessPurpose;
 use App\Identidad\Domain\AccessToken;
 use App\Identidad\Domain\AccessTokenRepository;
 use App\Identidad\Domain\AccountNotifier;
+use App\Identidad\Domain\AccountTransaction;
 use App\Identidad\Domain\EmailAlreadyUsed;
 use App\Identidad\Domain\InvalidAccessToken;
 use App\Identidad\Domain\PasswordHasher;
@@ -297,8 +298,13 @@ final class FakeIdGenerator implements IdGenerator
     }
 }
 
-final class ImmediateTransaction implements Transaction
+final class ImmediateTransaction implements Transaction, AccountTransaction
 {
+    public function forUser(string $userId, callable $operation): void
+    {
+        $operation();
+    }
+
     public function run(callable $operation): void
     {
         $operation();

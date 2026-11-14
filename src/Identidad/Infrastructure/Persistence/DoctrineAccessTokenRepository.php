@@ -19,7 +19,13 @@ final class DoctrineAccessTokenRepository implements AccessTokenRepository
             'tokenHash' => $tokenHash,
         ]);
 
-        return $record instanceof DoctrineAccessToken ? $record->toDomain() : null;
+        if ($record instanceof DoctrineAccessToken) {
+            $this->entityManager->refresh($record);
+
+            return $record->toDomain();
+        }
+
+        return null;
     }
 
     public function discardOpen(string $userId, AccessPurpose $purpose): void

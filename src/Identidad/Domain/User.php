@@ -11,6 +11,7 @@ final class User
         private readonly Role $role,
         private readonly ?string $firmId,
         private readonly bool $activated = false,
+        private readonly int $authVersion = 1,
     ) {
         if (1 !== preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $id)) {
             throw new InvalidUser('The id is not a valid UUID.');
@@ -71,6 +72,16 @@ final class User
 
     public function withPassword(string $passwordHash): self
     {
-        return new self($this->id, $this->email, $passwordHash, $this->role, $this->firmId, true);
+        return new self($this->id, $this->email, $passwordHash, $this->role, $this->firmId, true, $this->authVersion);
+    }
+
+    public function authVersion(): int
+    {
+        return $this->authVersion;
+    }
+
+    public function changeEmail(string $email): self
+    {
+        return new self($this->id, $email, $this->passwordHash, $this->role, $this->firmId, $this->activated, $this->authVersion + 1);
     }
 }

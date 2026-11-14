@@ -4,15 +4,15 @@ namespace App\Identidad\Application;
 
 use App\Identidad\Domain\AccessPurpose;
 use App\Identidad\Domain\AccountNotifier;
+use App\Identidad\Domain\AccountTransaction;
 use App\Identidad\Domain\UserRepository;
-use App\Shared\Domain\Transaction;
 
 final class RequestPasswordReset
 {
     public function __construct(
         private readonly UserRepository $users,
         private readonly IssueAccessToken $tokens,
-        private readonly Transaction $transaction,
+        private readonly AccountTransaction $transaction,
         private readonly AccountNotifier $notifier,
     ) {
     }
@@ -25,20 +25,27 @@ final class RequestPasswordReset
             return;
         }
 
-        $purpose = $user->isActivated() ? AccessPurpose::Reset : AccessPurpose::Activation;
-        $lifetime = $user->isActivated() ? '+2 hours' : '+24 hours';
         $rawToken = null;
+        $recipient = null;
 
-        $this->transaction->run(function () use ($user, $purpose, $lifetime, &$rawToken): void {
-            $rawToken = $this->tokens->issue($user, $purpose, $lifetime);
+        $this->transaction->forUser($user->id(), function () use ($user, &$recipient, &$rawToken): void {
+            $current = $this->users->find($user->id());
+            if (null === $current || $current->email() !== $user->email() || $current->authVersion() !== $user->authVersion()) {
+                return;
+            }
+            $recipient = $current;
+            $rawToken = $this->tokens->issue($current, $current->isActivated() ? AccessPurpose::Reset : AccessPurpose::Activation, $current->isActivated() ? '+2 hours' : '+24 hours');
         });
 
-        if ($user->isActivated()) {
-            $this->notifier->sendPasswordReset($user->email(), (string) $rawToken);
+        if (null === $recipient || null === $rawToken) {
+            return;
+        }
+        if ($recipient->isActivated()) {
+            $this->notifier->sendPasswordReset($recipient->email(), $rawToken);
 
             return;
         }
 
-        $this->notifier->sendActivation($user->email(), (string) $rawToken);
+        $this->notifier->sendActivation($recipient->email(), $rawToken);
     }
 }

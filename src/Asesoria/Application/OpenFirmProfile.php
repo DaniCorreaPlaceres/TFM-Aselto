@@ -21,7 +21,7 @@ final class OpenFirmProfile
     {
         $actor = $this->users->find($actorId);
 
-        if (null === $actor || Role::FirmAdmin !== $actor->role() || null === $actor->firmId()) {
+        if (null === $actor || !$actor->isActivated() || Role::FirmAdmin !== $actor->role() || null === $actor->firmId()) {
             throw new FirmProfileDenied('The firm profile cannot be opened.');
         }
 

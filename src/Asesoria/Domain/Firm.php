@@ -13,6 +13,7 @@ final class Firm
         private readonly string $id,
         private string $name,
         ?FiscalContact $contact = null,
+        private readonly int $version = 1,
     ) {
         if (1 !== preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $id)) {
             throw new InvalidFirm('The id is not a valid UUID.');
@@ -49,6 +50,18 @@ final class Firm
             throw new InvalidFiscalContact(InvalidFiscalContact::TAX_ID_MISSING);
         }
 
-        return new self($this->id, $this->name, $contact);
+        return new self($this->id, $this->name, $contact, $this->version);
+    }
+
+    public function version(): int
+    {
+        return $this->version;
+    }
+
+    public function changeDetails(string $name, FiscalContact $contact): self
+    {
+        $this->changeContact($contact);
+
+        return new self($this->id, $name, $contact, $this->version);
     }
 }

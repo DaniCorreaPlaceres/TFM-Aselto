@@ -17,6 +17,7 @@
 
         <form method="post">
             {{ include('_fiscal_contact.html.twig') }}
+            <input type="hidden" name="version" value="{{ version }}">
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('save_firm_profile') }}">
             <button type="submit">Guardar</button>
         </form>
