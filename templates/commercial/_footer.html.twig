@@ -1,0 +1,9 @@
+<footer class="public-footer" aria-label="Información de Aselto">
+    <div class="public-footer-inner">
+        <div class="public-footer-brand"><a href="{{ path('commercial_home') }}" aria-label="Aselto, inicio"><img src="{{ asset('aselto-logo-eslogan-v2.png') }}" alt="Aselto. Tus finanzas bajo control" width="220" height="110"></a><p>Documentos, personas y cifras.<br>Un lugar para trabajar con más claridad.</p></div>
+        <nav aria-label="Aselto para ti"><h2>Tu espacio</h2><a href="{{ app.request.basePath }}/autonomos">Soy autónomo</a><a href="{{ app.request.basePath }}/empresas">Soy empresa</a><a href="{{ app.request.basePath }}/asesorias-profesionales">Soy asesoría</a><a href="{{ app.request.basePath }}/precios">Precios</a></nav>
+        <nav aria-label="Conoce Aselto"><h2>Conoce Aselto</h2><a href="{{ app.request.basePath }}/quienes-somos">Quiénes somos</a><a href="{{ path(app.user ? 'account' : 'login') }}">{{ app.user ? 'Tu cuenta' : 'Entrar' }}</a><a href="{{ path('client_register') }}">Crear cuenta</a></nav>
+        <nav aria-label="Información legal"><h2>Información</h2><a href="{{ app.request.basePath }}/privacidad">Política de privacidad</a><a href="{{ app.request.basePath }}/cookies">Política de cookies</a></nav>
+    </div>
+    <div class="public-footer-bottom">© {{ 'now'|date('Y', 'Atlantic/Canary') }} Daniel Correa Placeres<span>Aselto · Tus finanzas bajo control</span></div>
+</footer>

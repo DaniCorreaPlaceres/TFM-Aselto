@@ -50,5 +50,6 @@
         {% else %}<div>{% endif %}
         {% block body %}{% endblock %}
         {% if workspace %}</div></div></div>{% else %}</div>{% endif %}
+        {% if not workspace %}{{ include('commercial/_footer.html.twig') }}{% endif %}
     </body>
 </html>
