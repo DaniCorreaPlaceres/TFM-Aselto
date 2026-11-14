@@ -1,82 +1,75 @@
 {% extends 'base.html.twig' %}
-
-{% block title %}Aselto. Tus finanzas bajo control{% endblock %}
-
+{% block title %}Aselto. Tus facturas y tu asesoría, conectadas{% endblock %}
 {% block body %}
     {% set entryPath = signedIn ? path('account') : path('login') %}
-    {% set entryLabel = signedIn ? 'Tu acceso' : 'Entrar' %}
-
+    {% set entryLabel = signedIn ? 'Tu cuenta' : 'Entrar' %}
     <header class="home-bar">
         <div class="home-bar-inner">
-            <img class="home-logo" src="{{ asset('aselto-logo-eslogan-v2.png') }}" alt="Aselto. Tus finanzas bajo control" width="320" height="120">
+            <a class="home-brand" href="{{ path('commercial_home') }}" aria-label="Aselto, inicio"><img class="home-logo" src="{{ asset('aselto-logo-eslogan-v2.png') }}" alt="Aselto. Tus finanzas bajo control" width="320" height="120"></a>
+            <nav class="home-navigation" aria-label="Descubre Aselto"><a href="#negocios">Para tu negocio</a><a href="#asesorias">Para asesorías</a><a href="#como-funciona">Cómo funciona</a></nav>
             <a class="action" href="{{ entryPath }}">{{ entryLabel }}</a>
         </div>
     </header>
-
-    <div class="home">
-        <section class="home-hero">
-            <div>
-            <div class="eyebrow">Claridad para tu día a día</div>
-            <h1>Tus finanzas, por fin en un solo sitio</h1>
-            <p>Aselto junta los ingresos, los gastos y los documentos de autónomos y sociedades. Proponemos los datos del documento y una persona los confirma. Úsalo por tu cuenta o con tu asesoría.</p>
-            <div class="hero-actions">
-            <a class="action" href="{{ entryPath }}">{{ entryLabel }}</a>
-            {% if not signedIn %}
-                <a class="action action-secondary" href="{{ path('client_register') }}">Crear cuenta</a>
-            {% endif %}
+    <main class="home" id="main-content" tabindex="-1">
+        <section class="home-hero" aria-labelledby="home-title">
+            <div class="home-hero-copy">
+                <p class="home-kicker">Tu negocio y tu asesoría, conectados</p>
+                <h1 id="home-title">Menos perseguir facturas.<br><span>Más tenerlo todo claro.</span></h1>
+                <p class="home-lead">Facturas, justificantes y cifras del trimestre en un mismo lugar. Lleva el control de tu actividad o coordina la documentación de tus clientes desde tu asesoría.</p>
+                <div class="hero-actions">
+                    <a class="action" href="{{ signedIn ? entryPath : '#elige-tu-espacio' }}">{{ signedIn ? 'Tu cuenta' : 'Descubre tu espacio' }} <span aria-hidden="true">→</span></a>
+                    {% if not signedIn %}<a class="action action-secondary" href="{{ path('client_register') }}">Crear cuenta</a>{% else %}<a class="quiet-link" href="#como-funciona">Ver cómo funciona</a>{% endif %}
+                </div>
+                <p class="home-hero-detail">Para autónomos, empresas y equipos de asesoría.</p>
             </div>
-            </div>
-            <aside class="hero-preview" aria-label="Ejemplo ilustrativo con datos ficticios">
-                <div class="preview-top"><img src="{{ asset('icono.png') }}" alt="" width="36" height="36"><span>Ejemplo · Tu trimestre</span></div>
-                <div class="preview-label">Tu actividad, con perspectiva</div>
-                <div class="preview-amount">Todo en su sitio.</div>
-                <div class="preview-row"><strong>Documentos</strong><span>Ordenados y accesibles</span></div>
-                <div class="preview-row"><strong>Ingresos y gastos</strong><span>El trimestre a la vista</span></div>
-                <div class="preview-row"><strong>Tu asesoría</strong><span>Conectada contigo</span></div>
-                <div class="preview-note">Tú revisas. Tú confirmas.<br>La información queda bajo tu control.</div>
-            </aside>
+            <figure class="home-product" aria-labelledby="product-caption">
+                <div class="home-product-bar"><img src="{{ asset('icono.png') }}" alt="" width="32" height="32"><span>Espacio de asesoría</span><span class="home-product-mark" aria-hidden="true">···</span></div>
+                <div class="home-product-body">
+                    <p class="home-product-eyebrow">Documentación de clientes</p>
+                    <h2>Lo que necesita tu atención,<br>a la vista.</h2>
+                    <div class="home-example-record"><span class="home-document-icon">{{ include('ui/_icon.html.twig', {icon: 'document'}) }}</span><div><strong>Taller Norte</strong><span>Factura de material.pdf</span></div><span class="home-example-status">Por revisar</span></div>
+                    <div class="home-example-record"><span class="home-document-icon">{{ include('ui/_icon.html.twig', {icon: 'document'}) }}</span><div><strong>Estudio Mar</strong><span>Factura de servicios.pdf</span></div><span class="home-example-status is-validated">Validada</span></div>
+                    <div class="home-example-request">{{ include('ui/_icon.html.twig', {icon: 'message'}) }}<div><strong>¿Falta un justificante?</strong><span>Pídelo desde el mismo registro.</span></div></div>
+                </div>
+                <figcaption id="product-caption">Vista ilustrativa de una asesoría · Datos ficticios</figcaption>
+            </figure>
         </section>
-
-        <section class="home-grid" aria-label="A quién va dirigido">
-            <article class="home-card">
-                <h2>Autónomos</h2>
-                <p>Sube facturas y justificantes. Ves ingresos, gastos e IVA del trimestre sin una hoja de cálculo.</p>
-            </article>
-            <article class="home-card">
-                <h2>Sociedades</h2>
-                <p>Los documentos de la empresa quedan en el mismo sitio, listos para revisar y confirmar.</p>
-            </article>
-            <article class="home-card">
-                <h2>Asesorías</h2>
-                <p>Tus clientes llegan con la información ordenada. Tú validas, pides lo que falta y cierras el trimestre.</p>
-            </article>
-        </section>
-
-        <section class="home-steps">
-            <h2>Así de claro</h2>
-            <div class="home-step">
-                <span class="home-step-number" aria-hidden="true">1</span>
-                <p><strong>Añades el documento.</strong> Una foto desde el móvil o un archivo desde el ordenador.</p>
-            </div>
-            <div class="home-step">
-                <span class="home-step-number" aria-hidden="true">2</span>
-                <p><strong>Revisas los datos.</strong> La plataforma los propone. Tú los corriges antes de confirmar.</p>
-            </div>
-            <div class="home-step">
-                <span class="home-step-number" aria-hidden="true">3</span>
-                <p><strong>El trimestre se actualiza.</strong> Si trabajas con una asesoría, ella valida. Si no, lo llevas tú.</p>
+        <ul class="home-benefit-line" aria-label="Ventajas de Aselto"><li><span aria-hidden="true">✓</span> Documentos y cifras conectados</li><li><span aria-hidden="true">✓</span> Menos información dispersa</li><li><span aria-hidden="true">✓</span> Revisión siempre humana</li></ul>
+        <section class="home-audiences" id="elige-tu-espacio" aria-labelledby="audiences-title">
+            <div class="home-section-heading"><p class="home-kicker">Un lugar común. Tu forma de trabajar.</p><h2 id="audiences-title">Tu actividad, más clara.<br>Tus clientes, mejor conectados.</h2></div>
+            <div class="home-audience-grid">
+                <article class="home-audience" id="negocios">
+                    <div class="home-audience-icon">{{ include('ui/_icon.html.twig', {icon: 'chart'}) }}</div>
+                    <p class="home-kicker">Para autónomos y empresas</p><h3>Lleva el control<br>de tu negocio.</h3>
+                    <p>Reúne las facturas y justificantes de tu actividad. Consulta tus ingresos y gastos y distingue lo pendiente de lo confirmado.</p>
+                    <ul><li>Tus documentos, ordenados y a mano.</li><li>El trimestre con cifras y pendientes.</li><li>Por tu cuenta o con tu asesoría.</li></ul>
+                    <p class="home-audience-detail">Sin asesoría, confirmas para tu control personal. Con asesoría, su equipo revisa y valida.</p>
+                    <a class="action action-secondary" href="{{ signedIn ? entryPath : path('client_register') }}">{{ signedIn ? 'Tu cuenta' : 'Crear mi cuenta' }} <span aria-hidden="true">→</span></a>
+                </article>
+                <article class="home-audience home-audience-advisory" id="asesorias">
+                    <div class="home-audience-icon">{{ include('ui/_icon.html.twig', {icon: 'people'}) }}</div>
+                    <p class="home-kicker">Para asesorías</p><h3>Tus clientes aportan.<br>Tu equipo avanza.</h3>
+                    <p>Controla la documentación de cada cliente desde una bandeja compartida. Revisa, pide lo que falta y valida antes de cerrar el trimestre.</p>
+                    <ul><li>Facturas y justificantes por cliente.</li><li>Mensajes y solicitudes en el mismo lugar.</li><li>Cifras validadas, cierres e histórico.</li></ul>
+                    <p class="home-audience-detail">Admin y gestores trabajan dentro de su asesoría. Cada cliente conserva su propio espacio.</p>
+                    <a class="action action-secondary" href="#acceso-asesorias">Cómo acceder como asesoría <span aria-hidden="true">→</span></a>
+                </article>
             </div>
         </section>
-
-    </div>
-
-    <section class="home-close">
-        <div class="home-close-inner">
-            <h2>Ten el trimestre a la vista</h2>
-            <p>Menos papeles sueltos. Más tiempo para el trabajo de verdad.</p>
-            <a class="action" href="{{ entryPath }}">{{ entryLabel }}</a>
-        </div>
-    </section>
-
+        <section class="home-workflow" id="como-funciona" aria-labelledby="workflow-title">
+            <div class="home-section-heading"><p class="home-kicker">Del documento al trimestre</p><h2 id="workflow-title">Un proceso sencillo.<br>Una persona al mando.</h2></div>
+            <ol class="home-workflow-grid">
+                <li><span class="home-step-number" aria-hidden="true">01</span><h3>Añade el documento</h3><p>Sube un archivo o haz una foto desde el móvil. El original queda junto a los datos que vas a revisar.</p></li>
+                <li><span class="home-step-number" aria-hidden="true">02</span><h3>Revisa y confirma</h3><p>La IA ayuda a proponer los datos. Tú los revisas y corriges. Si tienes asesoría, su equipo valida después.</p></li>
+                <li><span class="home-step-number" aria-hidden="true">03</span><h3>Consulta tus cifras</h3><p>Distingue lo pendiente de las cifras confirmadas o validadas. Cierra el trimestre cuando esté resuelto.</p></li>
+            </ol>
+        </section>
+        <section class="home-advisory-access" id="acceso-asesorias" aria-labelledby="advisory-access-title">
+            <span class="home-access-icon">{{ include('ui/_icon.html.twig', {icon: 'people'}) }}</span>
+            <div><h2 id="advisory-access-title">¿Quieres trabajar con Aselto desde tu asesoría?</h2><p>El alta de asesorías se realiza por invitación de Aselto. Si ya la has recibido, abre el enlace de tu correo para completar los datos de tu asesoría y crear tu contraseña.</p><p>Si ya tienes cuenta, entra a tu espacio de trabajo.</p></div>
+            <a class="action action-secondary" href="{{ entryPath }}">{{ entryLabel }}</a>
+        </section>
+    </main>
+    <section class="home-close" aria-labelledby="home-close-title"><div class="home-close-inner"><div><p class="home-kicker">Tus finanzas bajo control</p><h2 id="home-close-title">Que el próximo trimestre<br>empiece con orden.</h2><p>Menos papeles sueltos. Más claridad para tu día a día.</p></div><a class="action" href="{{ entryPath }}">{{ entryLabel }} <span aria-hidden="true">→</span></a></div></section>
     <p class="home-note">Aselto no presenta impuestos ni sustituye el criterio de tu asesoría.</p>
 {% endblock %}

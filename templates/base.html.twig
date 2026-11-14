@@ -24,7 +24,7 @@
     {% set commercial = app.request.attributes.get('_route') == 'commercial_home' %}
     {% set workspace = app.user and not commercial %}
     <body class="{{ workspace ? 'workspace-page' : (commercial ? 'commercial-page' : 'guest-page') }}">
-        <a class="skip-link" href="#main-content">Ir al contenido</a>
+        <a class="skip-link" href="#main-content" data-turbo="false">Ir al contenido</a>
         {% if workspace %}
         <div class="workspace">
             <aside class="workspace-sidebar" data-controller="mobile-menu" data-action="keydown.esc->mobile-menu#escape">
@@ -47,7 +47,7 @@
         {% elseif not commercial %}
             <a class="guest-brand" href="{{ path('commercial_home') }}"><img src="{{ asset('aselto-logo-eslogan-v2.png') }}" alt="Aselto. Tus finanzas bajo control" width="220" height="110"></a>
             <div id="main-content" tabindex="-1">
-        {% else %}<div id="main-content" tabindex="-1">{% endif %}
+        {% else %}<div>{% endif %}
         {% block body %}{% endblock %}
         {% if workspace %}</div></div></div>{% else %}</div>{% endif %}
     </body>
