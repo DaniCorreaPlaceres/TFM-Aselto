@@ -29,6 +29,7 @@ final class ApiDocumentExceptionListener
         }
         $error = $event->getThrowable();
         $result = match (true) {
+            $error instanceof \App\Documento\Domain\InvalidTaxExemption => [422, 'invalid_tax_exemption', 'Un registro exento no admite porcentaje de impuesto ni recargo.'],
             $error instanceof DocumentQuotaExceeded => [409, 'document_quota_exceeded', 'Has alcanzado los 20 documentos de este mes en Gratis. Espera al próximo mes o solicita un cambio de plan.'],
             $error instanceof DocumentNotFound, $error instanceof MissingClientProfile => [404, 'document_not_found', 'No encontramos el documento solicitado.'],
             $error instanceof DocumentChanged => [409, 'document_changed', 'El registro ha cambiado. Consulta su versión actual antes de guardar.'],

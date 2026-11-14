@@ -23,7 +23,7 @@ final class ApiDocumentPresenter
     /** @return array<string, mixed> */
     private function details(DocumentDetails $details): array
     {
-        return ['direction' => $details->direction()?->value, 'issued_on' => $details->issuedOn()?->format('Y-m-d'), 'party_name' => $details->partyName(), 'tax_id' => $details->taxId(), 'tax' => $details->tax()->value, 'base_cents' => $details->baseCents(), 'tax_rate' => $this->percentage($details->taxRate()?->percentage()), 'tax_cents' => $details->quotaCents(), 'surcharge_rate' => $this->percentage($details->surcharge()?->percentage()), 'surcharge_cents' => $details->surchargeQuotaCents(), 'withholding_rate' => $this->percentage($details->withholdingRate()?->percentage()), 'withholding_cents' => $details->withholdingQuotaCents(), 'total_cents' => $details->totalCents()];
+        return ['direction' => $details->direction()?->value, 'issued_on' => $details->issuedOn()?->format('Y-m-d'), 'party_name' => $details->partyName(), 'tax_id' => $details->taxId(), 'tax' => $details->tax()->value, 'tax_exempt' => $details->isTaxExempt(), 'base_cents' => $details->baseCents(), 'tax_rate' => $this->percentage($details->taxRate()?->percentage()), 'tax_cents' => $details->quotaCents(), 'surcharge_rate' => $this->percentage($details->surcharge()?->percentage()), 'surcharge_cents' => $details->surchargeQuotaCents(), 'withholding_rate' => $this->percentage($details->withholdingRate()?->percentage()), 'withholding_cents' => $details->withholdingQuotaCents(), 'total_cents' => $details->totalCents()];
     }
 
     private function percentage(?string $value): ?string

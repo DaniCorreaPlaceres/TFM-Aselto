@@ -121,8 +121,17 @@ try {
         $documentId = basename($reviewUrl);
         $check(DocumentStatus::Draft === $documents->find($documentId)->status() && App\Documento\Domain\MovementDirection::Expense === $documents->find($documentId)->direction(), 'Preselection does not save or confirm over the synthetic expense proposal.');
         $save = ['_csrf_token' => (string) $reviewFields->evaluate('string(//form[contains(@class,"document-form")]//input[@name="_csrf_token"]/@value)'), 'version' => 1, 'intent' => 'confirm', 'direction' => $direction, 'issued_on' => '2026-11-01', 'party_name' => 'Contraparte ficticia', 'tax_id' => '00000000T', 'base' => '100', 'tax_rate' => '21', 'surcharge' => '', 'withholding_rate' => ''];
+        $check(1 === (int) $reviewFields->evaluate('count(//input[@name="tax_exempt"])'), 'Human review exposes the exemption option.');
+        if ('ingreso' === $direction) {
+            // The no-JavaScript form can still send the old rate: selecting exemption clears it.
+            $save = [...$save, 'tax_exempt' => '1', 'surcharge' => '5.2', 'withholding_rate' => '15'];
+        }
         $check(302 === $http($reviewUrl, 'POST', $save)->getStatusCode(), 'The existing confirmation form accepts the reviewed entry.');
         $check(DocumentStatus::Submitted === $documents->find($documentId)->status() && $expectedDirection === $documents->find($documentId)->direction(), 'Explicit confirmation persists the chosen direction.');
+        if ('ingreso' === $direction) {
+            $check($documents->find($documentId)->isTaxExempt() && 0 === $documents->find($documentId)->quotaCents() && 8500 === $documents->find($documentId)->totalCents(), 'Web exemption clears indirect rate and surcharge, retaining the permitted withholding.');
+            $check(str_contains($http($reviewUrl)->getContent(), 'Exento'), 'Confirmed document labels exemption explicitly.');
+        }
         $http($reviewUrl.'?direction='.('ingreso' === $direction ? 'gasto' : 'ingreso'));
         $check($expectedDirection === $documents->find($documentId)->direction(), 'A query hint never changes a confirmed record.');
     }

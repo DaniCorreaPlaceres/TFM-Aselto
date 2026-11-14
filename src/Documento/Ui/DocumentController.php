@@ -143,8 +143,8 @@ final class DocumentController extends AbstractController
                 try {
                     $document->assertVersion((int) $request->request->get('version', 0));
                     $saved = 'confirm' === $request->request->get('intent')
-                        ? $confirmDocument->execute($user->id(), $id, ...$form->arguments($input), expectedVersion: (int) $request->request->get('version', 0))
-                        : $saveDocumentDraft->execute($user->id(), $id, ...$form->arguments($input), expectedVersion: (int) $request->request->get('version', 0));
+                        ? $confirmDocument->execute($user->id(), $id, ...$form->arguments($input), expectedVersion: (int) $request->request->get('version', 0), taxExempt: $input['taxExempt'] ?? false)
+                        : $saveDocumentDraft->execute($user->id(), $id, ...$form->arguments($input), expectedVersion: (int) $request->request->get('version', 0), taxExempt: $input['taxExempt'] ?? false);
                     $this->addFlash('success', $saved->isEditable()
                         ? 'El borrador está guardado.'
                         : 'Has confirmado el registro.');
@@ -165,6 +165,8 @@ final class DocumentController extends AbstractController
                 } catch (InvalidSurcharge) {
                     $fieldErrors['surcharge'] = 'El recargo solo se admite en gastos con IVA y debe corresponder con su tipo. Revisa la selección.';
                     $this->addFlash('error', 'Revisa el recargo de equivalencia.');
+                } catch (\App\Documento\Domain\InvalidTaxExemption) {
+                    $this->addFlash('error', 'Un registro exento no puede tener porcentaje de impuesto ni recargo.');
                 } catch (InvalidTaxRate) {
                     $fieldErrors['taxRate'] = $form->rateError($document->tax());
                     $this->addFlash('error', 'Revisa el porcentaje del impuesto.');

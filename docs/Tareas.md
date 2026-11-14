@@ -70,7 +70,7 @@ Tareas 34–39 integradas en `develop` mediante seis ramas y PR independientes. 
 ## Experiencia del cliente e impuestos
 
 - [x] 40. Mejorar la distribución de «Ingresos y gastos», conservando el inicio actual. Separar con claridad cifras, movimientos, pendientes e histórico y facilitar añadir un ingreso o un gasto desde esa pantalla, reutilizando los casos de uso y las reglas de revisión existentes. Implementación y evidencias en `sdd/client-movements-layout.md`.
-- [ ] 41. Añadir la opción «Exento» a los registros para que la cuota del impuesto sea cero. Distinguir exención de un tipo del 0 %, conservar el territorio y reflejar el estado en revisión, cálculos, API, exportaciones e instantáneas. Acordar el tratamiento de recargo, retención y registros ya cerrados antes de implementar.
+- [x] 41. Añadir la opción «Exento» a los registros para que la cuota del impuesto sea cero. Distinguir exención de un tipo del 0 %, conservar el territorio y reflejar el estado en revisión, cálculos, API, exportaciones e instantáneas. Reglas aprobadas: sin recargo, IRPF opcional donde corresponda y corrección tras reapertura autorizada. Detalle en `sdd/tax-exempt-records.md`.
 
 ## Seguridad y publicación
 

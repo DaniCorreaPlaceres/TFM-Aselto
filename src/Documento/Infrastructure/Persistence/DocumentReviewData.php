@@ -24,6 +24,7 @@ final class DocumentReviewData
             'tax_id' => $details->taxId(),
             'base_cents' => $details->baseCents(),
             'tax' => $details->tax()->value,
+            'tax_exempt' => $details->isTaxExempt(),
             'tax_rate' => $details->taxRate()?->basisPoints(),
             'surcharge' => $details->surcharge()?->value,
             'withholding_rate' => $details->withholdingRate()?->basisPoints(),
@@ -45,6 +46,7 @@ final class DocumentReviewData
             $tax,
             null === $data['surcharge'] ? null : EquivalenceSurcharge::from((int) $data['surcharge']),
             null === $data['withholding_rate'] ? null : WithholdingRate::fromBasisPoints((int) $data['withholding_rate']),
+            (bool) ($data['tax_exempt'] ?? false),
         );
     }
 

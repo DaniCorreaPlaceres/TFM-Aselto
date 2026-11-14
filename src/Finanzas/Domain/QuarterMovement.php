@@ -15,7 +15,11 @@ final class QuarterMovement
         public readonly int $surchargeCents,
         public readonly int $withholdingCents,
         public readonly int $totalCents,
+        public readonly bool $taxExempt = false,
     ) {
+        if ($taxExempt && (0 !== $taxCents || 0 !== $surchargeCents)) {
+            throw new InvalidQuarter('Exempt movements cannot include indirect tax or surcharge.');
+        }
         if (min($baseCents, $taxCents, $surchargeCents, $withholdingCents, $totalCents) < 0 || !in_array($tax, ['iva', 'igic', 'ipsi'], true)) {
             throw new InvalidQuarter('The movement amounts are not valid.');
         }

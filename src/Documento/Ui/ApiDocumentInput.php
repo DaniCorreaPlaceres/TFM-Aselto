@@ -14,7 +14,7 @@ use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
 
 final class ApiDocumentInput
 {
-    public const FIELDS = ['version', 'direction', 'issued_on', 'party_name', 'tax_id', 'base', 'tax_rate', 'surcharge_rate', 'withholding_rate'];
+    public const FIELDS = ['version', 'direction', 'issued_on', 'party_name', 'tax_id', 'base', 'tax_rate', 'surcharge_rate', 'withholding_rate', 'tax_exempt'];
 
     /**
      * @param list<string> $allowed
@@ -39,8 +39,11 @@ final class ApiDocumentInput
         }
         $data = get_object_vars($object);
         $this->version($data);
+        if (array_key_exists('tax_exempt', $data) && !is_bool($data['tax_exempt'])) {
+            throw new BadRequestHttpException();
+        }
         foreach ($data as $key => $value) {
-            if ('version' !== $key && null !== $value && !is_string($value)) {
+            if (!in_array($key, ['version', 'tax_exempt'], true) && null !== $value && !is_string($value)) {
                 throw new BadRequestHttpException();
             }
         }
@@ -84,7 +87,7 @@ final class ApiDocumentInput
     {
         [$direction, $date, $party, $taxId, $base, $rate, $surcharge, $withholding] = $this->arguments($data);
 
-        return DocumentForm::read($direction, $date, $party, $taxId, $base, $rate, $tax, $surcharge, $withholding);
+        return DocumentForm::read($direction, $date, $party, $taxId, $base, $rate, $tax, $surcharge, $withholding, $data['tax_exempt'] ?? false);
     }
 
     /** @return array{name: string, media_type: string, contents: string, version: ?int} */

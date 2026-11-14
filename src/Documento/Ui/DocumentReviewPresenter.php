@@ -61,7 +61,7 @@ final class DocumentReviewPresenter
             'Tercero' => $details->partyName() ?? 'Sin indicar',
             'NIF' => $details->taxId() ?? 'Sin indicar',
             'Base' => DocumentLabel::euros($details->baseCents()).' €',
-            'Impuesto' => mb_strtoupper($details->tax()->value).' '.($details->taxRate()?->percentage() ?? '').' %',
+            'Impuesto' => mb_strtoupper($details->tax()->value).' '.($details->isTaxExempt() ? 'Exento' : ($details->taxRate()?->percentage() ?? '').' %'),
             'Recargo' => $details->surcharge()?->percentage() ?? 'Sin recargo',
             'Retención' => $details->withholdingRate()?->percentage() ?? 'Sin retención',
             'Total' => DocumentLabel::euros($details->totalCents()).' €',

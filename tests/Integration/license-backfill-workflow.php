@@ -3,8 +3,6 @@
 // Run before migrations on an empty, disposable MySQL test database.
 require dirname(__DIR__).'/bootstrap.php';
 
-use App\Documento\Domain\Document;
-use App\Documento\Infrastructure\Persistence\DoctrineDocumentRepository;
 use App\Kernel;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -35,13 +33,15 @@ $migrate('DoctrineMigrations\\Version20261114030000');
 $owner = Uuid::v4()->toRfc4122();
 $ids = [Uuid::v4()->toRfc4122(), Uuid::v4()->toRfc4122()];
 try {
-    $documents = new DoctrineDocumentRepository($em);
     foreach (['2026-07-31 23:00:00 UTC', '2026-11-30 23:59:59 UTC'] as $i => $at) {
-        $documents->save(Document::receive($ids[$i], $owner, null, 'synthetic.pdf', 'synthetic.pdf', 'application/pdf', new DateTimeImmutable($at)));
+        // Seed the historical schema without coupling it to today's ORM columns.
+        $db->insert('client_document', ['id' => $ids[$i], 'client_user_id' => $owner, 'original_name' => 'synthetic.pdf', 'stored_path' => 'synthetic.pdf', 'media_type' => 'application/pdf', 'status' => 'uploaded', 'created_at' => (new DateTimeImmutable($at))->format('Y-m-d H:i:s')]);
     }
     $before = $db->fetchAllAssociative('SELECT * FROM client_document ORDER BY id');
     $migrate('latest');
-    if ($before !== $db->fetchAllAssociative('SELECT * FROM client_document ORDER BY id') || '2026-08' !== $db->fetchOne('SELECT month FROM document_usage WHERE document_id=?', [$ids[0]]) || '2026-11' !== $db->fetchOne('SELECT month FROM document_usage WHERE document_id=?', [$ids[1]])) {
+    $after = $db->fetchAllAssociative('SELECT * FROM client_document ORDER BY id');
+    $originalFields = array_map(static fn (array $row): array => array_intersect_key($row, $before[0]), $after);
+    if ($before !== $originalFields || 0 !== (int) $after[0]['tax_exempt'] || 0 !== (int) $after[1]['tax_exempt'] || '2026-08' !== $db->fetchOne('SELECT month FROM document_usage WHERE document_id=?', [$ids[0]]) || '2026-11' !== $db->fetchOne('SELECT month FROM document_usage WHERE document_id=?', [$ids[1]])) {
         throw new RuntimeException('Backfill must preserve all original fields and use Canary calendar months.');
     }
     echo "License backfill: existing originals preserved byte for byte; summer and winter months correct.\n";

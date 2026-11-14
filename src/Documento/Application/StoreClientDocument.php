@@ -72,7 +72,7 @@ final class StoreClientDocument
                     throw new ExtractionFailed('Withholding is not available for this client.');
                 }
                 $document = $document->propose($proposal->details(), $proposal->origin());
-            } catch (ExtractionFailed) {
+            } catch (ExtractionFailed|\App\Documento\Domain\InvalidTaxExemption) {
             }
 
             $this->documents->save($document);

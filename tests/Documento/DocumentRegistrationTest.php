@@ -47,6 +47,16 @@ final class DocumentRegistrationTest extends TestCase
 
     private const DOCUMENT = '00000000-0000-4000-8000-000000000031';
 
+    public function testAnExtractorCannotAssignExemptionAndFallsBackToManualReview(): void
+    {
+        $extractor = $this->createStub(DocumentExtractor::class);
+        $extractor->method('propose')->willReturn(new Proposal(DocumentForm::read('gasto', '', '', '', '100', '', taxExempt: true), ProposalOrigin::Extracted));
+        $document = $this->store(extractor: $extractor)->execute(self::CLIENT, 'synthetic.pdf', 'application/pdf', "%PDF-1.4\n%%EOF");
+        self::assertFalse($document->isTaxExempt());
+        self::assertSame(DocumentStatus::Uploaded, $document->status());
+        self::assertNull($document->proposal());
+    }
+
     public function testQuotaIsCheckedBeforeWritingOrExtractingAFile(): void
     {
         $quota = $this->createMock(\App\Shared\Domain\DocumentQuota::class);

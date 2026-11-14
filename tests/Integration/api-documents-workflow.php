@@ -254,6 +254,50 @@ try {
     $check($beforeQuota === (int) $db->fetchOne('SELECT COUNT(*) FROM client_document WHERE client_user_id=?', [$accounts['personal']->id()]), 'Rejected API upload creates no record.');
     (new App\Shared\Infrastructure\DoctrineLicenses($db))->assign('client', $accounts['personal']->id(), App\Shared\Domain\LicensePlan::Professional, $accounts['root']->id(), new DateTimeImmutable());
     $check(201 === $uploadFor('personal')->getStatusCode(), 'Professional removes the monthly API upload limit immediately.');
+    foreach (['personal' => 'iva', 'igic' => 'igic', 'ipsi' => 'ipsi'] as $account => $tax) {
+        $exempt = $json($uploadFor($account));
+        $exemptUrl = '/api/v1/documents/'.$exempt['id'];
+        $exemptInput = [...$input, 'version' => 1, 'issued_on' => '2027-02-01', 'tax_rate' => null, 'surcharge_rate' => null, 'tax_exempt' => true];
+        foreach ([['tax_rate' => '0'], ['tax_rate' => '99'], ['surcharge_rate' => '5.2']] as $contradiction) {
+            $response = $http($exemptUrl.'/confirm', 'POST', [...$exemptInput, ...$contradiction], $tokens[$account]);
+            $check(422 === $response->getStatusCode() && 'invalid_tax_exemption' === $json($response)['error']['code'], 'Exemption rejects a percentage or surcharge, including zero.');
+        }
+        $check(400 === $http($exemptUrl.'/confirm', 'POST', [...$exemptInput, 'tax_exempt' => 'true'], $tokens[$account])->getStatusCode(), 'Exemption flag requires a JSON boolean.');
+        if ('personal' === $account) {
+            $blocked = $http($exemptUrl.'/confirm', 'POST', $exemptInput, $tokens[$account]);
+            $check(409 === $blocked->getStatusCode() && 'quarter_closed' === $json($blocked)['error']['code'], 'Exemption cannot move a proposal out of a closed source period.');
+            $sourceQuarter = $json($http('/api/v1/quarters/2026/4', token: $tokens[$account]));
+            $reopened = $http('/api/v1/quarters/2026/4/reopen', 'POST', ['version' => $sourceQuarter['version']], $tokens[$account]);
+            $check(200 === $reopened->getStatusCode(), 'The owner must reopen the source period through the API before correction.');
+        }
+        $response = $http($exemptUrl.'/confirm', 'POST', $exemptInput, $tokens[$account]);
+        $check(200 === $response->getStatusCode(), 'Explicit exemption confirms successfully for '.$account.'; HTTP '.$response->getStatusCode().'; error '.($json($response)['error']['code'] ?? 'none'));
+        $exempt = $json($response);
+        $check(true === $exempt['tax_exempt'] && $tax === $exempt['tax'] && null === $exempt['tax_rate'] && 0 === $exempt['tax_cents'] && 8500 === $exempt['total_cents'], 'Exemption retains territory, zero indirect tax and optional IRPF.');
+        $last = $exempt['history'][array_key_last($exempt['history'])];
+        $check(false === $last['before']['tax_exempt'] && true === $last['after']['tax_exempt'], 'Review history preserves the exemption change.');
+        if ('personal' === $account) {
+            $exemptPeriod = new QuarterPeriod(2027, 1);
+            $summary = (new QuarterCalculation($accounts[$account]->id(), null, $exemptPeriod, (new DoctrineFinancialRecords($em))->forClient($accounts[$account]->id(), null)))->summary;
+            $quarters = new DoctrineQuarterRepository($em);
+            $quarters->save(Quarter::firstClose($accounts[$account]->id(), null, $exemptPeriod, $summary, $accounts[$account]->id(), new DateTimeImmutable()));
+            $response = $http('/api/v1/quarters/2027/1', token: $tokens[$account]);
+            $check(200 === $response->getStatusCode() && true === $json($response)['summary']['movements'][0]['tax_exempt'], 'Closed-quarter API preserves the exemption flag in its snapshot.');
+            $check(409 === $http($exemptUrl.'/amend', 'POST', ['version' => 2], $tokens[$account])->getStatusCode(), 'A closed quarter blocks correction of an exempt document.');
+            $record = $quarters->find($accounts[$account]->id(), null, $exemptPeriod);
+            $quarters->save($record->reopen($accounts[$account]->id(), new DateTimeImmutable()));
+            $check(200 === $http($exemptUrl.'/amend', 'POST', ['version' => 2], $tokens[$account])->getStatusCode(), 'Authorized reopening permits the normal correction flow.');
+            $response = $http($exemptUrl.'/confirm', 'POST', [...$exemptInput, 'version' => 3, 'tax_exempt' => false, 'tax_rate' => '21'], $tokens[$account]);
+            $check(200 === $response->getStatusCode() && false === $json($response)['tax_exempt'] && 2100 === $json($response)['tax_cents'], 'Correcting to a normal tax rate requires explicit reconfirmation.');
+            $saved = $quarters->find($accounts[$account]->id(), null, $exemptPeriod);
+            $check($saved->history[0]->snapshot->movements[0]->taxExempt, 'The previous closed version stays exempt after correction.');
+        }
+    }
+    $exemptCompany = $json($uploadFor('company'));
+    $check(422 === $http('/api/v1/documents/'.$exemptCompany['id'].'/confirm', 'POST', [...$input, 'version' => 1, 'tax_rate' => null, 'tax_exempt' => true], $tokens['company'])->getStatusCode(), 'Exemption does not permit personal IRPF withholding for a company.');
+    $response = $http('/api/v1/advisory/documents/'.$future['id'].'/validate', 'POST', [...$futureInput, 'version' => 2, 'tax_rate' => null, 'tax_exempt' => true, 'surcharge_rate' => null], $tokens['advisor']);
+    $check(200 === $response->getStatusCode() && true === $json($response)['tax_exempt'] && 10000 === $json($response)['total_cents'], 'The advisory can explicitly validate an exempt record through the same details model.');
+    $check(422 === $http($futureUrl.'/draft', 'PUT', [...$futureInput, 'version' => 3, 'tax_exempt' => false], $tokens['linked'])->getStatusCode(), 'Exemption does not bypass a validated record state.');
     echo 'API document integration checks: '.$checks." passed.\n";
 } finally {
     $paths = [];

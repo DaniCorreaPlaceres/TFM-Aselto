@@ -32,8 +32,9 @@ final class ConfirmDocument
         string $surcharge = '',
         string $withholdingRate = '',
         ?int $expectedVersion = null,
+        bool $taxExempt = false,
     ): Document {
-        return $this->transaction->run($userId, function () use ($userId, $documentId, $direction, $issuedOn, $partyName, $taxId, $base, $taxRate, $surcharge, $withholdingRate, $expectedVersion): Document {
+        return $this->transaction->run($userId, function () use ($userId, $documentId, $direction, $issuedOn, $partyName, $taxId, $base, $taxRate, $surcharge, $withholdingRate, $expectedVersion, $taxExempt): Document {
             $document = $this->documents->execute($userId, $documentId);
             if (null !== $expectedVersion) {
                 $document->assertVersion($expectedVersion);
@@ -49,6 +50,7 @@ final class ConfirmDocument
                 $document->tax(),
                 $surcharge,
                 $withholdingRate,
+                $taxExempt,
             ), $this->clock->now());
 
             $this->withholdingPolicy->assertAllowed($userId, $document->withholdingRate());

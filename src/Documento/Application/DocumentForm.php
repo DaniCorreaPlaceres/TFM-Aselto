@@ -5,6 +5,7 @@ namespace App\Documento\Application;
 use App\Documento\Domain\DocumentDetails;
 use App\Documento\Domain\EquivalenceSurcharge;
 use App\Documento\Domain\InvalidDocument;
+use App\Documento\Domain\InvalidTaxExemption;
 use App\Documento\Domain\MovementDirection;
 use App\Documento\Domain\Tax;
 use App\Documento\Domain\TaxRate;
@@ -22,7 +23,12 @@ final class DocumentForm
         Tax $tax = Tax::Vat,
         string $surcharge = '',
         string $withholdingRate = '',
+        bool $taxExempt = false,
     ): DocumentDetails {
+        if ($taxExempt && ('' !== trim($taxRate) || '' !== trim($surcharge))) {
+            throw new InvalidTaxExemption('Exempt records cannot specify an indirect tax percentage or surcharge.');
+        }
+
         return new DocumentDetails(
             self::direction($direction),
             self::date($issuedOn),
@@ -33,6 +39,7 @@ final class DocumentForm
             $tax,
             '' === trim($surcharge) ? null : EquivalenceSurcharge::fromPercentage($surcharge),
             '' === trim($withholdingRate) ? null : WithholdingRate::fromPercentage($withholdingRate),
+            $taxExempt,
         );
     }
 

@@ -18,6 +18,7 @@ final class FinancialRecord
         public readonly int $withholdingCents,
         public readonly ?int $totalCents,
         public readonly int $version,
+        public readonly bool $taxExempt = false,
     ) {
     }
 
@@ -27,6 +28,6 @@ final class FinancialRecord
             throw new InvalidQuarter('An included record has incomplete financial data.');
         }
 
-        return new QuarterMovement($this->id, $this->date, $this->income, $this->partyName, $this->baseCents, $this->tax, $this->taxCents, $this->surchargeCents, $this->withholdingCents, $this->totalCents);
+        return new QuarterMovement($this->id, $this->date, $this->income, $this->partyName, $this->baseCents, $this->tax, $this->taxCents, $this->surchargeCents, $this->withholdingCents, $this->totalCents, $this->taxExempt);
     }
 }

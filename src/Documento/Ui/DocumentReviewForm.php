@@ -30,7 +30,7 @@ final class DocumentReviewForm
     }
 
     /**
-     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string} $input
+     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string, taxExempt?: bool} $input
      *
      * @return array<string, mixed>
      */
@@ -49,6 +49,7 @@ final class DocumentReviewForm
             'taxName' => mb_strtoupper($document->tax()->value),
             'allowsWithholding' => $allowsWithholding,
             'withholdingRate' => $document->withholdingRate()?->percentage() ?? '',
+            'taxExempt' => $document->isTaxExempt(),
             'withholdingQuota' => DocumentLabel::euros($document->withholdingQuotaCents()),
             'supportsSurcharge' => Tax::Vat === $document->tax(),
             'surcharge' => $document->surcharge()?->percentage() ?? '',
@@ -71,7 +72,7 @@ final class DocumentReviewForm
     }
 
     /**
-     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string} $input
+     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string, taxExempt?: bool} $input
      *
      * @return array{quota: string, total: string, surchargeQuota: string, withholdingQuota: string}
      */
@@ -79,7 +80,7 @@ final class DocumentReviewForm
     {
         try {
             $details = $this->details($input, $tax);
-        } catch (InvalidDocument|InvalidTaxRate|InvalidSurcharge|InvalidWithholding) {
+        } catch (InvalidDocument|InvalidTaxRate|InvalidSurcharge|InvalidWithholding|\App\Documento\Domain\InvalidTaxExemption) {
             return ['quota' => '', 'total' => '', 'surchargeQuota' => '', 'withholdingQuota' => ''];
         }
 
@@ -91,7 +92,7 @@ final class DocumentReviewForm
         ];
     }
 
-    /** @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string} $input */
+    /** @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string, taxExempt?: bool} $input */
     public function details(array $input, Tax $tax): DocumentDetails
     {
         return DocumentForm::read(
@@ -104,6 +105,7 @@ final class DocumentReviewForm
             $tax,
             $input['surcharge'],
             $input['withholdingRate'],
+            $input['taxExempt'] ?? false,
         );
     }
 
@@ -132,7 +134,7 @@ final class DocumentReviewForm
     }
 
     /**
-     * @return array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string}
+     * @return array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string, taxExempt?: bool}
      */
     public function inputFromDocument(Document $document): array
     {
@@ -149,28 +151,32 @@ final class DocumentReviewForm
             'taxRate' => $document->taxRate()?->percentage() ?? '',
             'surcharge' => $document->surcharge()?->percentage() ?? '',
             'withholdingRate' => $document->withholdingRate()?->percentage() ?? '',
+            'taxExempt' => $document->isTaxExempt(),
         ];
     }
 
     /**
-     * @return array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string}
+     * @return array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string, taxExempt?: bool}
      */
     public function inputFromRequest(Request $request): array
     {
+        $taxExempt = $request->request->getBoolean('tax_exempt');
+
         return [
+            'taxExempt' => $taxExempt,
             'direction' => (string) $request->request->get('direction', ''),
             'issuedOn' => (string) $request->request->get('issued_on', ''),
             'partyName' => (string) $request->request->get('party_name', ''),
             'taxId' => (string) $request->request->get('tax_id', ''),
             'base' => (string) $request->request->get('base', ''),
-            'taxRate' => (string) $request->request->get('tax_rate', ''),
-            'surcharge' => (string) $request->request->get('surcharge', ''),
+            'taxRate' => $taxExempt ? '' : (string) $request->request->get('tax_rate', ''),
+            'surcharge' => $taxExempt ? '' : (string) $request->request->get('surcharge', ''),
             'withholdingRate' => (string) $request->request->get('withholding_rate', ''),
         ];
     }
 
     /**
-     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string} $input
+     * @param array{direction: string, issuedOn: string, partyName: string, taxId: string, base: string, taxRate: string, surcharge: string, withholdingRate: string, taxExempt?: bool} $input
      *
      * @return array{string, string, string, string, string, string, string, string}
      */
