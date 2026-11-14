@@ -69,7 +69,7 @@ try {
     new DoctrineUserRepository($em)->save($user);
     new DoctrineClientRepository($em)->save(new Client(Uuid::v4()->toRfc4122(), $ownerId, ClientKind::SelfEmployed, 'Cliente ficticio de subida', null, FiscalContact::required('00000000T', '600000000', 'Dirección ficticia 1', '28001', 'Municipio de ejemplo', 'Madrid')));
     $session = new Session(new MockArraySessionStorage());
-    $http = static function (string $url, string $method = 'GET', array $data = [], array $uploads = []) use ($kernel, $session, $user): Symfony\Component\HttpFoundation\Response {
+    $http = static function (string $url, string $method = 'GET', array $data = [], array $uploads = []) use ($kernel, $session, &$user): Symfony\Component\HttpFoundation\Response {
         $security = SecurityUser::fromDomain($user);
         $session->set('_security_main', serialize(new UsernamePasswordToken($security, 'main', $security->getRoles())));
         $request = Request::create('http://localhost'.$url, $method, $data, files: $uploads);
@@ -111,6 +111,19 @@ try {
     $check(1 === count($documents->findByOwner($ownerId)), 'Quota rejection creates no document.');
     $check(200 === $http('/mi-plan')->getStatusCode(), 'Owner can consult plan and usage.');
     $check(403 === $http('/licencias')->getStatusCode(), 'Client cannot open license administration.');
+    $user = new User(Uuid::v4()->toRfc4122(), Uuid::v4()->toRfc4122().'@example.test', 'synthetic', Role::Superadmin, null, true);
+    new DoctrineUserRepository($em)->save($user);
+    $check(404 === $http('/mi-plan')->getStatusCode(), 'Superadmin cannot query personal document consumption.');
+    $response = $http('/licencias');
+    $check(200 === $response->getStatusCode(), 'Superadmin can administer plans.');
+    $licenseHtml = new DOMDocument();
+    @$licenseHtml->loadHTML($response->getContent());
+    $licenseCsrf = (string) (new DOMXPath($licenseHtml))->evaluate("string(//form[input[@name='subject' and @value='$ownerId']]//input[@name='_csrf_token']/@value)");
+    $assignment = ['subject' => $ownerId, 'kind' => 'client', 'plan' => 'professional', '_csrf_token' => $licenseCsrf];
+    $check(403 === $http('/licencias', 'POST', [...$assignment, '_csrf_token' => 'invalid'])->getStatusCode(), 'License assignment requires CSRF.');
+    $check(422 === $http('/licencias', 'POST', [...$assignment, 'plan' => 'advisory'])->getStatusCode(), 'Client cannot receive the firm plan.');
+    $check(302 === $http('/licencias', 'POST', $assignment)->getStatusCode(), 'Superadmin can manually assign Professional.');
+    $check(App\Shared\Domain\LicensePlan::Professional === (new App\Shared\Infrastructure\DoctrineLicenses($db))->quota($ownerId, new DateTimeImmutable())->plan, 'Assignment becomes effective immediately.');
 } finally {
     $paths = array_map(static fn ($document): string => $document->storedPath(), $documents->findByOwner($ownerId));
     $db->rollBack();

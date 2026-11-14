@@ -20,4 +20,4 @@ Cobros, suscripciones, facturación y prorrateos. El superadmin no consulta docu
 
 ## Comprobado
 
-Comprobados: 336 pruebas PHPUnit/820 aserciones, PHPStan sin errores, OpenAPI válido, Twig y contenedor válidos, migración con originales preexistentes preservados y meses de verano/invierno correctos, 13 comprobaciones de esquema, 20 de licencias con carrera de dos procesos, 15 del formulario de subida y 77 de API documental. Revisión visual e integración del lote pendientes.
+Comprobados: 336 pruebas PHPUnit/820 aserciones, PHPStan sin errores, OpenAPI válido, Twig y contenedor válidos, migración con originales preexistentes preservados y meses de verano/invierno correctos, 13 comprobaciones de esquema, 20 de licencias con carrera de dos procesos, 21 del formulario de subida y administración (rol, CSRF y asignación) y 77 de API documental. Revisión visual en escritorio y 320 px e integración local de las seis ramas realizadas. Evidencias conjuntas y límites de la revisión en `../public-content-batch.md`.
