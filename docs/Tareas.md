@@ -51,7 +51,7 @@ La antigua tarea 28 se divide. Primero se realizarán las tareas 28 y 29; despu�
 
 Las invitaciones a asesorías y a equipos ya tienen una primera implementación en las tareas 9 y 10. Las tareas siguientes completan y revisan el alcance solicitado; no se dan por hechas por existir esos primeros flujos.
 
-- [ ] 30. Completar las invitaciones del superadmin a asesorías y profesionales independientes: enviar por correo un enlace de registro con token de uso único y caducidad, consultar su estado y permitir reenvío sin accesos ambiguos. Concretar los tipos de destinatario y el tratamiento de cuentas existentes antes de implementar.
+- [x] 30. Completar las invitaciones del superadmin a asesorías y clientes independientes (autónomos o empresas): tipo y correo, registro del destinatario con sus datos y contraseña, enlace de uso único y caducidad, estados y reenvío invalidando el enlace anterior. Se bloquean cuentas existentes sin cambiar su rol ni vinculación. Guía en `invitations.md`.
 - [ ] 31. Administración de asesorías por el superadmin: listar, añadir, consultar y editar sus datos principales y el correo de su admin. Delimitar campos administrativos y proteger los cambios de identidad. No concede acceso a documentos, ingresos, gastos, cifras de trimestres, conversaciones ni archivos privados de la asesoría o de sus clientes.
 - [ ] 32. Administración de clientes independientes por el superadmin: listar, añadir, consultar y editar los datos principales de los clientes sin asesoría. No permite entrar en su actividad económica, documentos, trimestres, conversaciones ni archivos. Revisar expresamente permisos de web, API y descargas.
 
