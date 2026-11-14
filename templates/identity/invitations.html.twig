@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+{% block title %}Invitaciones{% endblock %}
+{% block body %}
+<main class="panel wide">
+    <h1>Invitaciones</h1>
+    <p>Las cuentas se crean al aceptar. Reenviar renueva el plazo de 24 horas e invalida el enlace anterior.</p>
+    {% for message in app.flashes('success') %}<p class="success" role="status">{{ message }}</p>{% endfor %}
+    {% for message in app.flashes('error') %}<p class="error" role="alert">{{ message }}</p>{% endfor %}
+    <a class="action" href="{{ path('platform_invitation_new') }}">Enviar invitación</a>
+    {% if invitations is empty %}<p>Todavía no hay invitaciones.</p>{% else %}
+    <div class="table-card" data-controller="table"><table class="table">
+        <caption>Invitaciones de registro de la plataforma</caption>
+        <thead><tr><th>Correo</th><th>Tipo de cuenta</th><th>Estado</th><th>Último envío</th><th>Caducidad</th><th>Acciones</th></tr></thead>
+        <tbody>{% for invitation in invitations %}<tr>
+            <td>{{ invitation.email }}</td><td>{{ targets[invitation.target.value] }}</td><td>{{ invitation.status }}</td>
+            <td data-order="{{ invitation.sentAt|date('U') }}">{{ invitation.sentAt|date('d/m/Y H:i', 'Atlantic/Canary') }}</td>
+            <td data-order="{{ invitation.expiresAt|date('U') }}">{{ invitation.expiresAt|date('d/m/Y H:i', 'Atlantic/Canary') }}</td>
+            <td>{% if invitation.canResend %}<form method="post" action="{{ path('platform_invitation_resend', {id: invitation.id}) }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('resend_invitation_' ~ invitation.id) }}"><button class="quiet" type="submit" aria-label="Reenviar invitación a {{ invitation.email }}">Reenviar</button></form>{% else %}Sin acciones{% endif %}</td>
+        </tr>{% endfor %}</tbody>
+    </table></div>
+    <p class="muted">Fechas en horario de Canarias. «Último envío» indica cuándo se generó el enlace; no acredita su entrega en el buzón.</p>
+    {% endif %}
+</main>
+{% endblock %}

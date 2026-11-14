@@ -23,6 +23,7 @@
             </tbody></table></div>
         {% endif %}
 
-        <a class="action" href="{{ path('firm_new') }}">Dar de alta una asesoría</a>
+        <a class="action" href="{{ path('platform_invitation_new', {target: 'advisory'}) }}">Invitar a una asesoría</a>
+        <a class="quiet-link" href="{{ path('firm_new') }}">Dar de alta con todos sus datos</a>
     </main>
 {% endblock %}

@@ -8,6 +8,7 @@ El cliente añade una factura o justificante y revisa los datos propuestos. Sin 
 
 - Acceso por papeles, activación mediante enlaces por correo y recuperación de contraseña.
 - Alta de asesorías, equipos y clientes; perfiles con datos fiscales y separación entre asesorías.
+- [Invitaciones del superadmin](docs/invitations.md) a asesorías y clientes independientes: el destinatario completa sus datos y contraseña, con caducidad, uso único, estados y reenvío.
 - Subida de documentos en una sola zona: archivo, foto o arrastre. Revisión del original con visor PDF, borradores y confirmación humana.
 - Extracción mediante un proveedor de IA cuando se configura; sin clave se utiliza una propuesta de ejemplo claramente identificada. Un fallo de extracción permite la revisión manual.
 - Impuesto según territorio (IVA, IGIC o IPSI manual), recargo de equivalencia y retenciones opcionales según el registro y el perfil.
@@ -110,6 +111,6 @@ La prueba de integración `schema-workflow.php` se ejecuta en el quinto trabajo 
 
 La aplicación móvil, la presentación de impuestos, los bancos, el plan contable, la emisión de facturas y los cobros de la plataforma quedan fuera del alcance implementado. El IPSI se introduce manualmente; los cálculos no determinan la validez fiscal de un documento. La API todavía no expone edición de perfiles fiscales.
 
-Están planificados, entre otros, ampliaciones de invitaciones y administración, home y landings comerciales, planes y cuotas, registros exentos, auditoría OWASP, versión de producto 1.0.0 y publicación automatizada en Hostinger. No se consideran disponibles por aparecer en la planificación.
+Están planificados, entre otros, la ampliación de administración de asesorías y clientes independientes, home y landings comerciales, planes y cuotas, registros exentos, auditoría OWASP, versión de producto 1.0.0 y publicación automatizada en Hostinger. No se consideran disponibles por aparecer en la planificación.
 
 Las fichas de [rediseño](docs/sdd/platform-design.md) y [subida unificada](docs/sdd/document-upload-zone.md) señalan comprobaciones manuales pendientes, como lector de pantalla, ampliación al 200 % y cámara de móvil real. Las revisiones realizadas no constituyen una declaración de conformidad completa de accesibilidad ni una auditoría integral de seguridad.

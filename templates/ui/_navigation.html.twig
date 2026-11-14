@@ -2,7 +2,7 @@
 {% if is_granted('ROLE_CLIENT') %}
     {% set links = [['client_home', 'Inicio', 'home'], ['client_movements', 'Ingresos y gastos', 'chart'], ['client_documents', 'Documentos', 'document'], ['messages', 'Mensajes', 'message'], ['client_firm', 'Mi asesoría', 'people'], ['client_profile', 'Datos fiscales', 'person'], ['client_help', 'Ayuda', 'help']] %}
 {% elseif is_granted('ROLE_SUPERADMIN') %}
-    {% set links = [['account', 'Inicio', 'home'], ['firms', 'Asesorías', 'people'], ['clients', 'Clientes sin asesoría', 'people']] %}
+    {% set links = [['account', 'Inicio', 'home'], ['platform_invitations', 'Invitaciones', 'people'], ['firms', 'Asesorías', 'people'], ['clients', 'Clientes sin asesoría', 'people']] %}
 {% else %}
     {% set links = [['account', 'Inicio', 'home'], ['firm_inbox', 'Documentos', 'document'], ['clients', 'Clientes', 'people'], ['messages', 'Mensajes', 'message']] %}
     {% if is_granted('ROLE_FIRM_ADMIN') %}{% set links = links|merge([['team', 'Equipo', 'people'], ['firm_profile', 'Datos fiscales', 'person']]) %}{% endif %}

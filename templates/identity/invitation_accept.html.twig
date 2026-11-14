@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+{% block title %}Completar registro{% endblock %}
+{% block body %}
+<main class="panel">
+    <h1>Completar registro</h1>
+    <p><strong>{{ targetLabel }}</strong><br>{{ invitation.email }}</p>
+    <p>Completa los datos de {{ invitation.target.value == 'advisory' ? 'tu asesoría' : 'tu actividad' }}. Tu correo y tipo de cuenta vienen fijados por la invitación.</p>
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    <form method="post">
+        <label for="name">{{ invitation.target.value == 'advisory' ? 'Nombre de la asesoría' : 'Nombre o razón social' }}</label>
+        <input id="name" name="name" value="{{ name }}" required maxlength="120" autocomplete="organization">
+        {{ include('_fiscal_contact.html.twig') }}
+        <label for="password">Contraseña (al menos 8 caracteres)</label>
+        <input id="password" name="password" type="password" required minlength="8" autocomplete="new-password">
+        <label for="passwordConfirmation">Repite la contraseña</label>
+        <input id="passwordConfirmation" name="passwordConfirmation" type="password" required minlength="8" autocomplete="new-password">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('accept_invitation_' ~ invitation.id) }}">
+        <button type="submit">Crear mi cuenta</button>
+    </form>
+</main>
+{% endblock %}
