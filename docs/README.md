@@ -10,6 +10,8 @@ Toda la documentación del proyecto vive en esta carpeta, en la raíz del reposi
 - [invitations.md](invitations.md). Invitaciones del superadmin, estados, reenvío y registro del destinatario.
 - [platform-firms.md](platform-firms.md). Administración de asesorías y cambio confirmado del correo de su admin.
 - [platform-independent-clients.md](platform-independent-clients.md). Fichas administrativas de clientes sin asesoría y límites de acceso.
+- [licenses.md](licenses.md). Planes, activación manual, cuotas, migración y pruebas reproducibles.
+- [public-content-batch.md](public-content-batch.md). Entregas y evidencias del lote de comercialización y contenido público (PR #39–44).
 - [local-installation.md](local-installation.md). Instalación desde cero con Docker, comprobaciones y problemas conocidos.
 - [Tareas.md](Tareas.md). Lista de tareas del proyecto, sin el detalle de cada una.
 - [producto/Aselto_Documento_introductorio.docx](producto/Aselto_Documento_introductorio.docx). Texto de presentación del proyecto.

@@ -157,6 +157,7 @@ paths:
     post:
       operationId: uploadDocument
       summary: 'Subir un documento para revisión humana'
+      description: 'Cada registro creado consume una unidad del mes natural en Atlantic/Canary. Gratis permite 20; Profesional independiente o cobertura Asesoría no tienen límite mensual. Los límites de archivo se mantienen. Corregir o aportar justificantes no consume otra unidad; borrar no devuelve cuota. Al agotar Gratis responde 409 con error.code document_quota_exceeded, sin crear registro ni consumir otra unidad.'
       security:
         -
           bearerAuth: {  }
@@ -3097,7 +3098,7 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
     DocumentConflict:
-      description: 'Versión obsoleta o trimestre cerrado. Consultar de nuevo antes de modificar.'
+      description: 'Versión obsoleta, trimestre cerrado o cuota mensual agotada (document_quota_exceeded al subir). Consultar de nuevo antes de modificar; para la cuota, esperar al siguiente mes o solicitar cambio manual de plan.'
       content:
         application/json:
           schema:

@@ -13,6 +13,7 @@ use App\Documento\Domain\MissingClientProfile;
 use App\Documento\Domain\Tax;
 use App\Shared\Domain\ClientTransaction;
 use App\Shared\Domain\Clock;
+use App\Shared\Domain\DocumentQuota;
 use App\Shared\Domain\IdGenerator;
 
 final class StoreClientDocument
@@ -25,6 +26,7 @@ final class StoreClientDocument
         private readonly IdGenerator $ids,
         private readonly Clock $clock,
         private readonly ClientTransaction $transaction,
+        private readonly DocumentQuota $quota,
     ) {
     }
 
@@ -41,32 +43,41 @@ final class StoreClientDocument
         $upload = DocumentUpload::read($originalName, $mediaType, $contents);
         $storedType = $upload['mediaType'];
         $id = $this->ids->next();
-        $path = $this->files->write($id, $upload['extension'], $contents);
-        $document = Document::receive(
-            $id,
-            $client->userId(),
-            $client->firmId(),
-            $upload['originalName'],
-            $path,
-            $storedType,
-            $this->clock->now(),
-            $tax,
-        );
 
-        try {
-            $allowsWithholding = ClientKind::SelfEmployed === $client->kind();
-            $proposal = $this->extractor->propose($storedType, $contents, $tax, $allowsWithholding);
-            if (!$allowsWithholding && null !== $proposal->details()->withholdingRate()) {
-                throw new ExtractionFailed('Withholding is not available for this client.');
+        return $this->transaction->run($userId, function () use ($userId, $id, $upload, $storedType, $contents): Document {
+            // Re-read after locking: linking can change the applicable plan and firm.
+            $client = $this->clients->findByUserId($userId);
+            if (null === $client) {
+                throw new MissingClientProfile('The client profile does not exist.');
             }
-            $document = $document->propose($proposal->details(), $proposal->origin());
-        } catch (ExtractionFailed) {
-        }
+            $tax = Tax::forProvince($client->contact()->province());
+            $at = $this->clock->now();
+            $this->quota->consume($userId, $id, $at);
+            $path = $this->files->write($id, $upload['extension'], $contents);
+            $document = Document::receive(
+                $id,
+                $client->userId(),
+                $client->firmId(),
+                $upload['originalName'],
+                $path,
+                $storedType,
+                $at,
+                $tax,
+            );
 
-        $this->transaction->run($userId, function () use ($document): void {
+            try {
+                $allowsWithholding = ClientKind::SelfEmployed === $client->kind();
+                $proposal = $this->extractor->propose($storedType, $contents, $tax, $allowsWithholding);
+                if (!$allowsWithholding && null !== $proposal->details()->withholdingRate()) {
+                    throw new ExtractionFailed('Withholding is not available for this client.');
+                }
+                $document = $document->propose($proposal->details(), $proposal->origin());
+            } catch (ExtractionFailed) {
+            }
+
             $this->documents->save($document);
-        });
 
-        return $document;
+            return $document;
+        });
     }
 }

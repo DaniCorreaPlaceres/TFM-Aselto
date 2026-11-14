@@ -7,6 +7,7 @@
     {% set links = [['account', 'Inicio', 'home'], ['firm_inbox', 'Documentos', 'document'], ['clients', 'Clientes', 'people'], ['messages', 'Mensajes', 'message']] %}
     {% if is_granted('ROLE_FIRM_ADMIN') %}{% set links = links|merge([['team', 'Equipo', 'people'], ['firm_profile', 'Datos fiscales', 'person']]) %}{% endif %}
 {% endif %}
+{% set links = links|merge([is_granted('ROLE_SUPERADMIN') ? ['platform_licenses', 'Licencias', 'person'] : ['own_license', 'Mi plan', 'person']]) %}
 {% for link in links %}
     {% set active = route == link[0] or (link[0] == 'client_documents' and route starts with 'client_document') or (link[0] == 'firm_inbox' and route == 'firm_document') or (link[0] == 'messages' and route starts with 'message_') or (link[0] == 'clients' and route in ['client_fiscal', 'firm_client_quarter']) %}
     <a href="{{ path(link[0]) }}" {% if active %}aria-current="page"{% endif %}>{{ include('ui/_icon.html.twig', {icon: link[2]}) }}<span>{{ link[1] }}</span></a>

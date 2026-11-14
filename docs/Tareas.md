@@ -57,13 +57,15 @@ Las invitaciones a asesorías y a equipos ya tienen una primera implementación 
 
 ## Comercialización y contenido público
 
+Tareas 34–39 implementadas en seis ramas y PR independientes, pendientes de merge en `develop`. Decisiones confirmadas y evidencias conjuntas en [public-content-batch.md](public-content-batch.md).
+
 - [x] 33. Reorientar la home a la venta del producto: secciones para autónomos/empresas y asesorías, beneficios y acciones diferenciados, ejemplo documental ilustrativo y proceso en tres pasos. Acciones conectadas al registro y acceso existentes; «Tu cuenta» con sesión iniciada. Detalle en `sdd/commercial-home.md`.
-- [ ] 34. Crear tres landing pages enlazadas desde la home: autónomos, empresas y asesorías. Adaptar a cada público los problemas, beneficios, ejemplos y llamadas a la acción.
-- [ ] 35. Reforzar la propuesta de IA en home y landings con textos, iconos e imágenes coherentes con la marca. Explicar cómo ayuda a organizar y extraer información, manteniendo la revisión humana y sin prometer validación fiscal automática o capacidades no implementadas.
-- [ ] 36. Añadir un footer común con «Quiénes somos», privacidad, cookies, precios y enlaces a las landings de autónomos, empresas y asesorías. Incluir «© [año] Daniel Correa Placeres», con el año actualizado.
-- [ ] 37. Preparar las páginas de «Quiénes somos», política de privacidad y política de cookies. Identificar responsable, tratamientos, proveedores y cookies realmente utilizados; concretar la información que debe aportar el titular y dejar señalada la revisión legal pendiente, sin inventar datos ni considerar estos borradores una validación jurídica.
-- [ ] 38. Crear la página de precios: Gratis, Profesional por 4,99 €/mes y Asesoría por 2,99 €/mes por cliente. Explicar los planes y sus llamadas a la acción. Aclarar impuestos incluidos o no, alcance de cada licencia y forma de contratación antes de publicarla como oferta definitiva.
-- [ ] 39. Incorporar las licencias y el límite del plan Gratis de 20 documentos al mes. Acordar cómputo mensual, documentos que consumen cuota, cambios de plan y contabilización de clientes del plan Asesoría. Aplicar los límites de forma coherente en web y API, con avisos comprensibles. No presupone integrar cobros ni facturación.
+- [x] 34. Crear tres landing pages enlazadas desde la home: autónomos, empresas y asesorías. Adaptar a cada público los problemas, beneficios, ejemplos y llamadas a la acción.
+- [x] 35. Reforzar la propuesta de IA en home y landings con textos, iconos e imágenes coherentes con la marca. Explicar cómo ayuda a organizar y extraer información, manteniendo la revisión humana y sin prometer validación fiscal automática o capacidades no implementadas.
+- [x] 36. Añadir un footer común con «Quiénes somos», privacidad, cookies, precios y enlaces a las landings de autónomos, empresas y asesorías. Incluir «© [año] Daniel Correa Placeres», con el año actualizado.
+- [x] 37. Preparar las páginas de «Quiénes somos», política de privacidad y política de cookies. Identificar responsable, tratamientos, proveedores y cookies realmente utilizados; concretar la información que debe aportar el titular y dejar señalada la revisión legal pendiente, sin inventar datos ni considerar estos borradores una validación jurídica.
+- [x] 38. Crear la página de precios: Gratis, Profesional por 4,99 €/mes y Asesoría por 2,99 €/mes por cliente. Explicar los planes y sus llamadas a la acción. Aclarar impuestos incluidos o no, alcance de cada licencia y forma de contratación antes de publicarla como oferta definitiva.
+- [x] 39. Incorporar las licencias y el límite del plan Gratis de 20 documentos al mes. Acordar cómputo mensual, documentos que consumen cuota, cambios de plan y contabilización de clientes del plan Asesoría. Aplicar los límites de forma coherente en web y API, con avisos comprensibles. No presupone integrar cobros ni facturación.
 
 ## Experiencia del cliente e impuestos
 
