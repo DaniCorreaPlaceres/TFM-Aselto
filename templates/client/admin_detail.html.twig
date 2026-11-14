@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+{% block title %}Administrar cliente independiente{% endblock %}
+{% block body %}
+<main class="panel">
+    <a class="quiet-link" href="{{ path('clients') }}">Volver a clientes sin asesoría</a>
+    <h1>{{ view.client.name }}</h1>
+    <p>{{ kindLabel }} · Sin asesoría</p>
+    <p>Correo de la cuenta: <strong>{{ view.email }}</strong><br>{{ view.activated ? 'Cuenta activada' : 'Pendiente de crear su contraseña' }}</p>
+    <p>Solo puedes editar sus datos principales. La cuenta y el tipo de cliente se conservan. Esta ficha no permite acceder a su actividad económica ni a sus documentos.</p>
+    {% for message in app.flashes('success') %}<p class="success" role="status">{{ message }}</p>{% endfor %}
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    <form method="post">
+        <label for="name">Nombre o razón social</label>
+        <input id="name" name="name" value="{{ name }}" required maxlength="120">
+        {{ include('_fiscal_contact.html.twig') }}
+        <input type="hidden" name="version" value="{{ version }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('administer_client_' ~ view.client.id) }}">
+        <button type="submit">Guardar datos</button>
+    </form>
+</main>
+{% endblock %}

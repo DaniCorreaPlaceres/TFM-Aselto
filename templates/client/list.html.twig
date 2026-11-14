@@ -4,7 +4,7 @@
 
 {% block body %}
     <main class="panel wide">
-        <h1>Clientes</h1>
+        <h1>{{ unlinked ? 'Clientes sin asesoría' : 'Clientes' }}</h1>
         {% if unlinked %}
             <p>Sin asesoría.</p>
         {% endif %}
@@ -19,7 +19,7 @@
             <div class="table-card" data-controller="table" data-table-filter-column-value="1"><table class="table"><caption>Clientes de tu ámbito</caption><thead><tr><th>Nombre</th><th>Tipo</th><th>Correo</th>{% if not unlinked %}<th class="no-export">Acciones</th>{% endif %}</tr></thead><tbody>
                 {% for client in clients %}
                     <tr><td>
-                        <strong><a href="{{ path('client_fiscal', {id: client.id}) }}">{{ client.name }}</a></strong>
+                        <strong><a href="{{ path(unlinked ? 'platform_independent_client' : 'client_fiscal', {id: client.id}) }}">{{ client.name }}</a></strong>
                         </td><td>{{ client.kind }}
                         </td><td>{{ client.email }}
                         {% if not unlinked %}</td><td><a href="{{ path('firm_client_quarter', {id: client.id}) }}">Ver trimestre</a>{% endif %}
@@ -29,6 +29,7 @@
         {% endif %}
 
         {% if canCreate %}
+            {% if unlinked %}<p><a class="action" href="{{ path('platform_invitation_new', {target: 'self_employed'}) }}">Invitar a un autónomo</a> <a class="action" href="{{ path('platform_invitation_new', {target: 'company'}) }}">Invitar a una empresa</a></p>{% endif %}
             <h2>Dar de alta un cliente</h2>
             <p>Le enviaremos un correo para confirmar su dirección y crear su contraseña.</p>
 

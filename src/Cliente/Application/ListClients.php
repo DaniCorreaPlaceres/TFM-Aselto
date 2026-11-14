@@ -3,6 +3,8 @@
 namespace App\Cliente\Application;
 
 use App\Cliente\Domain\ClientRepository;
+use App\Cliente\Domain\UnknownClient;
+use App\Identidad\Domain\Role;
 use App\Identidad\Domain\UserRepository;
 
 final class ListClients
@@ -16,8 +18,13 @@ final class ListClients
     /**
      * @return list<ClientListing>
      */
-    public function execute(?string $firmId): array
+    public function execute(string $actorId): array
     {
+        $actor = $this->users->find($actorId);
+        if (null === $actor || !$actor->isActivated() || Role::Client === $actor->role() || (Role::Superadmin !== $actor->role() && null === $actor->firmId())) {
+            throw new UnknownClient('Client list not available.');
+        }
+        $firmId = Role::Superadmin === $actor->role() ? null : $actor->firmId();
         $records = null === $firmId
             ? $this->clients->findWithoutFirm()
             : $this->clients->findByFirm($firmId);
@@ -26,7 +33,7 @@ final class ListClients
         foreach ($records as $client) {
             $user = $this->users->find($client->userId());
 
-            if (null === $user) {
+            if (null === $user || Role::Client !== $user->role() || $user->firmId() !== $client->firmId() || $client->firmId() !== $firmId) {
                 continue;
             }
 

@@ -16,7 +16,13 @@ final class DoctrineUserRepository implements UserRepository
     {
         $record = $this->entityManager->find(DoctrineUser::class, $id);
 
-        return $record instanceof DoctrineUser ? $record->toDomain() : null;
+        if ($record instanceof DoctrineUser) {
+            $this->entityManager->refresh($record);
+
+            return $record->toDomain();
+        }
+
+        return null;
     }
 
     public function findByEmail(string $email): ?User

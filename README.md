@@ -21,7 +21,7 @@ El cliente añade una factura o justificante y revisa los datos propuestos. Sin 
 
 ### Papeles y acceso a la información
 
-- **Superadmin:** da de alta asesorías y clientes independientes. Consulta y edita la ficha administrativa de las asesorías, con cambio confirmado del correo de su admin. Su papel no da acceso a documentos, cifras ni conversaciones privadas. La edición ampliada de clientes independientes está planificada.
+- **Superadmin:** da de alta asesorías y clientes independientes. Consulta y edita sus fichas administrativas, con cambio confirmado del correo del admin en las asesorías. En clientes sin asesoría edita nombre y contacto fiscal, conservando cuenta y tipo. Su papel no da acceso a documentos, cifras ni conversaciones privadas.
 - **Admin de asesoría:** gestiona su equipo y clientes y revisa documentos, trimestres y comunicaciones de su asesoría.
 - **Gestor:** revisa documentos, gestiona trimestres y atiende comunicaciones dentro de su asesoría. No tiene las mismas facultades de alta y edición de perfiles que el admin.
 - **Cliente:** gestiona sus documentos y consulta sus cifras. Sin asesoría, sus confirmaciones y cierres son personales; con asesoría se distinguen de la validación del equipo.

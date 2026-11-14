@@ -26,6 +26,7 @@ final class RegisterClient
 
     public function execute(string $name, ClientKind $kind, string $email, ?string $firmId, FiscalContact $contact): Client
     {
+        $name = Client::normalizeName($name);
         if (!$contact->isComplete()) {
             throw new InvalidFiscalContact(InvalidFiscalContact::TAX_ID_MISSING);
         }

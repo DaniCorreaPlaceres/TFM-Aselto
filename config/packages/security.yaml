@@ -57,6 +57,7 @@ security:
         - { path: ^/recuperar, roles: PUBLIC_ACCESS }
         - { path: ^/$, roles: PUBLIC_ACCESS }
         - { path: ^/asesorias, roles: ROLE_SUPERADMIN }
+        - { path: ^/clientes-independientes, roles: ROLE_SUPERADMIN }
         - { path: ^/invitaciones, roles: ROLE_SUPERADMIN }
         - { path: ^/equipo, roles: ROLE_FIRM_ADMIN }
         - { path: ^/, roles: ROLE_USER }

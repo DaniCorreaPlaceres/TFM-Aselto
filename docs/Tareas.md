@@ -53,7 +53,7 @@ Las invitaciones a asesorías y a equipos ya tienen una primera implementación 
 
 - [x] 30. Completar las invitaciones del superadmin a asesorías y clientes independientes (autónomos o empresas): tipo y correo, registro del destinatario con sus datos y contraseña, enlace de uso único y caducidad, estados y reenvío invalidando el enlace anterior. Se bloquean cuentas existentes sin cambiar su rol ni vinculación. Guía en `invitations.md`.
 - [x] 31. Administración de asesorías por el superadmin: listado y ficha con nombre, NIF, teléfono y dirección; alta existente y cambio del correo del admin mediante confirmación de 24 horas, sin modificar identidad o permisos. Revocación de accesos y enlaces anteriores, aviso al correo antiguo y protección de cambios concurrentes. No concede acceso a actividad privada. Guía en `platform-firms.md`.
-- [ ] 32. Administración de clientes independientes por el superadmin: listar, añadir, consultar y editar los datos principales de los clientes sin asesoría. No permite entrar en su actividad económica, documentos, trimestres, conversaciones ni archivos. Revisar expresamente permisos de web, API y descargas.
+- [x] 32. Administración de clientes independientes por el superadmin: listado y ficha administrativa de clientes sin asesoría, edición de nombre y contacto fiscal, alta directa e invitaciones. Cuenta y tipo conservados, control de versiones y vinculación concurrente, sin acceso a actividad privada por web, API o descargas. Guía en `platform-independent-clients.md`.
 
 ## Comercialización y contenido público
 
