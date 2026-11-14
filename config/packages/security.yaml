@@ -55,7 +55,7 @@ security:
         - { path: ^/activar, roles: PUBLIC_ACCESS }
         - { path: ^/confirmar-correo-admin/, roles: PUBLIC_ACCESS }
         - { path: ^/recuperar, roles: PUBLIC_ACCESS }
-        - { path: ^/$, roles: PUBLIC_ACCESS }
+        - { path: ^/(autonomos|empresas|asesorias-profesionales|quienes-somos|privacidad|cookies|precios)?$, roles: PUBLIC_ACCESS }
         - { path: ^/asesorias, roles: ROLE_SUPERADMIN }
         - { path: ^/clientes-independientes, roles: ROLE_SUPERADMIN }
         - { path: ^/invitaciones, roles: ROLE_SUPERADMIN }
