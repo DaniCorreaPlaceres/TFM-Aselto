@@ -45,6 +45,7 @@ legend { float: none; width: auto; font-size: 1.125rem; font-weight: 650; paddin
 .workspace { display: grid; grid-template-columns: 254px minmax(0, 1fr); min-height: 100vh; }
 .workspace-sidebar { background: white; border-right: 1px solid var(--line); padding: 1.5rem 1rem; position: sticky; top: 0; height: 100dvh; display: flex; flex-direction: column; overflow-y: auto; }
 .workspace-brand { display: block; padding: 0 .5rem 1.75rem; }
+@import 'public-footer';
 .workspace-brand img { width: 205px; }
 .workspace-mobile-header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
 .navigation-toggle { display: none; }
