@@ -47,6 +47,43 @@ final class DocumentRegistrationTest extends TestCase
 
     private const DOCUMENT = '00000000-0000-4000-8000-000000000031';
 
+    public function testProviderFailureOrSaturationPreservesOneUnconfirmedDocument(): void
+    {
+        foreach ([false, true] as $busy) {
+            $locks = new \Symfony\Component\Lock\LockFactory(new \Symfony\Component\Lock\Store\InMemoryStore());
+            $held = [];
+            if ($busy) {
+                foreach ([0, 1] as $index) {
+                    $lock = $locks->createLock('aselto-ai-extraction-'.$index);
+                    self::assertTrue($lock->acquire());
+                    $held[] = $lock;
+                }
+            }
+            $http = new \Symfony\Component\HttpClient\MockHttpClient(new \Symfony\Component\HttpClient\Response\MockResponse('synthetic failure', ['http_code' => 500]));
+            $extractor = new \App\Documento\Infrastructure\Extraction\OpenAiDocumentExtractor($http, new \App\Documento\Infrastructure\Extraction\OpenAiProposalReader(), 'synthetic-not-a-key', 'gpt-4o-mini', $locks);
+            $contents = "%PDF-1.4\nSynthetic, no fiscal validity\n%%EOF";
+            $path = 'synthetic/manual-review.pdf';
+            $files = $this->createMock(DocumentFileStore::class);
+            $files->expects(self::once())->method('write')->with(self::DOCUMENT, 'pdf', $contents)->willReturn($path);
+            $quota = $this->createMock(\App\Shared\Domain\DocumentQuota::class);
+            $quota->expects(self::once())->method('consume');
+            $documents = new RegistrationDocumentRepository();
+            $store = new StoreClientDocument($this->clients(), $documents, $files, $extractor, new RegistrationIds(self::DOCUMENT), new RegistrationClock(), new RegistrationTransaction(), $quota);
+            try {
+                $document = $store->execute(self::CLIENT, 'synthetic.pdf', 'application/pdf', $contents);
+                self::assertSame(DocumentStatus::Uploaded, $document->status());
+                self::assertNull($document->proposal());
+                self::assertNull($document->totalCents());
+                self::assertSame($path, $documents->find(self::DOCUMENT)?->storedPath());
+                self::assertSame($busy ? 0 : 1, $http->getRequestsCount());
+            } finally {
+                foreach ($held as $lock) {
+                    $lock->release();
+                }
+            }
+        }
+    }
+
     public function testAnExtractorCannotAssignExemptionAndFallsBackToManualReview(): void
     {
         $extractor = $this->createStub(DocumentExtractor::class);

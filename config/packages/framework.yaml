@@ -4,6 +4,12 @@ framework:
     secret: '%env(APP_SECRET)%'
     http_client:
         scoped_clients:
+            ai_extraction.client:
+                scope: '^https://api\.openai\.com/'
+                timeout: 10
+                max_duration: 30
+                max_redirects: 0
+                retry_failed: false
             quarter_hub.client:
                 scope: '.*'
                 timeout: 2

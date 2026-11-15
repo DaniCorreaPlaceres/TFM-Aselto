@@ -19,9 +19,12 @@ final class OpenAiProposalReader
 {
     public function read(string $payload, Tax $tax = Tax::Vat, bool $allowsWithholding = false): DocumentDetails
     {
+        if (strlen($payload) > OpenAiDocumentExtractor::MAX_PROPOSAL_BYTES) {
+            throw new ExtractionFailed('The proposal is too large.');
+        }
         $payload = trim($payload);
         $payload = preg_replace('/^```(?:json)?\s*|\s*```$/', '', $payload) ?? $payload;
-        $data = json_decode($payload, true);
+        $data = json_decode($payload, true, 16);
 
         if (!is_array($data)) {
             throw new ExtractionFailed('The document could not be read.');
