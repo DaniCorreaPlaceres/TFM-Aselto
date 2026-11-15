@@ -52,6 +52,9 @@ services:
     App\Identidad\Domain\PasswordHasher:
         alias: App\Identidad\Infrastructure\Security\SymfonyPasswordHasher
 
+    App\Identidad\Domain\CommonPasswords:
+        alias: App\Identidad\Infrastructure\Security\LocalCommonPasswords
+
     App\Identidad\Domain\AccessTokenRepository:
         alias: App\Identidad\Infrastructure\Persistence\DoctrineAccessTokenRepository
 

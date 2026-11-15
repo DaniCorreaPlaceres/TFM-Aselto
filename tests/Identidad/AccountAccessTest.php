@@ -4,6 +4,7 @@ namespace App\Tests\Identidad;
 
 use App\Identidad\Application\ChoosePassword;
 use App\Identidad\Application\IssueAccessToken;
+use App\Identidad\Application\PasswordPolicy;
 use App\Identidad\Application\RequestPasswordReset;
 use App\Identidad\Application\StartAccount;
 use App\Identidad\Domain\AccessPurpose;
@@ -19,6 +20,7 @@ use App\Identidad\Domain\Role;
 use App\Identidad\Domain\TokenGenerator;
 use App\Identidad\Domain\User;
 use App\Identidad\Domain\UserRepository;
+use App\Identidad\Infrastructure\Security\LocalCommonPasswords;
 use App\Shared\Domain\Clock;
 use App\Shared\Domain\IdGenerator;
 use App\Shared\Domain\Transaction;
@@ -47,12 +49,12 @@ final class AccountAccessTest extends TestCase
         $clock = new MutableClock('2026-11-07 00:00:00 UTC');
         $this->accounts($users, $notifier, $tokens, $clock)->open('ana@example.test', Role::Client, null);
 
-        $this->passwords($users, $tokens, $clock)->execute($notifier->tokens[0], 'asesoria1', AccessPurpose::Activation);
+        $this->passwords($users, $tokens, $clock)->execute($notifier->tokens[0], 'frase de prueba original', AccessPurpose::Activation);
 
         $user = $users->findByEmail('ana@example.test');
         self::assertInstanceOf(User::class, $user);
         self::assertTrue($user->isActivated());
-        self::assertSame('hash:asesoria1', $user->passwordHash());
+        self::assertSame('hash:frase de prueba original', $user->passwordHash());
 
         $this->expectException(InvalidAccessToken::class);
         $this->passwords($users, $tokens, $clock)->execute($notifier->tokens[0], 'asesoria2', AccessPurpose::Activation);
@@ -177,7 +179,7 @@ final class AccountAccessTest extends TestCase
 
     private function passwords(UserRepository $users, AccessTokenRepository $tokens, ?Clock $clock = null): ChoosePassword
     {
-        return new ChoosePassword($tokens, $users, new FakePasswordHasher(), $clock ?? new MutableClock('2026-11-07 00:00:00 UTC'), new ImmediateTransaction());
+        return new ChoosePassword($tokens, $users, new FakePasswordHasher(), $clock ?? new MutableClock('2026-11-07 00:00:00 UTC'), new ImmediateTransaction(), new PasswordPolicy(new LocalCommonPasswords(dirname(__DIR__, 2).'/resources/security/common-passwords.txt')));
     }
 
     private function resets(

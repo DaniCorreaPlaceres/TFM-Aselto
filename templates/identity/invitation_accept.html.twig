@@ -10,10 +10,11 @@
         <label for="name">{{ invitation.target.value == 'advisory' ? 'Nombre de la asesoría' : 'Nombre o razón social' }}</label>
         <input id="name" name="name" value="{{ name }}" required maxlength="120" autocomplete="organization">
         {{ include('_fiscal_contact.html.twig') }}
-        <label for="password">Contraseña (al menos 8 caracteres)</label>
-        <input id="password" name="password" type="password" required minlength="8" autocomplete="new-password">
+        <p>Elige una contraseña de entre 15 y 128 caracteres. Puedes usar una frase larga o tu gestor de contraseñas. Evita las contraseñas comunes.</p>
+        <label for="password">Contraseña</label>
+        <input id="password" name="password" type="password" required minlength="15" maxlength="256" autocomplete="new-password">
         <label for="passwordConfirmation">Repite la contraseña</label>
-        <input id="passwordConfirmation" name="passwordConfirmation" type="password" required minlength="8" autocomplete="new-password">
+        <input id="passwordConfirmation" name="passwordConfirmation" type="password" required minlength="15" maxlength="256" autocomplete="new-password">
         <input type="hidden" name="_csrf_token" value="{{ csrf_token('accept_invitation_' ~ invitation.id) }}">
         <button type="submit">Crear mi cuenta</button>
     </form>

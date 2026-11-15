@@ -4,12 +4,14 @@ namespace App\Tests\Identidad;
 
 use App\Identidad\Application\ChoosePassword;
 use App\Identidad\Application\IssueAccessToken;
+use App\Identidad\Application\PasswordPolicy;
 use App\Identidad\Application\RequestPasswordReset;
 use App\Identidad\Domain\AccessPurpose;
 use App\Identidad\Domain\AccessToken;
 use App\Identidad\Domain\AccessTokenRepository;
 use App\Identidad\Domain\AccountNotifier;
 use App\Identidad\Domain\AccountTransaction;
+use App\Identidad\Domain\CommonPasswords;
 use App\Identidad\Domain\InvalidAccessToken;
 use App\Identidad\Domain\PasswordHasher;
 use App\Identidad\Domain\Role;
@@ -38,7 +40,7 @@ final class PasswordEmailConcurrencyTest extends TestCase
         $clock->method('now')->willReturn($now);
         $transaction = $this->createMock(AccountTransaction::class);
         $transaction->expects(self::once())->method('forUser')->with(self::USER, self::isCallable())->willReturnCallback(static function (string $id, callable $operation): void { $operation(); });
-        $service = new ChoosePassword($tokens, $users, $this->createStub(PasswordHasher::class), $clock, $transaction);
+        $service = new ChoosePassword($tokens, $users, $this->createStub(PasswordHasher::class), $clock, $transaction, new PasswordPolicy($this->createStub(CommonPasswords::class)));
         $this->expectException(InvalidAccessToken::class);
         $service->execute($raw, 'synthetic-password', AccessPurpose::Reset);
     }

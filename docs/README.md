@@ -13,6 +13,7 @@ Toda la documentación del proyecto vive en esta carpeta, en la raíz del reposi
 - [licenses.md](licenses.md). Planes, activación manual, cuotas, migración y pruebas reproducibles.
 - [tax-exempt-records.md](tax-exempt-records.md). Exención de impuesto indirecto, retención, API, históricos y comprobación manual.
 - [security/README.md](security/README.md). Auditoría OWASP: controles, puntuación, evidencias reproducibles y mejoras propuestas.
+- [security/password-list.md](security/password-list.md). Política de selección de contraseñas, procedencia y licencia de la lista local y actualización verificable.
 - [public-content-batch.md](public-content-batch.md). Entregas y evidencias del lote de comercialización y contenido público (PR #39–44).
 - [local-installation.md](local-installation.md). Instalación desde cero con Docker, comprobaciones y problemas conocidos.
 - [Tareas.md](Tareas.md). Lista de tareas del proyecto, sin el detalle de cada una.

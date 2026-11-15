@@ -182,6 +182,13 @@ try {
         $check(422 === $http($url, 'POST', $form)->getStatusCode(), 'Acceptance requires CSRF.');
         $acceptPage = $http($url);
         $check(422 === $http($url, 'POST', array_replace($form, ['password' => 'short', 'passwordConfirmation' => 'short', '_csrf_token' => $csrf($acceptPage)]))->getStatusCode(), 'Short passwords must be rejected.');
+        foreach (['films+pic+galeries', str_repeat('ñ', 129)] as $rejectedPassword) {
+            $acceptPage = $http($url);
+            $response = $http($url, 'POST', array_replace($form, ['password' => $rejectedPassword, 'passwordConfirmation' => $rejectedPassword, '_csrf_token' => $csrf($acceptPage)]));
+            $check(422 === $response->getStatusCode(), 'Common or oversized passwords must be rejected for every invitation target.');
+            $check(false === $db->fetchOne('SELECT id FROM identity_user WHERE email = ?', [$email]), 'Password rejection must not create an invited account.');
+            $check(200 === $http($url)->getStatusCode(), 'A password rejection must preserve the invitation link.');
+        }
         $acceptPage = $http($url);
         $check(422 === $http($url, 'POST', array_replace($form, ['postalCode' => '35001', '_csrf_token' => $csrf($acceptPage)]))->getStatusCode(), 'Invalid fiscal contact must be rejected.');
         $acceptPage = $http($url);
