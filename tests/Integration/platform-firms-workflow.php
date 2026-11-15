@@ -119,6 +119,7 @@ $http = static function (string $path, string $method = 'GET', array $data = [],
     if (null !== $actor) {
         $security = SecurityUser::fromDomain($actor);
         $session->set('_security_main', serialize(new UsernamePasswordToken($security, 'main', $security->getRoles())));
+        App\Tests\Support\AuthenticatedSession::start($session);
     }
     $server = [];
     $content = null;

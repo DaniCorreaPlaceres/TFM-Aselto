@@ -7,6 +7,8 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    app.session_idle_seconds: 1800
+    app.session_absolute_seconds: 28800
     env(OPENAI_API_KEY): ''
     env(OPENAI_MODEL): 'gpt-4o-mini'
 
@@ -48,6 +50,15 @@ services:
 
     App\Identidad\Domain\UserRepository:
         alias: App\Identidad\Infrastructure\Persistence\DoctrineUserRepository
+
+    App\Identidad\Application\SessionLifetime:
+        arguments:
+            $idleSeconds: '%app.session_idle_seconds%'
+            $absoluteSeconds: '%app.session_absolute_seconds%'
+
+    App\Identidad\Infrastructure\Security\WebSessionLifetime:
+        arguments:
+            $access: '@security.access_map'
 
     App\Identidad\Domain\PasswordHasher:
         alias: App\Identidad\Infrastructure\Security\SymfonyPasswordHasher

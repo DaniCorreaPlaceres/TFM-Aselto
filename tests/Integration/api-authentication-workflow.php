@@ -80,6 +80,7 @@ try {
             $session = new Session(new MockArraySessionStorage());
             $security = SecurityUser::fromDomain($webUser);
             $session->set('_security_main', serialize(new UsernamePasswordToken($security, 'main', $security->getRoles())));
+            App\Tests\Support\AuthenticatedSession::start($session);
             $request->setSession($session);
             $request->cookies->set($session->getName(), $session->getId());
         }

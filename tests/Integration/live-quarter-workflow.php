@@ -167,6 +167,7 @@ try {
         if (null !== $actor) {
             $security = SecurityUser::fromDomain($actor);
             $session->set('_security_main', serialize(new UsernamePasswordToken($security, 'main', $security->getRoles())));
+            App\Tests\Support\AuthenticatedSession::start($session);
         }
         $request = Request::create('http://'.$host.$url, $method, $data);
         $request->setSession($session);

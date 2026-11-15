@@ -10,6 +10,9 @@
         {% for message in app.flashes('success') %}
             <p class="success">{{ message }}</p>
         {% endfor %}
+        {% for message in app.flashes('session_expired') %}
+            <p class="error" role="alert">{{ message }}</p>
+        {% endfor %}
 
         {% if errorMessage %}
             <p class="error" role="alert">{{ errorMessage }}</p>

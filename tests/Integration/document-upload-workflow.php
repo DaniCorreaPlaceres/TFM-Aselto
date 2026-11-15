@@ -72,6 +72,7 @@ try {
     $http = static function (string $url, string $method = 'GET', array $data = [], array $uploads = []) use ($kernel, $session, &$user): Symfony\Component\HttpFoundation\Response {
         $security = SecurityUser::fromDomain($user);
         $session->set('_security_main', serialize(new UsernamePasswordToken($security, 'main', $security->getRoles())));
+        App\Tests\Support\AuthenticatedSession::start($session);
         $request = Request::create('http://localhost'.$url, $method, $data, files: $uploads);
         $request->setSession($session);
         $request->cookies->set($session->getName(), $session->getId());

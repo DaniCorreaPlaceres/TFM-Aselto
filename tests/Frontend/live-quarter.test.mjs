@@ -39,6 +39,27 @@ test('an unavailable server preserves the latest figures', async () => {
     assert.match(controller.statusTarget.textContent, /conservan/);
 });
 
+test('only an explicit manual refresh carries activity, never the following automatic refresh', async () => {
+    const requests = [];
+    const { controller } = harness(async (url, options) => { requests.push(options.headers); return { ok: true, status: 200, text: async () => 'updated' }; });
+    controller.manual();
+    await controller.refresh();
+    assert.equal(requests[0]['X-Session-Activity'], 'manual');
+    controller.pending = true;
+    await controller.refresh();
+    assert.equal(requests[1]['X-Session-Activity'], undefined);
+});
+
+test('401 on automatic renewal closes the stream and removes private figures', async () => {
+    const { controller, content } = harness(async () => ({ ok: false, status: 401 }));
+    let closed = false;
+    controller.source = { close: () => { closed = true; } };
+    await controller.authorize();
+    assert.equal(content.innerHTML, '');
+    assert.equal(controller.active, false);
+    assert.equal(closed, true);
+});
+
 test('a revoked permission removes financial content and closes the stream', async () => {
     const { controller, content } = harness(async () => ({ ok: false, status: 403 }));
     let closed = false;

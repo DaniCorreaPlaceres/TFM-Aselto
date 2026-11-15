@@ -11,6 +11,7 @@ export default class extends Controller {
         this.refreshing = false;
         this.dirty = false;
         this.pending = false;
+        this.manualPending = false;
         this.onEdit = (event) => {
             if (this.contentTarget.contains(event.target)) this.dirty = true;
         };
@@ -78,6 +79,7 @@ export default class extends Controller {
             this.statusTarget.textContent = 'Hay cambios nuevos. Termina o guarda lo que estás escribiendo antes de actualizar.';
             return;
         }
+        this.manualPending = true;
         this.schedule();
     }
 
@@ -91,7 +93,10 @@ export default class extends Controller {
         const abort = this.fetchAbort = new AbortController();
         const timeout = window.setTimeout(() => abort.abort(), 8000);
         try {
-            const response = await fetch(this.urlValue, { credentials: 'same-origin', cache: 'no-store', headers: { 'X-Quarter-Fragment': '1' }, signal: abort.signal });
+            const headers = { 'X-Quarter-Fragment': '1' };
+            if (this.manualPending) headers['X-Session-Activity'] = 'manual';
+            this.manualPending = false;
+            const response = await fetch(this.urlValue, { credentials: 'same-origin', cache: 'no-store', headers, signal: abort.signal });
             if (!this.active || generation !== this.generation) return;
             if (response.redirected || [401, 403, 404].includes(response.status)) { this.revoke(); return; }
             if (!response.ok) throw new Error('Quarter unavailable');

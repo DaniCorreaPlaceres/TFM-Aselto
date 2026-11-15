@@ -120,6 +120,25 @@ docker compose exec -T --user www-data app php docs/security/audit-probes.php
 
 La lista finita no acredita ausencia en todas las filtraciones ni alta entropía de cualquier valor aceptado. Su actualización es manual y verificable; si falta o cambia el recurso sin actualizar el digest, la selección falla explícitamente. Hostinger y revisión visual de navegador no comprobados en esta tarea. Los workflows siguen pendientes de incorporación como checks obligatorios (F13).
 
+## F05 · Caducidad por inactividad y duración absoluta
+
+Implementado y verificado en Docker local el **15/11/2026**, en `feature/session-expiration`, desde develop `239f8e4` después de integrar F04 (PR #51). [Ficha](../sdd/session-expiration.md), [funcionamiento y parámetros](session-expiration.md) y [evidencia](evidence/f05-session-expiration.json).
+
+El servidor registra inicio y última actividad tras el acceso web correcto. La política comprueba 30 minutos de inactividad y 8 horas absolutas antes de los controladores, del firewall y de respuestas de acceso que puedan renderizar navegación autenticada. La actividad renueva solo la inactividad; el inicio absoluto permanece. Fechas futuras, campos inválidos o metadatos ausentes requieren reautenticación. La recolección PHP toma las 8 horas como máximo de conservación, pero no sustituye la validación de aplicación.
+
+Las renovaciones Mercure y fragmentos automáticos no cuentan como actividad. El botón manual se identifica solo en su propia petición. No se utiliza esa marca como prueba de presencia humana. API JWT y recursos/diagnóstico quedan separados. Al caducar se invalida sesión/CSRF, se limpia el token en memoria y la cookie de suscripción; navegación privada vuelve al acceso, un POST se intercepta con 303 y peticiones automáticas reciben 401 privado. Los GET públicos continúan como anónimo según el AccessMap de Symfony, conservando los enlaces públicos de recuperación/invitación sin mantener la sesión caducada.
+
+Verificaciones ejecutadas:
+
+- PHPUnit: **404 pruebas / 1.042 aserciones**, correctas. Umbrales exactos, renovación sin mover el inicio, estados antiguos/incorrectos/futuros y parámetros inválidos.
+- Kernel HTTP con reloj controlado: **78 comprobaciones**, correctas. Acceso real con rotación del identificador, fronteras de 30 minutos y 8 horas, actividad automática/manual, reentrada con sesión anónima sustituta, CSRF anterior rechazado, cookie eliminada, independencia JWT y prioridad frente al limitador de acceso. Recuperación pública mantiene el formulario tras descartar autenticación caducada. Datos sintéticos revertidos.
+- JavaScript de tiempo real: **11 pruebas**, correctas. La actualización manual marca una sola petición y el 401 de renovación cierra el flujo y retira cifras, conservando el comportamiento previo de permisos.
+- Regresiones ejecutadas: autenticación **74**, actualización real **38**, trimestres **43**, mensajería **37**, subida documental **43**, asesorías **70**, invitaciones **118** y clientes independientes **55**, correctas. Los fixtures que inyectaban identidades incluyen ahora marcas válidas mediante un helper de pruebas; no se exceptúan del control productivo.
+- Probe general de auditoría conserva F01–F04 e identidades tras rollback; no se interpretan sus resultados como corrección de otros hallazgos. F06 sigue mostrando salida sin CSRF admitida con una sesión vigente.
+- PHPStan, contenedor, 61 Twig y 23 YAML correctos. Sin nuevas dependencias ni migraciones. La auditoría original conserva su puntuación.
+
+Las pruebas HTTP usan MockArraySessionStorage y reloj controlado; no esperan horas reales ni prueban replay contra el almacenamiento de Hostinger. La invalidación/rotación se observa en ese entorno y utiliza la API estándar de sesión. La caducidad se verifica al entrar en una petición; no aborta operaciones ya autorizadas, no retira respuestas entregadas y no cambia el TTL del hub. No hay heartbeat de teclado ni aviso preventivo; escribir sin enviar no renueva la sesión del servidor. Producción y revisión visual de navegador pendientes. Los workflows siguen pendientes de incorporación como checks obligatorios (F13).
+
 ## Siguiente hallazgo propuesto
 
-**F05: caducidad de sesiones por inactividad y duración absoluta.** Pendiente en otra rama y ficha. El resto de hallazgos de la línea base sigue pendiente de acuerdo y verificación; la tarea 43 no está cerrada.
+**F06: proteger el cierre de sesión con CSRF.** Pendiente en otra rama y ficha. El resto de hallazgos de la línea base sigue pendiente de acuerdo y verificación; la tarea 43 no está cerrada.

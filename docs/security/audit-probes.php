@@ -147,6 +147,7 @@ try {
     $session = new Session(new MockArraySessionStorage());
     $security = SecurityUser::fromDomain($users->find($id));
     $session->set('_security_main', serialize(new UsernamePasswordToken($security, 'main', $security->getRoles())));
+    App\Tests\Support\AuthenticatedSession::start($session);
     $container->get('security.token_storage')->setToken(null);
     $request = Request::create('http://localhost/salir', 'POST');
     $request->setSession($session);
