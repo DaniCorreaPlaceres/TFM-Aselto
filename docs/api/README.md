@@ -19,7 +19,7 @@ Todos tienen la forma `{"error":{"code":"...","message":"..."}}`, con un mensaje
 
 En una operación protegida, `401 token_missing`, `token_invalid` o `token_expired` requiere volver a autenticarse o enviar el token correctamente. La respuesta incluye `WWW-Authenticate: Bearer`. Los errores de petición usan 400, tipo de contenido incorrecto 415, tamaño excesivo 413, ruta inexistente 404 y método incorrecto 405, con cabecera Allow. Los errores internos usan un 500 genérico sin trazas.
 
-Todavía no hay renovación, revocación ni cierre de sesión JWT. La caducidad es de una hora; salir de la web no revoca el JWT. No se debe guardar un token en Git, incluirlo en una URL ni imprimirlo en un informe o registro.
+Restablecer la contraseña incrementa la versión de autenticación e invalida los JWT de API y las sesiones web anteriores, también si se elige la misma contraseña. El token anterior responde `401 token_invalid`; hay que volver a entrar. Confirmar un cambio de correo del admin también invalida sus accesos anteriores. Todavía no hay renovación ni un endpoint de revocación o cierre de sesión JWT. La caducidad es de una hora; salir de la web no revoca el JWT. No se debe guardar un token en Git, incluirlo en una URL ni imprimirlo en un informe o registro.
 
 ## Preparación local
 
