@@ -26,6 +26,8 @@ Toda la documentación del proyecto vive en esta carpeta, en la raíz del reposi
 - [public-content-batch.md](public-content-batch.md). Entregas y evidencias del lote de comercialización y contenido público (PR #39–44).
 - [local-installation.md](local-installation.md). Instalación desde cero con Docker, comprobaciones y problemas conocidos.
 - [Tareas.md](Tareas.md). Lista de tareas del proyecto, sin el detalle de cada una.
+- [versioning.md](versioning.md). Consulta de versión del producto, criterio SemVer y preparación de la etiqueta final de main.
+- [releases/1.0.0.md](releases/1.0.0.md). Notas de 1.0.0 en preparación, sin fecha de publicación ni etiqueta creadas.
 - [producto/Aselto_Documento_introductorio.docx](producto/Aselto_Documento_introductorio.docx). Texto de presentación del proyecto.
 - [diseno/reglas-visuales.md](diseno/reglas-visuales.md). Reglas de interfaz. Los bocetos están en [diseno/bocetos](diseno/bocetos).
 - [diseno/platform-design.md](diseno/platform-design.md). Componentes de la interfaz, listados, visor y compilación Sass.

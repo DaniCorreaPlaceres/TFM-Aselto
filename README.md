@@ -98,6 +98,8 @@ El job de esquema ejecuta sus integraciones contra un MySQL temporal creado desd
 
 ## Documentación y estado del proyecto
 
+La preparación de Aselto 1.0.0 se identifica como `1.0.0-dev`. Consultar el valor del código instalado con `docker compose exec -T --user www-data app php bin/console app:version`. La versión del producto es independiente del contrato OpenAPI 0.6.0. [Criterio y publicación](docs/versioning.md), [notas en preparación](docs/releases/1.0.0.md).
+
 - [Índice de documentación](docs/README.md).
 - [Memoria de producto y arquitectura](docs/memoria.md).
 - [Lista de tareas y ampliación del alcance](docs/Tareas.md).
