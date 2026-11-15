@@ -94,7 +94,7 @@ docker compose exec -T --user www-data app php vendor/bin/phpunit
 node --test tests/Frontend/live-quarter.test.mjs tests/Frontend/table-export.test.mjs tests/Frontend/document-upload.test.mjs
 ```
 
-El job de esquema ejecuta sus integraciones contra un MySQL temporal creado desde cero con las migraciones. El job de seguridad ejecuta su lista cerrada con `php bin/check-security.php`, que exige una base desechable vacía y separada; no utilizar la base habitual. Las demás pruebas de [tests/Integration](tests/Integration) siguen siendo de ejecución explícita. Cada ficha describe los requisitos y las verificaciones realizadas. Antes de ejecutarlas, consultar su documentación y evitar ediciones manuales concurrentes sobre los datos que contrastan. Los checks obligatorios de merge requieren configurar las protecciones: añadir el job no las activa.
+El job de esquema ejecuta sus integraciones contra un MySQL temporal creado desde cero con las migraciones. El job de seguridad ejecuta su lista cerrada con `php bin/check-security.php`, que exige una base desechable vacía y separada; no utilizar la base habitual. Las demás pruebas de [tests/Integration](tests/Integration) siguen siendo de ejecución explícita. Cada ficha describe los requisitos y las verificaciones realizadas. Antes de ejecutarlas, consultar su documentación y evitar ediciones manuales concurrentes sobre los datos que contrastan. Las protecciones de `main` y `develop` exigen PR, las seis comprobaciones de GitHub Actions correctas y rama actualizada, sin bypass; [configuración y verificación del bloqueo](docs/security/security-ci-checks.md#comprobaciones-obligatorias--aplicadas-y-verificadas).
 
 ## Documentación y estado del proyecto
 

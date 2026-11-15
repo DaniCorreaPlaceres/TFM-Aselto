@@ -60,17 +60,23 @@ Se comprobaron rechazos con código 1 sin ejecutar workflows: ausencia de opt-in
 
 Durante el diagnóstico de autenticación se observó un retroceso real del reloj local: un token con `iat=1794782016` se comprobó cuando tanto `time()` como DateTime indicaban `1794782014`. Su rechazo es correcto. No se añade tolerancia temporal, reintentos ni se debilita la validación para ocultarlo. Si se reproduce en un runner, debe revisarse su reloj; las comprobaciones siguen fallando. La evidencia conserva esta limitación de repetibilidad local y las incidencias iniciales de contadores/datos demo.
 
-## Propuesta de comprobaciones obligatorias — pendiente de autorización
+## Comprobaciones obligatorias — aplicadas y verificadas
 
-Consulta realizada el 15/11/2026: ruleset activo `main protegida` (26658888), con PR, bloqueo de borrado y force-push; sin regla de checks obligatorios. La protección clásica de `develop` devuelve 404 y el listado de rulesets solo contiene el de main. No se modifica ninguna regla en esta entrega.
+Consulta previa del 15/11/2026: ruleset activo `main protegida` (26658888), con PR, bloqueo de borrado y force-push; sin regla de checks obligatorios. La protección clásica de `develop` devolvía 404 y el listado de rulesets solo contenía el de main. La primera entrega del job no modificó reglas; su aplicación posterior se describe a continuación.
 
-Propuesta concreta, tras observar el nuevo job verde en un PR:
+El usuario autorizó explícitamente aplicar los siguientes ajustes tras el PR #59, cuyos seis checks pasaron en GitHub (run 43771892654, incluidos los 19 workflows con PHP 8.4):
 
 - Aplicar a `main` y `develop`, exigiendo PR, sin añadir aprobaciones de otra persona para este TFM individual.
 - Exigir estos seis nombres exactos: `PHP-CS-Fixer`, `PHP-Stan`, `PHPUnit`, `Esquema MySQL`, `OpenAPI` y `Seguridad web y API`.
 - Aceptar resultados de GitHub Actions (app 15368, verificada en los cinco checks existentes), con rama actualizada respecto a su base antes de mergear.
 - Conservar el bloqueo de borrado y force-push; no crear excepciones que permitan saltarse las comprobaciones ni cambiar los métodos de merge existentes.
 
-Primero hay que publicar el PR, observar el nuevo check y autorizar los ajustes anteriores. Después se aplican y se verifica en GitHub que un check fallido impide mergear sin utilizar excepciones. **Un job añadido no equivale a una protección activa**: F13 continúa parcialmente pendiente hasta esa verificación. No se ha creado un PR vulnerable ni se ha intentado mergearlo.
+Aplicados el 15/11/2026 al ruleset existente **26658888**, renombrado `main y develop protegidas`, activo y sin bypass. Las consultas de reglas efectivas de ambas ramas confirman PR, los seis checks de Actions 15368, política strict, bloqueo de borrado/force-push y métodos de merge conservados. [Configuración aplicada](required-checks-ruleset.json).
+
+Verificación: el [PR temporal #60](https://github.com/DaniCorreaPlaceres/TFM-Aselto/pull/60), dirigido a develop, solo añadió una prueba sintética de PHPUnit deliberadamente fallida. En el run **43772361311**, PHPUnit mostró 450 pruebas, 1.287 aserciones y un fallo en `MergeProtectionProbeTest`; las otras cinco comprobaciones pasaron. Con el PR abierto, GitHub devolvió `mergeStateStatus=BLOCKED` y `mergeable=MERGEABLE`, sin conflictos de código. Se observó el bloqueo sin intentar realizar un merge ni usar excepciones.
+
+El PR se cerró sin integrar y su rama remota se eliminó. Develop conserva su commit y no contiene la prueba fallida. La rama de documentación tampoco la contiene. [Evidencia de cierre](evidence/f13-merge-protection.json) y [ficha](../sdd/security-merge-protection.md).
+
+**F13 verificada en el alcance acordado:** job remoto correcto, reglas activas en ambas ramas y bloqueo observado mediante PR a develop. No se abrió un PR de prueba a main: se verificó que recibe las mismas reglas efectivas. Esto no prueba bypass ni un rechazo de push directo/force-push/borrado: esas prohibiciones se comprobaron en la configuración, sin intentar acciones destructivas. Los demás hallazgos y producción conservan sus pendientes.
 
 Referencias: [servicios MySQL en Actions](https://docs.github.com/en/actions/tutorials/use-containerized-services/use-docker-service-containers) y [checks obligatorios en rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets). La puntuación histórica de la auditoría permanece intacta.

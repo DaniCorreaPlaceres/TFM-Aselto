@@ -1,0 +1,41 @@
+{
+  "name": "main y develop protegidas",
+  "target": "branch",
+  "enforcement": "active",
+  "bypass_actors": [],
+  "conditions": {
+    "ref_name": {"exclude": [], "include": ["refs/heads/main", "refs/heads/develop"]}
+  },
+  "rules": [
+    {"type": "deletion"},
+    {"type": "non_fast_forward"},
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": false,
+        "required_reviewers": [],
+        "require_code_owner_review": false,
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": false,
+        "require_extra_approval_for_unattributed_changes": true,
+        "allowed_merge_methods": ["merge", "squash", "rebase"]
+      }
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "do_not_enforce_on_create": false,
+        "required_status_checks": [
+          {"context": "PHP-CS-Fixer", "integration_id": 15368},
+          {"context": "PHP-Stan", "integration_id": 15368},
+          {"context": "PHPUnit", "integration_id": 15368},
+          {"context": "Esquema MySQL", "integration_id": 15368},
+          {"context": "OpenAPI", "integration_id": 15368},
+          {"context": "Seguridad web y API", "integration_id": 15368}
+        ]
+      }
+    }
+  ]
+}

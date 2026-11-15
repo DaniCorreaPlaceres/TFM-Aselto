@@ -2,7 +2,7 @@
 
 La [auditoría original](README.md) conserva su fecha, matriz y puntuación. Este documento registra verificaciones posteriores, sin considerar cerrada toda la tarea 43 ni los controles que todavía tengan otras carencias.
 
-## F13 · Integraciones de seguridad en CI y protecciones pendientes
+## F13 · Integraciones de seguridad en CI y protecciones verificadas
 
 Preparado en `feature/security-ci-checks`, desde develop `ce4eab6` tras PR #58. [Ficha](../sdd/security-ci-checks.md), [cobertura y propuesta de reglas](security-ci-checks.md), [evidencia](evidence/f13-security-ci-checks.json).
 
@@ -10,7 +10,9 @@ Nuevo job `Seguridad web y API` en PR/push a develop/main, PHP 8.4 y MySQL efím
 
 Verificado localmente con PHP 8.5: **19 workflows correctos**, PHPUnit **449 / 1.286**, PHPStan, YAML y formato PHP 8.4 (**405 archivos**). Mutación de permiso de propietario solo en la copia aislada detectada con salida 1; restaurada y suite completa correcta. Se conserva la observación de retroceso del reloj local y el rechazo JWT correcto, sin añadir tolerancia o reintentos.
 
-**No cerrado:** falta ejecutar el nuevo job en GitHub tras publicar el PR. Main sigue sin checks obligatorios y develop sin protección; no se modifican reglas. La propuesta concreta de seis checks y rama actualizada para main/develop requiere autorización, aplicación y comprobación real del bloqueo del merge ante fallo. La auditoría histórica queda intacta. F08 aplazado; tarea 43 abierta. Tras resolver lo acordado de F13, siguiente tarea de producto: 44, versionado 1.0.0.
+**Cierre posterior, 15/11/2026:** PR #59 y run 43771892654 con los seis checks correctos, incluidos los 19 workflows en PHP 8.4. Con autorización explícita del usuario se amplió el ruleset 26658888 a main/develop: PR, seis checks de GitHub Actions 15368, rama actualizada, sin bypass y bloqueo de borrado/force-push, conservando los métodos de merge. Reglas efectivas de ambas ramas consultadas.
+
+PR temporal #60 a develop: una prueba PHPUnit deliberadamente fallida, las otras cinco comprobaciones verdes y `mergeStateStatus=BLOCKED`, sin conflicto de código. Cerrado sin merge y rama retirada; develop no contiene la prueba. [Ficha de cierre](../sdd/security-merge-protection.md), [configuración](required-checks-ruleset.json) y [evidencia](evidence/f13-merge-protection.json). No se abrió otro PR contra main ni se intentaron bypass/push/borrado: allí se verificó el mismo ruleset efectivo. F13 verificada en ese alcance. La auditoría histórica queda intacta. F08 aplazado; tarea 43 abierta por los demás pendientes. Siguiente tarea de producto: 44, versionado 1.0.0.
 
 ## F12 · Publicación de servicios locales
 
