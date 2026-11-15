@@ -3,6 +3,7 @@
 namespace App\Shared\Infrastructure\Http;
 
 use App\Identidad\Infrastructure\Security\SecurityUser;
+use App\Shared\Infrastructure\Security\MonologSecurityAudit;
 use App\Shared\Ui\ApiError;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,6 +28,7 @@ final readonly class ResourceLimitListener
             return;
         }
         $request = $event->getRequest();
+        $request->attributes->set(MonologSecurityAudit::ACTOR, $actor->id());
         $route = $request->attributes->getString('_route');
         if (str_starts_with($route, '_') || in_array($route, ['quarter_subscription', 'logout', '_logout_main'], true)) {
             return;

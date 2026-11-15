@@ -1,0 +1,45 @@
+{
+  "date": "2026-11-15",
+  "branch": "feature/security-event-logging",
+  "base": "0510c74",
+  "environment": "Docker local, PHP 8.5.12; style checked offline on PHP 8.4.26 with LF files",
+  "scope": "F11 private security logging, UTC retention and aggregated alerts; historical audit score unchanged",
+  "decisions": {
+    "retained_utc_calendar_days": 30,
+    "recipient": "webmaster@aselto.com",
+    "minimum_attempt_interval_seconds": 3600,
+    "local_delivery_enabled": false
+  },
+  "verification": {
+    "phpunit": {"tests": 449, "assertions": 1286, "result": "passed"},
+    "new_security_unit_tests": {"tests": 11, "result": "passed as part of complete PHPUnit suite"},
+    "security_http_workflow": {"checks": 29, "result": "passed", "external_mail": false},
+    "api_authentication_workflow": {"checks": 74, "result": "passed after volume permissions were corrected"},
+    "authentication_limits_workflow": {"checks": 45, "result": "passed"},
+    "session_expiration_workflow": {"checks": 78, "result": "passed"},
+    "logout_csrf_workflow": {"checks": 47, "consecutive_final_runs": 2, "result": "passed with controlled clock and private journal assertions"},
+    "resource_limits_workflow": {"checks": 56, "result": "passed"},
+    "platform_firms_workflow": {"checks": 70, "result": "passed"},
+    "platform_independent_clients_workflow": {"checks": 55, "result": "passed"},
+    "platform_invitations_workflow": {"checks": 118, "result": "passed"},
+    "phpstan": "passed",
+    "container": "passed",
+    "yaml": {"files": 24, "result": "passed"},
+    "php_cs_fixer_php84": {"files": 404, "result": "passed, zero differences on final LF copy"},
+    "docker_startup": {"image_rebuilt": true, "directory_mode": "0700", "directory_owner": "www-data", "file_mode": "0600"},
+    "commands": {"retention": "passed, zero expired files in current local journal", "alerts": "local counts returned without delivery", "explicit_disabled_send": "disabled, no transport call"}
+  },
+  "observations": [
+    "The first image recreation reused an entrypoint without the new volume initialization: directory root/0755 and constant diagnostics. Image rebuilt, owner corrected, restart verified and API authentication rerun successfully.",
+    "Logout regression intermittently returned an expiration response instead of the expected CSRF response. A comparison with the new HTTP security observers disabled also reproduced HTTP 303. The workflow now controls the clock and tests timeout explicitly; two final consecutive runs passed. No production timeout policy was relaxed.",
+    "An eager token-storage lookup was removed from the new observer; actor identity is now observed from native events, existing resource checks and explicit application arguments.",
+    "PHP 8.4 style verification caught a comma-spacing difference and multiline test loops; those differences were corrected."
+  ],
+  "pending": [
+    "Real SMTP delivery, verified sender/domain and recipient reception",
+    "Hostinger directory permissions, persistent storage, capacity, cron and monitoring",
+    "Multi-node lock and shared-state configuration",
+    "Sanitization of existing general logs, profiler, nginx and SMTP diagnostics",
+    "Load tests and operational threshold tuning"
+  ]
+}

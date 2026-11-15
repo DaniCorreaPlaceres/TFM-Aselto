@@ -13,7 +13,7 @@ use App\Shared\Domain\FiscalContact;
 
 final class AdministerIndependentClients
 {
-    public function __construct(private readonly ClientRepository $clients, private readonly UserRepository $users, private readonly ClientTransaction $transaction, private readonly AccountTransaction $accounts)
+    public function __construct(private readonly ClientRepository $clients, private readonly UserRepository $users, private readonly ClientTransaction $transaction, private readonly AccountTransaction $accounts, private readonly \App\Shared\Domain\SecurityAudit $audit = new \App\Shared\Domain\NullSecurityAudit())
     {
     }
 
@@ -45,5 +45,6 @@ final class AdministerIndependentClients
                 $this->clients->save($current->client->changeDetails($name, $contact));
             });
         });
+        $this->audit->record(\App\Shared\Domain\SecurityEvent::ClientChanged, $actorId, $clientId);
     }
 }

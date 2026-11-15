@@ -2,6 +2,18 @@
 
 La [auditoría original](README.md) conserva su fecha, matriz y puntuación. Este documento registra verificaciones posteriores, sin considerar cerrada toda la tarea 43 ni los controles que todavía tengan otras carencias.
 
+## F11 · Registro privado y resúmenes de seguridad
+
+Implementado y verificado localmente el **15/11/2026**, en `feature/security-event-logging`, desde develop `0510c74` tras integrar F10 (PR #56). [Ficha](../sdd/security-event-logging.md), [operación y límites](security-event-logging.md), [evidencia](evidence/f11-security-event-logging.json).
+
+Canal Monolog privado con esquema cerrado, correlación de servidor, UUID conocidos y HMAC de correo/IP. Eventos de autenticación, límites, recuperación y cambios de cuenta/administración, sin documentos, credenciales ni cuerpos. Directorio 0700/archivos 0600 en volumen Linux, escritura bloqueada/acotada y retención de día UTC actual más 29 anteriores mediante comando. Consulta solo por operaciones del servidor.
+
+Alertas por ventanas UTC de 15 minutos, resumen de categorías/cantidades para `webmaster@aselto.com`, máximo un intento por hora, exclusión entre procesos y cursor persistente que conserva pendientes si falla el transporte. En local desactivadas; las pruebas usan transporte simulado. No se ha enviado ni recibido correo real.
+
+Verificado: PHPUnit **449/1.286**, workflow específico **29**, autenticación **74**, límites **45**, sesión **78**, logout **47** (dos ejecuciones finales), recursos **56**, asesorías **70**, clientes independientes **55**, invitaciones **118**; PHPStan, contenedor, 24 YAML y formato PHP 8.4. Imagen reconstruida y permisos de arranque comprobados. La prueba de logout ahora controla el reloj: la comparación sin nuevos observadores también reprodujo caducidad 303, y el timeout sigue probado expresamente, sin relajar la política de producción.
+
+Pendientes: despliegue, cron, almacenamiento persistente, SMTP y recepción reales, capacidad/carga y varios nodos. Los logs generales/profiler/nginx conservan su revisión separada; no se afirma que toda traza previa esté saneada ni que el registro sea inmutable. La puntuación histórica queda intacta. Siguiente propuesta: **F12, limitar la publicación de servicios locales**. F08 aplazado y tarea 43 abierta.
+
 ## F01 · Revocación JWT al restablecer contraseña
 
 Implementado y verificado en Docker local el **15/11/2026**, en `feature/password-reset-token-revocation`, desde develop `6acdd61`. Ficha: [password-reset-token-revocation](../sdd/password-reset-token-revocation.md). No se acredita todavía despliegue productivo.

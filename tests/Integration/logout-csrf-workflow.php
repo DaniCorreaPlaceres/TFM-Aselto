@@ -19,6 +19,16 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Uid\Uuid;
 
+final class LogoutWorkflowClock implements App\Shared\Domain\Clock
+{
+    private ?DateTimeImmutable $instant = null;
+
+    public function now(): DateTimeImmutable
+    {
+        return $this->instant ??= new DateTimeImmutable('now', new DateTimeZone('UTC'));
+    }
+}
+
 final class LogoutCsrfCheckKernel extends Kernel
 {
     protected function build(ContainerBuilder $container): void
@@ -27,6 +37,9 @@ final class LogoutCsrfCheckKernel extends Kernel
         $container->addCompilerPass(new class implements CompilerPassInterface {
             public function process(ContainerBuilder $container): void
             {
+                $container->register(LogoutWorkflowClock::class, LogoutWorkflowClock::class)->setPublic(true);
+                $container->setAlias(App\Shared\Domain\Clock::class, LogoutWorkflowClock::class);
+                $container->getDefinition(App\Shared\Infrastructure\Security\PrivateSecurityJournal::class)->setArgument('$directory', '/tmp/aselto-security-logout-check')->setPublic(true);
                 $container->register('cache.authentication_limits', ArrayAdapter::class)->setPublic(true);
                 $container->getDefinition('security.token_storage')->setPublic(true);
             }
@@ -42,6 +55,11 @@ final class LogoutCsrfCheckKernel extends Kernel
 $kernel = new LogoutCsrfCheckKernel('dev', true);
 $kernel->boot();
 $container = $kernel->getContainer();
+$journal = $container->get(App\Shared\Infrastructure\Security\PrivateSecurityJournal::class);
+assert($journal instanceof App\Shared\Infrastructure\Security\PrivateSecurityJournal);
+foreach (glob($journal->directory().'/security-*.jsonl') ?: [] as $path) {
+    unlink($path);
+}
 $em = $container->get('doctrine')->getManager();
 $db = $em->getConnection();
 $before = hash('sha256', json_encode($db->fetchAllAssociative('SELECT id, auth_version FROM identity_user ORDER BY id'), JSON_THROW_ON_ERROR));
@@ -122,14 +140,23 @@ try {
     $check(200 === $http('/cuenta')->getStatusCode(), 'A stale token must not close the new valid session.');
     $check(302 === $http('/salir', 'POST', ['_csrf_token' => $newValid])->getStatusCode(), 'The new session token must authorize logout.');
     $login();
-    $session->set(WebSessionLifetime::KEY, ['started_at' => time() - 1800, 'last_activity_at' => time() - 1800]);
+    $now = $container->get(LogoutWorkflowClock::class)->now()->getTimestamp();
+    $session->set(WebSessionLifetime::KEY, ['started_at' => $now - 1800, 'last_activity_at' => $now - 1800]);
     $expired = $http('/salir', 'POST');
     $check(303 === $expired->getStatusCode() && !$session->has('_security_main'), 'F05 must still expire an already timed-out session before logout CSRF.');
     $check(1 === count($cleared($expired)), 'Timeout must retain subscription cleanup independently of logout CSRF.');
+    $events = array_values(iterator_to_array($journal->scan()));
+    $logouts = array_values(array_filter($events, static fn ($entry): bool => App\Shared\Domain\SecurityEvent::Logout === $entry->event));
+    $check(2 === count($logouts) && $user->id() === $logouts[0]->actor && $user->id() === $logouts[1]->actor, 'Only successful logouts must be recorded with the known actor.');
+    $check(1 === count(array_filter($events, static fn ($entry): bool => App\Shared\Domain\SecurityEvent::SessionExpired === $entry->event)), 'Native timeout must emit one private security event.');
 } finally {
     $db->rollBack();
     $em->clear();
     $check(hash_equals($before, hash('sha256', json_encode($db->fetchAllAssociative('SELECT id, auth_version FROM identity_user ORDER BY id'), JSON_THROW_ON_ERROR))), 'Existing identities must remain unchanged after rollback.');
     $kernel->shutdown();
+    foreach (glob('/tmp/aselto-security-logout-check/security-*.jsonl') ?: [] as $path) {
+        unlink($path);
+    }
+    rmdir('/tmp/aselto-security-logout-check');
 }
 echo 'Logout CSRF integration checks: '.$checks." passed.\nSynthetic fixtures rolled back; no mail, AI or token output.\n";

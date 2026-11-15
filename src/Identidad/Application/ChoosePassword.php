@@ -20,6 +20,7 @@ final class ChoosePassword
         private readonly Clock $clock,
         private readonly AccountTransaction $transaction,
         private readonly PasswordPolicy $policy,
+        private readonly \App\Shared\Domain\SecurityAudit $audit = new \App\Shared\Domain\NullSecurityAudit(),
     ) {
     }
 
@@ -40,6 +41,7 @@ final class ChoosePassword
             $this->users->save($user->withPassword($this->passwords->hash($plainPassword)));
             $this->tokens->save($token->use($this->clock->now()));
         });
+        $this->audit->record(AccessPurpose::Activation === $purpose ? \App\Shared\Domain\SecurityEvent::AccountActivated : \App\Shared\Domain\SecurityEvent::PasswordChanged, targetId: $token->userId());
     }
 
     private function usableToken(string $rawToken, AccessPurpose $purpose): AccessToken

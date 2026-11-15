@@ -13,7 +13,7 @@ use App\Shared\Domain\MonthlyQuota;
 
 final readonly class ManageLicenses
 {
-    public function __construct(private UserRepository $users, private LicenseRepository $licenses, private Clock $clock)
+    public function __construct(private UserRepository $users, private LicenseRepository $licenses, private Clock $clock, private \App\Shared\Domain\SecurityAudit $audit = new \App\Shared\Domain\NullSecurityAudit())
     {
     }
 
@@ -32,6 +32,7 @@ final readonly class ManageLicenses
             throw new LicenseUnavailable('Invalid license destination.');
         }
         $this->licenses->assign($kind, $id, $plan, $actorId, $this->clock->now());
+        $this->audit->record(\App\Shared\Domain\SecurityEvent::LicenseAssigned, $actorId, $id);
     }
 
     /** @return MonthlyQuota|array{plan: string, clients: int, reference_cents: int} */

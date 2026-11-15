@@ -2,6 +2,9 @@
 set -e
 cd /var/www/html
 mkdir -p var/cache var/log var/share var/storage
+mkdir -p var/security
+chown www-data:www-data var/security
+chmod 0700 var/security
 
 lock_hash=$(sha256sum composer.lock | cut -d ' ' -f 1)
 installed_hash=$(cat vendor/.aselto-lock-hash 2>/dev/null || true)

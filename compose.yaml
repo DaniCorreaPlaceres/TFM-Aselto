@@ -14,6 +14,7 @@ services:
       - .:/var/www/html
       - app_vendor:/var/www/html/vendor
       - app_cache:/var/www/html/var/cache
+      - app_security:/var/www/html/var/security
     depends_on:
       database:
         condition: service_healthy
@@ -115,3 +116,4 @@ volumes:
   database_data:
   app_vendor:
   app_cache:
+  app_security:
