@@ -123,6 +123,7 @@ $http = static function (string $path, string $method = 'GET', array $data = [],
     $session->remove('_security_main');
     if (null !== $actor) {
         $session->set('_security_main', serialize(new UsernamePasswordToken(SecurityUser::fromDomain($actor), 'main', SecurityUser::fromDomain($actor)->getRoles())));
+        App\Tests\Support\AuthenticatedSession::start($session);
     }
     $server = [];
     $content = null;

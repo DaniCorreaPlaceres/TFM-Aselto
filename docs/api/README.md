@@ -11,6 +11,8 @@ Los papeles son `superadmin`, `firm_admin`, `advisor` y `client`. Una cuenta sin
 
 La cookie de sesión web no sustituye al token. El token solo se admite en la cabecera Authorization, no en parámetros de URL ni cookies. En cada petición se recarga el usuario para comprobar su activación, papel y asesoría actuales. Un token no es un permiso permanente: los casos de uso de los siguientes bloques también comprobarán su asesoría y permisos.
 
+La sesión web tiene límites propios de 30 minutos de inactividad y 8 horas absolutas. No alteran el TTL JWT ni se renuevan al llamar a la API, incluso si el navegador envía una cookie web. [Caducidad web](../security/session-expiration.md).
+
 La contraseña se utiliza exactamente como se recibe, incluidos los espacios. El correo usa la normalización del proveedor de usuarios existente. El cuerpo de acceso no puede superar 16 KiB y admite únicamente ambos campos de texto; la contraseña tiene un límite de 4096 bytes.
 
 La política de 15 a 128 caracteres Unicode y lista local de comunes se aplica al **elegir una contraseña** desde activación, recuperación o invitación web. No se aplica de nuevo al login: las credenciales existentes siguen funcionando y el contrato de acceso conserva sus límites. [Detalle de la política](../security/password-list.md).

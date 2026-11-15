@@ -2,6 +2,7 @@
 
 namespace App\Finanzas\Infrastructure\Realtime;
 
+use App\Identidad\Infrastructure\Security\SessionExpiredEvent;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -20,5 +21,11 @@ final class ClearQuarterSubscription
         $response = $event->getResponse() ?? new RedirectResponse('/entrar');
         $response->headers->clearCookie($this->hub->getCookieName(), '/.well-known/mercure', secure: $event->getRequest()->isSecure(), httpOnly: true, sameSite: Cookie::SAMESITE_STRICT);
         $event->setResponse($response);
+    }
+
+    #[AsEventListener(event: SessionExpiredEvent::class)]
+    public function expired(SessionExpiredEvent $event): void
+    {
+        $event->response->headers->clearCookie($this->hub->getCookieName(), '/.well-known/mercure', secure: $event->request->isSecure(), httpOnly: true, sameSite: Cookie::SAMESITE_STRICT);
     }
 }

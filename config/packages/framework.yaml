@@ -10,7 +10,8 @@ framework:
                 max_duration: 3
 
     # Note that the session will be started ONLY if you read or write from it.
-    session: true
+    session:
+        gc_maxlifetime: '%app.session_absolute_seconds%'
 
     #esi: true
     #fragments: true

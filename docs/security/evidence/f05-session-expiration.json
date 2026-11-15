@@ -1,0 +1,76 @@
+{
+  "recorded_at": "2026-11-15",
+  "branch": "feature/session-expiration",
+  "base_commit": "239f8e4",
+  "environment": "Docker local; kernel real, reloj controlado y MockArraySessionStorage en el workflow HTTP.",
+  "policy": {
+    "idle_seconds": 1800,
+    "absolute_seconds": 28800,
+    "server_side_metadata": true,
+    "legacy_metadata_requires_login": true,
+    "absolute_start_renewed_only_after_successful_web_login": true,
+    "subscription_renewals_count_as_activity": false,
+    "automatic_financial_fragments_count_as_activity": false,
+    "manual_refresh_counts_as_activity": true,
+    "jwt_api_affected": false,
+    "gc_maxlifetime_seconds": 28800
+  },
+  "verification": {
+    "phpunit": {
+      "tests": 404,
+      "assertions": 1042,
+      "passed": true
+    },
+    "http_workflow": {
+      "command": "php tests/Integration/session-expiration-workflow.php",
+      "checks": 78,
+      "passed": true,
+      "coverage": [
+        "login real con rotación de identificador y marcas servidor",
+        "frontera exacta de inactividad",
+        "duración absoluta con navegación reciente",
+        "renovación automática y fragmentos no prolongan inactividad",
+        "actualización manual modifica solo última actividad",
+        "invalida autenticación/CSRF e identificador en el almacenamiento simulado",
+        "limpia cookie de suscripción",
+        "mensaje de reentrada",
+        "reentrada con sesión anónima sustituta",
+        "sesiones antiguas y fechas futuras requieren acceso nuevo",
+        "JWT válido no altera ni depende de tiempos web",
+        "POST caducado no llega al controlador",
+        "caducidad anterior a respuesta de límites de acceso",
+        "identidades conservadas tras rollback",
+        "recuperación pública sigue accesible como anónimo tras invalidar la sesión antigua"
+      ]
+    },
+    "javascript": {
+      "command": "node --test tests/Frontend/live-quarter.test.mjs",
+      "tests": 11,
+      "passed": true
+    },
+    "regressions": {
+      "api_authentication": 74,
+      "live_quarter": 38,
+      "quarter": 43,
+      "messaging": 37,
+      "document_upload": 43,
+      "platform_firms": 70,
+      "platform_invitations": 118,
+      "independent_clients": 55
+    },
+    "phpstan": true,
+    "container": true,
+    "twig_files": 61,
+    "yaml_files": 23
+  },
+  "external_mail_sent": false,
+  "external_ai_called": false,
+  "limitations": [
+    "No se ha esperado ocho horas reales: reloj simulado en el kernel.",
+    "Los checks HTTP usan MockArraySessionStorage; no se verifica replay de cookie contra el almacenamiento productivo de Hostinger.",
+    "Caducidad comprobada al entrar en una petición; no aborta operaciones ya autorizadas ni retira respuestas ya entregadas.",
+    "Conexiones Mercure ya abiertas y su TTL mantienen las reglas existentes; el cliente cierra al recibir 401 en renovación/fragmento.",
+    "No hay heartbeat de teclado ni aviso preventivo; escribir sin enviar no renueva el servidor.",
+    "La auditoría histórica conserva su puntuación y otros hallazgos siguen pendientes."
+  ]
+}

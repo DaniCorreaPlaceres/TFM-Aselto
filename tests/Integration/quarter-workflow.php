@@ -189,6 +189,7 @@ try {
         $security = SecurityUser::fromDomain($actor);
         $session = $sessions[$actor->id()] ??= new Session(new MockArraySessionStorage());
         $session->set('_security_main', serialize(new UsernamePasswordToken($security, 'main', $security->getRoles())));
+        App\Tests\Support\AuthenticatedSession::start($session);
         $request = Request::create('http://localhost'.$url, $method, $data);
         $request->setSession($session);
         $request->cookies->set($session->getName(), $session->getId());
