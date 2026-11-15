@@ -2,6 +2,8 @@
 
 Fecha: **14 de noviembre de 2026**. Código analizado: `78c73e52fc5c54a5b44a603e6fb6ce8e3c11c016`, integrado en develop antes de crear `feature/owasp-security-audit`. Esta rama añade diagnóstico y herramientas locales; no corrige la aplicación.
 
+Seguimiento posterior: [correcciones verificadas](remediation.md). La matriz, puntuación y evidencias siguientes conservan la línea base de la auditoría; no se reescriben al corregir un hallazgo.
+
 ## Resultado
 
 **23 controles cumplidos, 12 incumplidos y 5 no comprobados**, de 40 controles propios; ninguno no aplicable. Cada uno pesa una unidad. El catálogo se fijó antes de puntuar en la [ficha SDD](../sdd/owasp-security-audit.md).

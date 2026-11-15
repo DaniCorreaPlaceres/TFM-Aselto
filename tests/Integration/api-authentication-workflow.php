@@ -5,6 +5,11 @@ require dirname(__DIR__).'/bootstrap.php';
 
 use App\Asesoria\Domain\Firm;
 use App\Asesoria\Infrastructure\Persistence\DoctrineFirmRepository;
+use App\Identidad\Application\ChoosePassword;
+use App\Identidad\Application\IssueAccessToken;
+use App\Identidad\Domain\AccessPurpose;
+use App\Identidad\Domain\InvalidAccessToken;
+use App\Identidad\Domain\PasswordTooShort;
 use App\Identidad\Domain\Role;
 use App\Identidad\Domain\User;
 use App\Identidad\Infrastructure\Persistence\DoctrineUserRepository;
@@ -25,6 +30,8 @@ final class ApiAuthenticationCheckKernel extends Kernel
             public function process(Symfony\Component\DependencyInjection\ContainerBuilder $container): void
             {
                 $container->getDefinition('security.token_storage')->setPublic(true);
+                $container->getDefinition(ChoosePassword::class)->setPublic(true);
+                $container->getDefinition(IssueAccessToken::class)->setPublic(true);
             }
         });
     }
@@ -137,6 +144,58 @@ try {
     $check(false !== $otherKey && 401 === $http('/api/v1/me', token: $sign($payload, $otherKey))->getStatusCode(), 'A token signed by another key must fail.');
     $signedOldRoles = $sign([...$payload, 'roles' => ['ROLE_SUPERADMIN']], $key);
     $check('client' === $json($http('/api/v1/me', token: $signedOldRoles))['role'], 'Database roles must override signed stale roles.');
+    $resetUser = new User($uuid(), $uuid().'@example.test', password_hash($password, PASSWORD_BCRYPT, ['cost' => 4]), Role::Advisor, $firmId, true);
+    $users->save($resetUser);
+    $resetToken = $json($login($resetUser->email(), $password))['token'];
+    $check(200 === $http('/api/v1/me', token: $resetToken)->getStatusCode(), 'The token under test must work before resetting the password.');
+    $check(200 === $http('/cuenta', webUser: $resetUser)->getStatusCode(), 'The old web identity must work before resetting the password.');
+    $issuer = $kernel->getContainer()->get(IssueAccessToken::class);
+    $choose = $kernel->getContainer()->get(ChoosePassword::class);
+    $raw = $issuer->issue($users->find($resetUser->id()), AccessPurpose::Reset, '+2 hours');
+    try {
+        $choose->execute($raw, 'short', AccessPurpose::Reset);
+        throw new RuntimeException('A rejected password must not succeed.');
+    } catch (PasswordTooShort) {
+        $check($resetUser->authVersion() === $users->find($resetUser->id())->authVersion(), 'Failed reset must preserve the authentication version.');
+        $check(200 === $http('/api/v1/me', token: $resetToken)->getStatusCode(), 'Failed reset must preserve an existing valid token.');
+    }
+    $newPassword = 'synthetic replacement pass phrase';
+    $choose->execute($raw, $newPassword, AccessPurpose::Reset);
+    $afterReset = $users->find($resetUser->id());
+    $check($resetUser->authVersion() + 1 === $afterReset->authVersion(), 'The reset must persist an incremented authentication version.');
+    for ($attempt = 0; $attempt < 3; ++$attempt) {
+        $response = $http('/api/v1/me', token: $resetToken);
+        $check(401 === $response->getStatusCode() && 'token_invalid' === $json($response)['error']['code'], 'The old signed JWT must consistently fail after password reset.');
+    }
+    $check(401 === $login($resetUser->email(), $password)->getStatusCode(), 'The old password must stop working.');
+    $freshLogin = $login($resetUser->email(), $newPassword);
+    $check(200 === $freshLogin->getStatusCode(), 'The replacement password must authenticate.');
+    $freshToken = $json($freshLogin)['token'];
+    $check(200 === $http('/api/v1/me', token: $freshToken)->getStatusCode(), 'A fresh JWT must authenticate after the reset.');
+    $check(302 === $http('/cuenta', webUser: $resetUser)->getStatusCode(), 'The old web session must lose access.');
+    $check(200 === $http('/cuenta', webUser: $afterReset)->getStatusCode(), 'The current web identity must retain access.');
+    try {
+        $choose->execute($raw, 'another synthetic password', AccessPurpose::Reset);
+        throw new RuntimeException('A used reset link must not succeed.');
+    } catch (InvalidAccessToken) {
+        $check($afterReset->authVersion() === $users->find($resetUser->id())->authVersion(), 'Reusing a consumed link must not alter authentication.');
+    }
+    $expiredRaw = $issuer->issue($users->find($resetUser->id()), AccessPurpose::Reset, '-1 second');
+    try {
+        $choose->execute($expiredRaw, 'another synthetic password', AccessPurpose::Reset);
+        throw new RuntimeException('An expired reset link must not succeed.');
+    } catch (InvalidAccessToken) {
+        $check($afterReset->authVersion() === $users->find($resetUser->id())->authVersion(), 'An expired link must not alter authentication.');
+        $check(200 === $http('/api/v1/me', token: $freshToken)->getStatusCode(), 'Invalid reset links must preserve a current valid token.');
+    }
+    $samePasswordRaw = $issuer->issue($users->find($resetUser->id()), AccessPurpose::Reset, '+2 hours');
+    $choose->execute($samePasswordRaw, $newPassword, AccessPurpose::Reset);
+    $check($afterReset->authVersion() + 1 === $users->find($resetUser->id())->authVersion(), 'Resetting to the same password must still increment the authentication version.');
+    $check(401 === $http('/api/v1/me', token: $freshToken)->getStatusCode(), 'Resetting to the same password must revoke the previous JWT.');
+    $check(302 === $http('/cuenta', webUser: $afterReset)->getStatusCode(), 'Resetting to the same password must revoke the previous web session.');
+    $latestLogin = $login($resetUser->email(), $newPassword);
+    $check(200 === $latestLogin->getStatusCode() && 200 === $http('/api/v1/me', token: $json($latestLogin)['token'])->getStatusCode(), 'Login and a new JWT must work after resetting to the same password.');
+
     $admin = $accounts['firm_admin'];
     $db->executeStatement('UPDATE identity_user SET role = ?, firm_id = ? WHERE id = ?', ['advisor', $otherFirmId, $admin->id()]);
     $identity = $json($http('/api/v1/me', token: $tokens['firm_admin']));

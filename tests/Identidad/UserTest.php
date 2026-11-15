@@ -52,6 +52,22 @@ final class UserTest extends TestCase
         new User(self::ID, 'gestor@example.test', 'hash', Role::Advisor, null);
     }
 
+    public function testPasswordChangeRevokesPriorAuthenticationWithoutChangingIdentity(): void
+    {
+        $user = new User(self::ID, 'gestor@example.test', 'old-hash', Role::Advisor, self::FIRM_ID, true, 7);
+        $updated = $user->withPassword('new-hash');
+
+        self::assertSame(8, $updated->authVersion());
+        self::assertSame(7, $user->authVersion());
+        self::assertSame('new-hash', $updated->passwordHash());
+        self::assertSame($user->id(), $updated->id());
+        self::assertSame($user->email(), $updated->email());
+        self::assertSame($user->role(), $updated->role());
+        self::assertSame($user->firmId(), $updated->firmId());
+        self::assertTrue($updated->isActivated());
+        self::assertSame(9, $updated->withPassword('new-hash')->authVersion());
+    }
+
     private const ID = '00000000-0000-4000-8000-000000000011';
     private const FIRM_ID = '00000000-0000-4000-8000-000000000001';
 }

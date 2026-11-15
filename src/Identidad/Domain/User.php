@@ -72,7 +72,7 @@ final class User
 
     public function withPassword(string $passwordHash): self
     {
-        return new self($this->id, $this->email, $passwordHash, $this->role, $this->firmId, true, $this->authVersion);
+        return new self($this->id, $this->email, $passwordHash, $this->role, $this->firmId, true, $this->authVersion + 1);
     }
 
     public function authVersion(): int

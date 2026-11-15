@@ -27,7 +27,7 @@ final class AdministrativeIdentityTest extends TestCase
         self::assertTrue($changed->isActivated());
         self::assertSame('new@example.test', $changed->email());
         self::assertSame(2, $changed->authVersion());
-        self::assertSame(2, $changed->withPassword('new-hash')->authVersion());
+        self::assertSame(3, $changed->withPassword('new-hash')->authVersion());
         $session = SecurityUser::fromDomain($before);
         self::assertTrue($session->isEqualTo(SecurityUser::fromDomain($before)));
         self::assertFalse($session->isEqualTo(SecurityUser::fromDomain($changed)));
