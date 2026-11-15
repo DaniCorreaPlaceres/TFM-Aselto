@@ -3,23 +3,19 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csp-nonce" content="{{ app.request.attributes.get('_csp_nonce') }}">
+        <meta name="csp-policy" content="{{ app.request.attributes.get('_route') in ['client_document', 'firm_document'] ? 'pdf' : 'standard' }}" data-turbo-track="reload">
         <title>{% block title %}Aselto{% endblock %}</title>
         <link rel="icon" href="{{ asset('icono.png') }}">
         <link rel="stylesheet" href="{{ asset('vendor/datatables/datatables.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('styles/app.scss') }}">
         <script src="{{ asset('vendor/datatables/datatables.min.js') }}" data-turbo-track="reload"></script>
         {% block stylesheets %}
         {% endblock %}
 
         {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
+            {% block importmap %}{{ importmap('app', {nonce: app.request.attributes.get('_csp_nonce')}) }}{% endblock %}
         {% endblock %}
-
-        {% set frankenphp_hot_reload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
-        {% if frankenphp_hot_reload %}
-        <meta name="frankenphp-hot-reload:url" content="{{ frankenphp_hot_reload }}">
-        <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
-        <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
-        {% endif %}
     </head>
     {% set commercial = app.request.attributes.get('_route') starts with 'commercial_' %}
     {% set workspace = app.user and not commercial %}
