@@ -156,6 +156,14 @@ Verificaciones ejecutadas:
 
 Los checks HTTP usan MockArraySessionStorage y no representan un ataque entre sitios reales ni replay contra Hostinger. Revisión visual de navegador y producción pendientes. El formulario envía el token en el cuerpo; se conserva la lectura de parámetros nativa de Symfony. No se cambia la caducidad de F05, el contrato JWT ni otros hallazgos. Los workflows siguen pendientes de incorporación como checks obligatorios (F13).
 
-## Siguiente hallazgo propuesto
+## F07 · Cabeceras de seguridad y CSP
 
-**F07: cabeceras globales de seguridad del navegador.** Pendiente en otra rama y ficha, verificando compatibilidad con recursos locales, PDF.js, tiempo real y páginas con enlaces sensibles. El resto de hallazgos de la línea base sigue pendiente de acuerdo y verificación; la tarea 43 no está cerrada.
+Implementado y verificado en Docker local y navegador integrado el **15/11/2026**, en `feature/browser-security-headers`, desde develop `2f847f3` tras integrar F06 (PR #53). [Ficha](../sdd/browser-security-headers.md), [política, excepciones y reproducción](browser-security-headers.md) y [evidencia](evidence/f07-browser-security-headers.json).
+
+HTML aplica CSP efectiva de origen propio, nonce aleatorio de 192 bits por petición, sin JavaScript unsafe-inline/unsafe-eval ni módulos script data:. WebAssembly solo en revisión PDF, con recarga completa al cambiar la política con Turbo. Se conserva style-src unsafe-inline como excepción explícita para componentes. CSS local explícito e Importmap con nonce. HTML y enlaces sensibles, incluidos errores, no-store; no-referrer global. Protección de marcos, nosniff y permisos acotados; cámara del mismo origen conserva el selector existente sin conceder permisos.
+
+Symfony protege sus respuestas principales; nginx cubre también estáticos y errores propios con las cuatro cabeceras comunes y el proxy Mercure incluye el fragmento para no perderlas. Se ocultan copias del backend/hub para no duplicarlas. Descargas/JSON conservan tipos, payload y caché privada anterior, con CSP limitada a marcos/base/objetos.
+
+Verificaciones ejecutadas: workflow HTTP **149**; PHPUnit **407 pruebas / 1.057 aserciones**; JavaScript **35**. Regresiones correctas: autenticación **74**, sesión **78**, logout **45**, trimestre vivo **38**, subida documental **43**. PHPStan, formato, contenedor, **61 Twig**, **23 YAML** y nginx correctos. Sass/AssetMapper: **32 recursos** compilados sin versionar salidas. Navegador: acceso/salida, Turbo, tablas/búsqueda, CSV y XLSX descargados, PDF y texto, transición al visor, imagen previa sin envío, conexión/actualización manual y Swagger con 401 esperado; sin errores de consola en vistas inspeccionadas. HTTP real confirma cabeceras únicas en estático 200, error nginx 404 y error del hub 400.
+
+Hostinger/HTTPS/HSTS, cámara física, todos los codecs PDF y otros navegadores no comprobados. No se fuerza caída del servidor para probar 502. La puntuación histórica queda intacta; los workflows siguen pendientes de checks obligatorios (F13). El resto de hallazgos, incluido F08 sobre archivos, sigue pendiente y la tarea 43 permanece abierta.
