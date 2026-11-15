@@ -41,6 +41,9 @@ security:
             logout:
                 path: /salir
                 target: /entrar
+                enable_csrf: true
+                csrf_parameter: _csrf_token
+                csrf_token_id: logout
             user_checker: App\Identidad\Infrastructure\Security\ActivatedUserChecker
 
     access_control:
