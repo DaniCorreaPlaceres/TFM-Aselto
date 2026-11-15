@@ -1,0 +1,53 @@
+{
+  "recorded_at": "2026-11-14",
+  "source_commit": "78c73e52fc5c54a5b44a603e6fb6ce8e3c11c016",
+  "session_effective_prod": {
+    "cookie_secure": "auto",
+    "cookie_httponly": true,
+    "cookie_samesite": "lax",
+    "explicit_idle_timeout": false,
+    "explicit_absolute_timeout": false
+  },
+  "jwt": {
+    "token_ttl_seconds": 3600,
+    "source": "config/packages/lexik_jwt_authentication.yaml"
+  },
+  "github": {
+    "repository": "DaniCorreaPlaceres/TFM-Aselto",
+    "branch": "main",
+    "protected": true,
+    "active_ruleset": "main protegida",
+    "effective_rule_types": [
+      "deletion",
+      "non_fast_forward",
+      "pull_request"
+    ],
+    "required_status_checks_rule": false,
+    "legacy_protection_endpoint": "404: no se usa como evidencia de desprotección; se consultan también rules y rulesets."
+  },
+  "docker": {
+    "published_on_all_interfaces": true,
+    "services_ports": {
+      "web": [
+        8080
+      ],
+      "database": [
+        3306
+      ],
+      "mailpit": [
+        1025,
+        8025
+      ],
+      "mercure": [
+        9080
+      ]
+    },
+    "firewall_or_external_reachability_tested": false
+  },
+  "secrets": {
+    "scope": "Archivos rastreados de HEAD y patrones/rutas de claves; sin volcar valores.",
+    "private_key_headers_found": false,
+    "full_git_history_scanned": false,
+    "external_secret_rotation_verified": false
+  }
+}

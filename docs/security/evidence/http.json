@@ -1,0 +1,107 @@
+{
+  "recorded_at": "2026-11-14T18:19:49.5796076Z",
+  "base_url": "http://localhost:8080",
+  "environment": "local-dev",
+  "responses": [
+    {
+      "path": "/",
+      "status": 200,
+      "headers": {
+        "Cache-Control": "must-revalidate, max-age=0, private",
+        "Strict-Transport-Security": "",
+        "Referrer-Policy": "",
+        "X-Frame-Options": "",
+        "X-Content-Type-Options": "",
+        "Content-Security-Policy": "",
+        "Access-Control-Allow-Origin": ""
+      }
+    },
+    {
+      "path": "/entrar",
+      "status": 200,
+      "headers": {
+        "Cache-Control": "must-revalidate, max-age=0, private",
+        "Strict-Transport-Security": "",
+        "Referrer-Policy": "",
+        "X-Frame-Options": "",
+        "X-Content-Type-Options": "",
+        "Content-Security-Policy": "",
+        "Access-Control-Allow-Origin": ""
+      }
+    },
+    {
+      "path": "/api/v1/me",
+      "status": 401,
+      "headers": {
+        "Cache-Control": "no-store, private",
+        "Strict-Transport-Security": "",
+        "Referrer-Policy": "",
+        "X-Frame-Options": "",
+        "X-Content-Type-Options": "",
+        "Content-Security-Policy": "",
+        "Access-Control-Allow-Origin": ""
+      }
+    },
+    {
+      "path": "/api/docs",
+      "status": 200,
+      "headers": {
+        "Cache-Control": "no-store, private",
+        "Strict-Transport-Security": "",
+        "Referrer-Policy": "",
+        "X-Frame-Options": "",
+        "X-Content-Type-Options": "",
+        "Content-Security-Policy": "",
+        "Access-Control-Allow-Origin": ""
+      }
+    },
+    {
+      "path": "/.env",
+      "status": 404,
+      "headers": {
+        "Cache-Control": "no-cache, private",
+        "Strict-Transport-Security": "",
+        "Referrer-Policy": "",
+        "X-Frame-Options": "",
+        "X-Content-Type-Options": "",
+        "Content-Security-Policy": "",
+        "Access-Control-Allow-Origin": ""
+      }
+    },
+    {
+      "path": "/composer.lock",
+      "status": 404,
+      "headers": {
+        "Cache-Control": "no-cache, private",
+        "Strict-Transport-Security": "",
+        "Referrer-Policy": "",
+        "X-Frame-Options": "",
+        "X-Content-Type-Options": "",
+        "Content-Security-Policy": "",
+        "Access-Control-Allow-Origin": ""
+      }
+    },
+    {
+      "path": "/var/storage/audit-not-present.pdf",
+      "status": 404,
+      "headers": {
+        "Cache-Control": "no-cache, private",
+        "Strict-Transport-Security": "",
+        "Referrer-Policy": "",
+        "X-Frame-Options": "",
+        "X-Content-Type-Options": "",
+        "Content-Security-Policy": "",
+        "Access-Control-Allow-Origin": ""
+      }
+    }
+  ],
+  "spoofed_host_status": 200,
+  "cross_origin_preflight_status": 405,
+  "cross_origin_allow_origin": "",
+  "invalid_login_four_attempt_statuses": [
+    401,
+    401,
+    401,
+    401
+  ]
+}
