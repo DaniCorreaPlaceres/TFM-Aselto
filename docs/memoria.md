@@ -99,6 +99,7 @@ La web y la API llaman a los mismos casos de uso. La app futura solo tendrá que
 - `gh` para el remoto y las reglas de rama.
 - OpenAI, solo como adaptador opcional de extracción. Sin clave, el flujo se enseña con el adaptador de ejemplo.
 - PHPUnit, PHPStan, PHP-CS-Fixer y la validación OpenAPI. En cada pull request hacia `develop` o `main` los ejecuta `.github/workflows/comprobaciones.yml`.
+- Las integraciones sintéticas de seguridad se ejecutan en un job separado de CI con MySQL desechable, claves JWT de prueba y sin correo ni IA reales. El ejecutor exige una base vacía identificada expresamente y comprueba la limpieza entre workflows. La configuración de checks obligatorios se acuerda y aplica aparte; añadir el job no activa una protección de merge. Cobertura y propuesta en `security/security-ci-checks.md`.
 - Node, cuando haga falta construir estilos.
 
 Método: especificación corta antes de cada tarea. La ficha vive en `docs/sdd/<tarea>.md` y contiene objetivo, fuera de alcance y criterios de aceptación. La rama de esa tarea sale de `develop`. Al terminar se anota solo lo que se ha comprobado.
