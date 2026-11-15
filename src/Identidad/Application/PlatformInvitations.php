@@ -36,6 +36,7 @@ final class PlatformInvitations
         private readonly Clock $clock,
         private readonly PasswordHasher $passwords,
         private readonly PasswordPolicy $policy,
+        private readonly \App\Shared\Domain\SecurityAudit $audit = new \App\Shared\Domain\NullSecurityAudit(),
     ) {
     }
 
@@ -61,6 +62,7 @@ final class PlatformInvitations
         $invitation = new PlatformInvitation($this->ids->next(), $email, $target, hash('sha256', $raw), $now, $now->modify('+24 hours'));
         $this->assertNewEmail($invitation->email);
         $this->invitations->save($invitation);
+        $this->audit->record(\App\Shared\Domain\SecurityEvent::InvitationCreated, $actorId, $invitation->id);
         $this->notifier->send($invitation->email, $target, $raw);
     }
 
@@ -75,6 +77,7 @@ final class PlatformInvitations
             $this->invitations->save($recipient);
         });
         if (null !== $recipient) {
+            $this->audit->record(\App\Shared\Domain\SecurityEvent::InvitationResent, $actorId, $id);
             $this->notifier->send($recipient->email, $recipient->target, $raw);
         }
     }
@@ -116,6 +119,7 @@ final class PlatformInvitations
             }
             $this->invitations->save($current->accept($this->clock->now()));
         });
+        $this->audit->record(\App\Shared\Domain\SecurityEvent::InvitationAccepted, targetId: $invitation->id);
     }
 
     private function assertNewEmail(string $email): void

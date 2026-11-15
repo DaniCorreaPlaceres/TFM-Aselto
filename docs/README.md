@@ -19,6 +19,7 @@ Toda la documentación del proyecto vive en esta carpeta, en la raíz del reposi
 - [security/browser-security-headers.md](security/browser-security-headers.md). CSP, nonce, protección de marcos, referencias y permisos; alcance de nginx y compatibilidad de interfaz.
 - [security/resource-limits.md](security/resource-limits.md). Presupuestos temporales, listados en servidor, exportaciones completas y límites operativos.
 - [security/ai-resource-limits.md](security/ai-resource-limits.md). Límites de tamaño, tiempo, tokens y concurrencia de IA, cancelación y revisión manual.
+- [security/security-event-logging.md](security/security-event-logging.md). Canal privado, retención de 30 días y resúmenes de seguridad por correo.
 - [api/pagination.md](api/pagination.md). Paginación y respuestas 429 del contrato 0.6.0.
 - [public-content-batch.md](public-content-batch.md). Entregas y evidencias del lote de comercialización y contenido público (PR #39–44).
 - [local-installation.md](local-installation.md). Instalación desde cero con Docker, comprobaciones y problemas conocidos.

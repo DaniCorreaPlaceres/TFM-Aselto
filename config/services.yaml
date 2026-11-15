@@ -7,6 +7,9 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    env(SECURITY_ALERT_EMAIL_ENABLED): '0'
+    env(SECURITY_ALERT_RECIPIENT): 'webmaster@aselto.com'
+    env(SECURITY_ALERT_FROM): 'no-responder@aselto.com'
     app.ai_max_concurrent: 2
     app.ai_max_completion_tokens: 1024
     app.session_idle_seconds: 1800
@@ -15,6 +18,10 @@ parameters:
     env(OPENAI_MODEL): 'gpt-4o-mini'
 
 services:
+    App\Shared\Domain\SecurityAudit:
+        alias: App\Shared\Infrastructure\Security\MonologSecurityAudit
+    App\Shared\Domain\SecurityJournal:
+        alias: App\Shared\Infrastructure\Security\PrivateSecurityJournal
     App\Finanzas\Domain\QuarterRecordCatalog:
         alias: App\Finanzas\Infrastructure\Persistence\DoctrineQuarterRecordCatalog
     App\Shared\Domain\RecordCatalog:

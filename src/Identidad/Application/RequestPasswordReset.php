@@ -14,11 +14,13 @@ final class RequestPasswordReset
         private readonly IssueAccessToken $tokens,
         private readonly AccountTransaction $transaction,
         private readonly AccountNotifier $notifier,
+        private readonly \App\Shared\Domain\SecurityAudit $audit = new \App\Shared\Domain\NullSecurityAudit(),
     ) {
     }
 
     public function execute(string $email): void
     {
+        $this->audit->record(\App\Shared\Domain\SecurityEvent::RecoveryRequested, subject: $email);
         $user = $this->users->findByEmail($email);
 
         if (null === $user) {

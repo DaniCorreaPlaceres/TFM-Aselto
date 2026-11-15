@@ -32,6 +32,7 @@ final class AdministerFirms
         private readonly TokenGenerator $tokens,
         private readonly Clock $clock,
         private readonly EmailChangeNotifier $notifier,
+        private readonly \App\Shared\Domain\SecurityAudit $audit = new \App\Shared\Domain\NullSecurityAudit(),
     ) {
     }
 
@@ -53,6 +54,7 @@ final class AdministerFirms
             $this->assertCurrent($view, $fingerprint);
             $this->firms->save($view->firm->changeDetails($name, $contact));
         });
+        $this->audit->record(\App\Shared\Domain\SecurityEvent::FirmChanged, $actorId, $firmId);
     }
 
     public function requestEmail(string $actorId, string $firmId, string $fingerprint, string $email): void
@@ -76,6 +78,7 @@ final class AdministerFirms
             }
             $this->changes->save(new AdminEmailChange($admin->id(), $admin->email(), $recipient, hash('sha256', $raw), $this->clock->now()->modify('+24 hours')->getTimestamp(), $admin->authVersion()));
         });
+        $this->audit->record(\App\Shared\Domain\SecurityEvent::EmailChangeRequested, $actorId, $firmId);
         $this->notifier->request($recipient, $raw);
     }
 
@@ -114,6 +117,7 @@ final class AdministerFirms
             }
             $this->changes->save($current->confirm($this->clock->now()->getTimestamp()));
         });
+        $this->audit->record(\App\Shared\Domain\SecurityEvent::EmailChanged, targetId: $change->userId);
         $this->sendNotice($change);
     }
 
@@ -138,6 +142,7 @@ final class AdministerFirms
             }
             $this->changes->delete($view->emailChange->userId);
         });
+        $this->audit->record(\App\Shared\Domain\SecurityEvent::EmailChangeCancelled, $actorId, $firmId);
     }
 
     private function sendNotice(AdminEmailChange $change): void
