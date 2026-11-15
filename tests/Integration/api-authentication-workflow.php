@@ -29,6 +29,7 @@ final class ApiAuthenticationCheckKernel extends Kernel
         $container->addCompilerPass(new class implements Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface {
             public function process(Symfony\Component\DependencyInjection\ContainerBuilder $container): void
             {
+                $container->register('cache.authentication_limits', Symfony\Component\Cache\Adapter\ArrayAdapter::class);
                 $container->getDefinition('security.token_storage')->setPublic(true);
                 $container->getDefinition(ChoosePassword::class)->setPublic(true);
                 $container->getDefinition(IssueAccessToken::class)->setPublic(true);

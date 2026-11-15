@@ -1,0 +1,80 @@
+{
+  "recorded_at": "2026-11-15",
+  "branch": "feature/authentication-rate-limits",
+  "base_commit": "2b1572a",
+  "environment": "Docker local; contadores de HTTP sintético en memoria; concurrencia en namespace de disco aislado.",
+  "limits": {
+    "login": {
+      "identity_and_ip": 5,
+      "ip": 60,
+      "interval_seconds": 60,
+      "count_successful_attempts": true
+    },
+    "recovery": {
+      "identity_across_ips": 3,
+      "ip": 10,
+      "interval_seconds": 900,
+      "csrf_before_limit": true,
+      "lookup_after_limit": true
+    },
+    "policy": "sliding_window",
+    "response": {
+      "status": 429,
+      "api_code": "too_many_attempts",
+      "retry_after": "positive seconds"
+    },
+    "keys": "HMAC SHA-256 con secreto de aplicación; correo normalizado/IP no se guardan en claro."
+  },
+  "verification": {
+    "phpunit": {
+      "tests": 370,
+      "assertions": 982,
+      "passed": true
+    },
+    "http_workflow": {
+      "command": "php tests/Integration/authentication-rate-limits-workflow.php",
+      "checks": 45,
+      "passed": true,
+      "coverage": [
+        "web y API comparten presupuesto",
+        "espacios/mayúsculas",
+        "rutas codificadas no evaden límites",
+        "IP global pese a cambio de correo",
+        "otra IP no hereda bloqueo global de cuenta",
+        "recuperación igual para cuenta activa/inactiva/inexistente",
+        "supresión de notificaciones y conservación de tokens al bloquear",
+        "CSRF inválido no consume cuota de recuperación",
+        "conservación de identidades tras rollback"
+      ]
+    },
+    "storage_workflow": {
+      "command": "php tests/Integration/authentication-limit-storage-workflow.php",
+      "workers": 6,
+      "attempts": 30,
+      "accepted": 5,
+      "limited": 25,
+      "parent_observes_persisted_limit": true,
+      "storage": "FilesystemAdapter + CacheStorage + FlockStore; configuración de políticas real, namespace aleatorio aislado; no usa contadores de la aplicación."
+    },
+    "api_authentication_checks": 74,
+    "canonical_links_checks": 17,
+    "phpstan": true,
+    "container": true,
+    "yaml_files": 23,
+    "openapi": true,
+    "composer_validate": true,
+    "composer_audit": {
+      "advisories": 0,
+      "abandoned": 0
+    }
+  },
+  "external_mail_sent": false,
+  "external_ai_called": false,
+  "limits_of_verification": [
+    "Sin carga destructiva ni red externa en las pruebas.",
+    "No se verifica Hostinger ni persistencia distribuida entre servidores.",
+    "Prueba de expiración con estado de ventana envejecido, sin espera real.",
+    "Las regresiones de autenticación y probe usan contadores aislados; no prueban límites de producción.",
+    "Una limpieza de la caché puede reiniciar contadores; no hay bloqueo permanente de cuenta."
+  ]
+}
