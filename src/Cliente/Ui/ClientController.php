@@ -2,7 +2,6 @@
 
 namespace App\Cliente\Ui;
 
-use App\Cliente\Application\ListClients;
 use App\Cliente\Application\RegisterClient;
 use App\Cliente\Domain\ClientKind;
 use App\Cliente\Domain\InvalidClient;
@@ -22,7 +21,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ClientController extends AbstractController
 {
     #[Route('/clientes', name: 'clients', methods: ['GET', 'POST'])]
-    public function show(Request $request, ListClients $listClients, RegisterClient $registerClient): Response
+    public function show(Request $request, \App\Shared\Ui\RecordTableView $tables, RegisterClient $registerClient): Response
     {
         $current = $this->getUser();
 
@@ -75,19 +74,10 @@ final class ClientController extends AbstractController
             }
         }
 
-        $clients = [];
-
-        foreach ($listClients->execute($current->id()) as $client) {
-            $clients[] = [
-                'id' => $client->id(),
-                'name' => $client->name(),
-                'kind' => ClientKindLabel::inSpanish($client->kind()),
-                'email' => $client->email(),
-            ];
-        }
+        $cells = $tables->initial($current->id(), null === $firmId ? 'independent' : 'clients');
 
         return $this->render('client/list.html.twig', [
-            'clients' => $clients,
+            'cells' => $cells,
             'canCreate' => $canCreate,
             'unlinked' => null === $firmId,
             'name' => $name,

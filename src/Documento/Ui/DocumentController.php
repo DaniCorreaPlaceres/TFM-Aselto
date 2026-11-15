@@ -5,7 +5,6 @@ namespace App\Documento\Ui;
 use App\Cliente\Application\ShowClientHome;
 use App\Documento\Application\ConfirmDocument;
 use App\Documento\Application\DocumentWithholdingPolicy;
-use App\Documento\Application\ListClientDocuments;
 use App\Documento\Application\OpenClientDocument;
 use App\Documento\Application\SaveDocumentDraft;
 use App\Documento\Application\StoreClientDocument;
@@ -36,23 +35,14 @@ final class DocumentController extends AbstractController
     private const ID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
 
     #[Route('/documentos', name: 'client_documents', methods: ['GET'])]
-    public function index(ShowClientHome $showClientHome, ListClientDocuments $listClientDocuments): Response
+    public function index(ShowClientHome $showClientHome, \App\Shared\Ui\RecordTableView $tables): Response
     {
         $user = $this->client();
-        $documents = [];
-
-        foreach ($listClientDocuments->execute($user->id()) as $document) {
-            $documents[] = [
-                'id' => $document->id(),
-                'name' => $document->partyName() ?: $document->originalName(),
-                'status' => DocumentLabel::forDocument($document),
-                'direction' => DocumentLabel::direction($document->direction()),
-            ];
-        }
+        $cells = $tables->initial($user->id(), 'documents');
 
         return $this->render('client/documents.html.twig', [
             ...$this->layout($showClientHome, $user, 'documentos'),
-            'documents' => $documents,
+            'cells' => $cells,
         ]);
     }
 

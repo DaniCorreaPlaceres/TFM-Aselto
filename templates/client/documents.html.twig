@@ -6,17 +6,6 @@
     <h1>Documentos</h1>
     <a class="action" href="{{ path('client_document_new') }}">Añadir documento</a>
 
-    {% if documents is empty %}
-        <p>Todavía no hay documentos.</p>
-    {% else %}
-        <div class="table-card" data-controller="table" data-table-filter-column-value="2"><table class="table"><caption>Todos tus documentos</caption><thead><tr><th>Documento</th><th>Tipo</th><th>Estado</th></tr></thead><tbody>
-            {% for document in documents %}
-                <tr><td>
-                    <a href="{{ path('client_document', {id: document.id}) }}">{{ document.name }}</a>
-                    </td><td>{{ document.direction }}
-                    </td><td><span class="status-pill">{{ document.status }}</span>
-                </td></tr>
-            {% endfor %}
-        </tbody></table></div>
-    {% endif %}
+    {{ include('ui/_server_table.html.twig', {kind: 'documents', caption: 'Todos tus documentos', headers: ['Documento', 'Tipo', 'Estado'], filters: ['Subido', 'Extrayendo', 'Borrador', 'Enviado', 'Justificante pendiente', 'Validado', 'Rechazado']}) }}
+
 {% endblock %}

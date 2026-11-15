@@ -4,8 +4,6 @@ namespace App\Cliente\Ui;
 
 use App\Cliente\Application\ShowClientFirmContact;
 use App\Cliente\Application\ShowClientHome;
-use App\Documento\Application\ListClientDocuments;
-use App\Documento\Ui\DocumentLabel;
 use App\Finanzas\Application\ShowQuarter;
 use App\Identidad\Domain\Role;
 use App\Identidad\Infrastructure\Security\SecurityUser;
@@ -17,7 +15,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ClientHomeController extends AbstractController
 {
     #[Route('/inicio', name: 'client_home', methods: ['GET'])]
-    public function home(Request $request, ShowClientHome $showClientHome, ListClientDocuments $listClientDocuments, \App\Comunicacion\Application\Messaging $messaging, ShowQuarter $quarters): Response
+    public function home(Request $request, ShowClientHome $showClientHome, \App\Shared\Application\BrowseRecords $browse, ShowQuarter $quarters): Response
     {
         $view = $this->view('inicio', $showClientHome);
         $user = $this->getUser();
@@ -26,17 +24,14 @@ final class ClientHomeController extends AbstractController
         if (!$user instanceof SecurityUser) {
             throw $this->createAccessDeniedException();
         }
-        foreach ($listClientDocuments->pending($user->id()) as $document) {
-            $pending[] = [
-                'name' => $document->partyName() ?: $document->originalName(),
-                'status' => DocumentLabel::forDocument($document),
-                'href' => $this->generateUrl('client_document', ['id' => $document->id()]),
-            ];
+        $page = $browse->execute($user->id(), 'pending', new \App\Shared\Domain\RecordCriteria(limit: 5));
+        foreach ($page->rows as $document) {
+            $pending[] = ['name' => $document['name'], 'status' => $document['status'], 'href' => $this->generateUrl('client_document', ['id' => $document['id']])];
         }
-
-        $conversations = $messaging->list($user->id());
-        $view['unreadConversations'] = count(array_filter($conversations, fn ($conversation): bool => $conversation->unread($user->id()) > 0));
-        $view['openRequests'] = count(array_filter($conversations, static fn ($conversation): bool => $conversation->request && null === $conversation->resolvedAt));
+        $counts = $browse->attention($user->id());
+        $view['unreadConversations'] = $counts['unread'];
+        $view['openRequests'] = $counts['requests'];
+        $view['pendingTotal'] = $page->filtered;
         $view['pending'] = $pending;
         $quarter = $quarters->execute($user->id(), null, $quarters->currentPeriod());
         $view['quarter'] = $quarter;

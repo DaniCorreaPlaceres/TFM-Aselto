@@ -10,18 +10,8 @@
             <p class="success">{{ message }}</p>
         {% endfor %}
 
-        {% if team is empty %}
-            <p>Todavía no hay gestores.</p>
-        {% else %}
-            <div class="table-card" data-controller="table" data-table-filter-column-value="1"><table class="table"><caption>Personas del equipo</caption><thead><tr><th>Correo</th><th>Papel</th></tr></thead><tbody>
-                {% for member in team %}
-                    <tr><td>
-                        <strong>{{ member.email }}</strong>
-                        </td><td>{{ member.role }}
-                    </td></tr>
-                {% endfor %}
-            </tbody></table></div>
-        {% endif %}
+    {{ include('ui/_server_table.html.twig', {kind: 'team', caption: 'Personas del equipo', headers: ['Correo', 'Papel']}) }}
+
 
         <h2>Invitar a un gestor</h2>
         <p>Le enviaremos un correo para confirmar su dirección y crear su contraseña.</p>

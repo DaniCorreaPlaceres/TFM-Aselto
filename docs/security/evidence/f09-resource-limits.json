@@ -1,0 +1,98 @@
+{
+  "date": "2026-11-15",
+  "branch": "feature/resource-limits",
+  "base": "17d2dc7",
+  "finding": "F09",
+  "environment": "Local Docker MySQL 8.4 / PHP 8.5 and integrated browser",
+  "scope": "Authenticated operation budgets, SQL-paginated primary tables and message selectors, complete filtered exports",
+  "budgets": {
+    "upload_and_messaging_per_minute": {
+      "actor": 10,
+      "firm": 120
+    },
+    "read_per_minute": {
+      "actor": 180,
+      "firm": 1800
+    },
+    "other_write_per_minute": {
+      "actor": 60,
+      "firm": 600
+    },
+    "export_per_15_minutes": {
+      "actor": 3,
+      "firm": 30
+    }
+  },
+  "page": {
+    "default": 25,
+    "maximum": 100,
+    "maximum_offset": 1000000,
+    "maximum_search_characters": 120
+  },
+  "export": {
+    "all_filtered_rows": true,
+    "batch_size": 100,
+    "maximum_rows": 100000,
+    "generation_seconds_checked_between_rows": 30,
+    "repeatable_read": true,
+    "one_generation_per_firm_or_independent_account": true,
+    "explicit_string_cells": true,
+    "private_output_mode": "0600",
+    "private_workspace_mode": "0700"
+  },
+  "mysql_select_time_hint_milliseconds": 5000,
+  "sql_timeout_slow_query_threshold_tested": false,
+  "phpunit": {
+    "tests": 413,
+    "assertions": 1111
+  },
+  "frontend_tests": 39,
+  "integration_fixture_document_count": 131,
+  "regressions": {
+    "authentication": 74,
+    "api_documents": 108,
+    "api_communication": 79,
+    "api_quarters": 60,
+    "quarter": 43,
+    "live_quarter": 38,
+    "document_upload": 43,
+    "platform_firms": 70,
+    "independent_clients": 55,
+    "invitations": 118,
+    "session_expiration": 78,
+    "logout_csrf": 45,
+    "browser_headers": 149
+  },
+  "quality": {
+    "phpstan": "pass",
+    "container": "pass",
+    "twig": 64,
+    "yaml": 24,
+    "openapi": "0.6.0 validated",
+    "composer": "valid",
+    "compiled_assets": 34
+  },
+  "browser_observed": [
+    "advisory table",
+    "amount search",
+    "combined status filter and complete count",
+    "XLSX download with header and one matching row",
+    "message recipient and shared-document selectors",
+    "document search preserves unsent subject and message"
+  ],
+  "browser_screenshot": "f09-inbox.png",
+  "browser_download_automation_delay_observed": true,
+  "download_delay_is_not_server_latency_evidence": true,
+  "not_verified": [
+    "Hostinger",
+    "sustained load",
+    "multiple application nodes",
+    "resource use of large fiscal aggregates and historical snapshots",
+    "hard end-to-end HTTP deadline",
+    "browser CSV download completion"
+  ],
+  "antimalware": "F08 deferred by user; not implemented",
+  "historical_audit_score_unchanged": true,
+  "integration_checks": 56,
+  "inspected_console_errors_and_warnings": 0
+}

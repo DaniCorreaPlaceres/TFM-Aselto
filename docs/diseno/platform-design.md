@@ -39,3 +39,7 @@ Después de probar `asset-map:compile` en desarrollo, retirar sus archivos gener
 ## Validación y límites
 
 La ficha [platform-design](../sdd/platform-design.md) recoge las pruebas ejecutadas. El contraste de texto principal, secundario y acción principal supera 4,5:1 en los pares medidos. Esto no acredita conformidad completa con WCAG: quedan pendientes una revisión con lector de pantalla, ampliación al 200 % y pruebas con usuarios. Tampoco se ha verificado manualmente toda la variedad de PDF de varias páginas; el visor incluye controles de página y alternativa de apertura del original.
+
+## Listados paginados y exportación desde el servidor
+
+F09 sustituye el procesamiento completo en navegador de los listados principales por `server-table`: DataTables conserva búsqueda, filtros, ordenación y navegación, y solicita páginas autorizadas de hasta 100 filas. Los botones CSV/Excel exportan todos los resultados filtrados desde el servidor, mediante bloques y con presupuestos explícitos. Los selectores de mensajes tienen búsqueda y navegación sin perder el contenido del formulario. Las cifras fiscales y los cierres son independientes de los filtros de presentación. [Funcionamiento y límites](../security/resource-limits.md).

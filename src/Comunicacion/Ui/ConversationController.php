@@ -20,21 +20,16 @@ final class ConversationController extends AbstractController
     private const ID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
 
     #[Route('/mensajes', name: 'messages', methods: ['GET'])]
-    public function index(Messaging $messaging, ConversationPresenter $presenter, ShowClientHome $home): Response
+    public function index(Messaging $messaging, ConversationPresenter $presenter, ShowClientHome $home, \App\Shared\Ui\RecordTableView $tables): Response
     {
         $actor = $this->actor();
-        try {
-            $records = $messaging->list($actor->id());
-            $recipients = $messaging->recipients($actor->id());
-        } catch (ConversationNotFound) {
-            throw $this->createNotFoundException();
-        }
+        $cells = $tables->initial($actor->id(), 'conversations');
 
-        return $this->render('communication/list.html.twig', [...$this->layout($actor, $home), 'recipients' => $recipients, 'conversations' => array_map(fn ($record): array => $presenter->view($record, $actor->id()), $records)]);
+        return $this->render('communication/list.html.twig', [...$this->layout($actor, $home), 'canMessage' => null !== $actor->firmId(), 'cells' => $cells]);
     }
 
     #[Route('/mensajes/nuevo', name: 'message_new', methods: ['GET', 'POST'])]
-    public function start(Request $request, Messaging $messaging, ShowClientHome $home): Response
+    public function start(Request $request, Messaging $messaging, ShowClientHome $home, \App\Shared\Application\BrowseRecords $browse): Response
     {
         $actor = $this->actor();
         $error = null;
@@ -43,18 +38,16 @@ final class ConversationController extends AbstractController
         $documentId = (string) ($request->isMethod('POST') ? $request->request->get('document', '') : $request->query->get('document', ''));
         $isRequest = '1' === $request->request->get('request');
         try {
-            $recipients = $messaging->recipients($actor->id());
+            $recipientPage = $browse->execute($actor->id(), 'recipients', new \App\Shared\Domain\RecordCriteria());
+            $recipients = $recipientPage->rows;
             $ownerId = (string) ($request->isMethod('POST') ? $request->request->get('owner', '') : $request->query->get('owner', Role::Client === $actor->role() ? $actor->id() : ''));
-            $selected = null;
-            foreach ($recipients as $recipient) {
-                if ($recipient->userId() === $ownerId) {
-                    $selected = $recipient;
-                }
+            $selected = '' === $ownerId ? null : $messaging->recipient($actor->id(), $ownerId);
+            $documentPage = null === $selected ? null : $browse->execute($actor->id(), 'shared_documents', new \App\Shared\Domain\RecordCriteria(owner: $ownerId));
+            $documents = $documentPage->rows ?? [];
+            if (null !== $selected && '' !== $documentId && !in_array($documentId, array_column($documents, 'id'), true)) {
+                $linked = $messaging->linkedDocument($actor->id(), $ownerId, $documentId);
+                $documents[] = ['id' => $linked->id(), 'name' => $linked->partyName() ?: $linked->originalName(), 'issued_on' => $linked->issuedOn()?->format('Y-m-d')];
             }
-            if ('' !== $ownerId && null === $selected && [] !== $recipients) {
-                throw new ConversationNotFound();
-            }
-            $documents = null === $selected ? [] : $messaging->sharedDocuments($actor->id(), $ownerId);
             if ($request->isMethod('POST')) {
                 if (!$this->isCsrfTokenValid('new_message', (string) $request->request->get('_csrf_token'))) {
                     $error = 'La sesión del formulario ha caducado. Vuelve a intentarlo.';
@@ -72,7 +65,7 @@ final class ConversationController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        return $this->render('communication/new.html.twig', [...$this->layout($actor, $home), 'recipients' => $recipients, 'selected' => $selected, 'documents' => $documents, 'subject' => $subject, 'text' => $text, 'documentId' => $documentId, 'isRequest' => $isRequest, 'error' => $error]);
+        return $this->render('communication/new.html.twig', [...$this->layout($actor, $home), 'recipients' => $recipients, 'recipientTotal' => $recipientPage->filtered, 'documentTotal' => $documentPage->filtered ?? 0, 'selected' => $selected, 'documents' => $documents, 'subject' => $subject, 'text' => $text, 'documentId' => $documentId, 'isRequest' => $isRequest, 'error' => $error]);
     }
 
     #[Route('/mensajes/{id}', name: 'message_thread', methods: ['GET', 'POST'], requirements: ['id' => self::ID])]

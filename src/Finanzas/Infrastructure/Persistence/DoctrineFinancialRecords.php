@@ -12,12 +12,17 @@ final class DoctrineFinancialRecords implements FinancialRecords
     {
     }
 
-    public function forClient(string $ownerId, ?string $firmId): array
+    public function forClient(string $ownerId, ?string $firmId, ?\App\Finanzas\Domain\QuarterPeriod $period = null): array
     {
         $where = null === $firmId ? 'firm_id IS NULL' : 'firm_id = :firm';
         $parameters = ['owner' => $ownerId];
         if (null !== $firmId) {
             $parameters['firm'] = $firmId;
+        }
+        if (null !== $period) {
+            $where .= ' AND (issued_on IS NULL OR (issued_on >= :starts AND issued_on < :ends))';
+            $parameters['starts'] = $period->startsOn();
+            $parameters['ends'] = $period->endsBefore();
         }
         $rows = $this->entityManager->getConnection()->fetchAllAssociative('SELECT id, issued_on, status, direction, party_name, original_name, base_cents, tax, tax_exempt, quota_cents, surcharge_quota_cents, withholding_quota_cents, total_cents, pending_request, version FROM client_document WHERE client_user_id = :owner AND '.$where.' ORDER BY id', $parameters);
 

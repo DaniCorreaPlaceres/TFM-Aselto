@@ -19,7 +19,7 @@ final class QuarterController extends AbstractController
 {
     #[Route('/ingresos', name: 'client_movements', methods: ['GET', 'POST'])]
     #[Route('/clientes/{id}/trimestre', name: 'firm_client_quarter', methods: ['GET', 'POST'], requirements: ['id' => '[0-9a-f-]{36}'])]
-    public function show(Request $request, ShowQuarter $show, ChangeQuarter $change, ShowClientHome $home, QuarterPresenter $presenter, ?string $id = null): Response
+    public function show(Request $request, ShowQuarter $show, ChangeQuarter $change, ShowClientHome $home, QuarterPresenter $presenter, \App\Finanzas\Application\BrowseQuarterRecords $listing, \App\Shared\Ui\RecordTableView $tables, ?string $id = null): Response
     {
         $user = $this->getUser();
         if (!$user instanceof SecurityUser) {
@@ -65,10 +65,16 @@ final class QuarterController extends AbstractController
             $layout = ['section' => 'movimientos', 'email' => $user->getUserIdentifier(), 'name' => $client->name(), 'firmName' => $client->firmName()];
         }
 
+        try {
+            $page = $listing->execute($user->id(), $id, $period, $scope, new \App\Shared\Domain\RecordCriteria());
+        } catch (QuarterNotFound|InvalidQuarter) {
+            throw $this->createNotFoundException();
+        }
+        $movementCells = array_map(fn (array $row): array => $tables->cells('movements', $row), $page->rows);
         if ('1' === $request->headers->get('X-Quarter-Fragment')) {
-            return $this->render('finance/_quarter_content.html.twig', [...$presenter->view($view), 'csrf' => $csrf], new Response(headers: ['Cache-Control' => 'private, no-store']));
+            return $this->render('finance/_quarter_content.html.twig', [...$presenter->view($view), 'csrf' => $csrf, 'movementCells' => $movementCells], new Response(headers: ['Cache-Control' => 'private, no-store']));
         }
 
-        return $this->render(null === $id ? 'client/movements.html.twig' : 'firm/client_quarter.html.twig', [...$layout, ...$presenter->view($view), 'csrf' => $csrf]);
+        return $this->render(null === $id ? 'client/movements.html.twig' : 'firm/client_quarter.html.twig', [...$layout, ...$presenter->view($view), 'csrf' => $csrf, 'movementCells' => $movementCells]);
     }
 }

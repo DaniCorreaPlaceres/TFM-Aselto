@@ -35,6 +35,22 @@ final class Messaging
         return null === $actor->firmId() ? [] : $this->clients->findByFirm($actor->firmId());
     }
 
+    public function recipient(string $actorId, string $ownerId): Client
+    {
+        return $this->access->client($actorId, $ownerId);
+    }
+
+    public function linkedDocument(string $actorId, string $ownerId, string $documentId): \App\Documento\Domain\Document
+    {
+        $client = $this->access->client($actorId, $ownerId);
+        $document = $this->documents->find($documentId);
+        if (null === $document || $document->clientUserId() !== $ownerId || $document->firmId() !== $client->firmId() || !in_array($document->status(), [DocumentStatus::Submitted, DocumentStatus::Rejected, DocumentStatus::Validated], true)) {
+            throw new ConversationNotFound('The shared document is unavailable.');
+        }
+
+        return $document;
+    }
+
     /** @return list<Conversation> */
     public function list(string $actorId): array
     {
@@ -75,6 +91,11 @@ final class Messaging
 
         // Keep the displayed snapshot: later messages must remain unread.
         return $shown;
+    }
+
+    public function preview(string $actorId, string $id): Conversation
+    {
+        return $this->authorized($actorId, $id);
     }
 
     /** @param list<array{name: string, contents: string}> $uploads */

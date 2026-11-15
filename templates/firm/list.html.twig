@@ -10,18 +10,8 @@
             <p class="success">{{ message }}</p>
         {% endfor %}
 
-        {% if firms is empty %}
-            <p>Todavía no hay asesorías.</p>
-        {% else %}
-            <div class="table-card" data-controller="table"><table class="table"><caption>Asesorías de la plataforma</caption><thead><tr><th>Asesoría</th><th>Correo del admin</th></tr></thead><tbody>
-                {% for firm in firms %}
-                    <tr><td>
-                        <a href="{{ path('platform_firm_detail', {id: firm.id}) }}"><strong>{{ firm.name }}</strong></a>
-                        </td><td>{{ firm.adminEmail ?: 'Sin un admin único' }}
-                    </td></tr>
-                {% endfor %}
-            </tbody></table></div>
-        {% endif %}
+    {{ include('ui/_server_table.html.twig', {kind: 'firms', caption: 'Asesorías de la plataforma', headers: ['Asesoría', 'Correo del admin']}) }}
+
 
         <a class="action" href="{{ path('platform_invitation_new', {target: 'advisory'}) }}">Invitar a una asesoría</a>
         <a class="quiet-link" href="{{ path('firm_new') }}">Dar de alta con todos sus datos</a>
