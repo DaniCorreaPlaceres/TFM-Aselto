@@ -166,9 +166,9 @@ final class IncomeWithholdingTest extends TestCase
         $client = new MockHttpClient(static function (string $method, string $url, array $options) use (&$body): MockResponse {
             $body = (string) ($options['body'] ?? '');
 
-            return new MockResponse(json_encode(['choices' => [['message' => ['content' => '{"direction":"income","base":"100","tax_rate":21,"withholding_rate":15}']]]], JSON_THROW_ON_ERROR));
+            return new MockResponse(json_encode(['choices' => [['finish_reason' => 'stop', 'message' => ['content' => '{"direction":"income","base":"100","tax_rate":21,"withholding_rate":15}']]]], JSON_THROW_ON_ERROR));
         });
-        $extractor = new OpenAiDocumentExtractor($client, new OpenAiProposalReader(), 'test-key', 'test-model');
+        $extractor = new OpenAiDocumentExtractor($client, new OpenAiProposalReader(), 'test-key', 'test-model', new \Symfony\Component\Lock\LockFactory(new \Symfony\Component\Lock\Store\InMemoryStore()));
         self::assertSame(10600, $extractor->propose('image/png', 'png', Tax::Vat, true)->details()->totalCents());
         self::assertStringContainsString('The client is self-employed.', $body);
         self::assertNull($extractor->propose('image/png', 'png', Tax::Vat, false)->details()->withholdingRate());

@@ -71,7 +71,7 @@ final class DocumentReadingTest extends TestCase
             $requests[] = ['method' => $method, 'url' => $url, 'body' => $options['body'] ?? ''];
 
             return new MockResponse(json_encode([
-                'choices' => [[
+                'choices' => [['finish_reason' => 'stop',
                     'message' => ['content' => '{"direction":"expense","issued_on":"2026-01-02","party_name":"Taller","tax_id":"00000000T","base":"50.00","tax_rate":10}'],
                 ]],
             ], JSON_THROW_ON_ERROR));
@@ -94,7 +94,7 @@ final class DocumentReadingTest extends TestCase
         $client = new MockHttpClient(function (string $method, string $url, array $options) use (&$body): MockResponse {
             $body = (string) ($options['body'] ?? '');
 
-            return new MockResponse('{"choices":[{"message":{"content":"{\"direction\":\"expense\",\"party_name\":\"Taller\"}"}}]}');
+            return new MockResponse('{"choices":[{"finish_reason":"stop","message":{"content":"{\"direction\":\"expense\",\"party_name\":\"Taller\"}"}}]}');
         });
 
         $this->extractor($client, 'test-key')->propose('application/pdf', '%PDF');
@@ -143,7 +143,7 @@ final class DocumentReadingTest extends TestCase
         $client = new MockHttpClient(function (string $method, string $url, array $options) use (&$body): MockResponse {
             $body = (string) ($options['body'] ?? '');
 
-            return new MockResponse(json_encode(['choices' => [['message' => ['content' => '{"base":"100","tax_rate":9.5}']]]], JSON_THROW_ON_ERROR));
+            return new MockResponse(json_encode(['choices' => [['finish_reason' => 'stop', 'message' => ['content' => '{"base":"100","tax_rate":9.5}']]]], JSON_THROW_ON_ERROR));
         });
         $proposal = $this->extractor($client, 'test-key')->propose('image/png', 'png', Tax::Igic);
         self::assertStringContainsString('IGIC', $body);
@@ -153,6 +153,6 @@ final class DocumentReadingTest extends TestCase
 
     private function extractor(MockHttpClient $client, string $apiKey): OpenAiDocumentExtractor
     {
-        return new OpenAiDocumentExtractor($client, new OpenAiProposalReader(), $apiKey, 'gpt-4o-mini');
+        return new OpenAiDocumentExtractor($client, new OpenAiProposalReader(), $apiKey, 'gpt-4o-mini', new \Symfony\Component\Lock\LockFactory(new \Symfony\Component\Lock\Store\InMemoryStore()));
     }
 }

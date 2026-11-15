@@ -8,50 +8,134 @@ use App\Documento\Domain\Proposal;
 use App\Documento\Domain\ProposalOrigin;
 use App\Documento\Domain\Tax;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\LockInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 final class OpenAiDocumentExtractor implements DocumentExtractor
 {
+    public const MAX_INPUT_BYTES = 8_000_000;
+    public const MAX_REQUEST_BYTES = 11_000_000;
+    public const MAX_RESPONSE_BYTES = 65_536;
+    public const MAX_PROPOSAL_BYTES = 16_384;
+
     public function __construct(
+        #[Autowire(service: 'ai_extraction.client')]
         private readonly HttpClientInterface $httpClient,
         private readonly OpenAiProposalReader $reader,
         #[Autowire('%env(OPENAI_API_KEY)%')]
         private readonly string $apiKey,
         #[Autowire('%env(OPENAI_MODEL)%')]
         private readonly string $model,
+        private readonly LockFactory $locks,
+        #[Autowire('%app.ai_max_concurrent%')]
+        private readonly int $maxConcurrent = 2,
+        #[Autowire('%app.ai_max_completion_tokens%')]
+        private readonly int $maxCompletionTokens = 1024,
     ) {
+        if ($maxConcurrent < 1 || $maxConcurrent > 8 || $maxCompletionTokens < 1 || $maxCompletionTokens > 4096) {
+            throw new \InvalidArgumentException('Invalid AI resource limits.');
+        }
     }
 
     public function propose(string $mediaType, string $contents, Tax $tax = Tax::Vat, bool $allowsWithholding = false): Proposal
     {
-        if ('' === trim($this->apiKey)) {
+        if ('' === trim($this->apiKey) || '' === $contents || strlen($contents) > self::MAX_INPUT_BYTES || !in_array($mediaType, ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'], true)) {
             throw new ExtractionFailed('The extractor is not configured.');
         }
 
+        $lock = $this->slot();
+        $response = null;
         try {
+            $body = json_encode([
+                'model' => $this->model,
+                'max_completion_tokens' => $this->maxCompletionTokens,
+                'n' => 1,
+                'store' => false,
+                'response_format' => ['type' => 'json_object'],
+                'messages' => [[
+                    'role' => 'user',
+                    'content' => [
+                        ['type' => 'text', 'text' => self::instructions($tax, $allowsWithholding)],
+                        $this->file($mediaType, $contents),
+                    ],
+                ]],
+            ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+            if (strlen($body) > self::MAX_REQUEST_BYTES) {
+                throw new ExtractionFailed('The request is too large.');
+            }
             $response = $this->httpClient->request('POST', 'https://api.openai.com/v1/chat/completions', [
-                'headers' => [
-                    'Authorization' => 'Bearer '.$this->apiKey,
-                ],
-                'json' => [
-                    'model' => $this->model,
-                    'response_format' => ['type' => 'json_object'],
-                    'messages' => [[
-                        'role' => 'user',
-                        'content' => [
-                            ['type' => 'text', 'text' => self::instructions($tax, $allowsWithholding)],
-                            $this->file($mediaType, $contents),
-                        ],
-                    ]],
-                ],
-                'timeout' => 30,
+                'headers' => ['Authorization' => 'Bearer '.$this->apiKey, 'Content-Type' => 'application/json', 'Accept' => 'application/json'],
+                'body' => $body,
+                'timeout' => 10,
+                'max_duration' => 30,
+                'max_redirects' => 0,
+                'buffer' => false,
+                'on_progress' => static function (int $downloaded, int $size, array $info): void {
+                    if ($downloaded > self::MAX_RESPONSE_BYTES || $size > self::MAX_RESPONSE_BYTES || ($info['total_time'] ?? 0) > 30) {
+                        throw new ExtractionFailed('The provider exceeded its response budget.');
+                    }
+                },
             ]);
-            $content = $response->toArray()['choices'][0]['message']['content'] ?? '';
+            if (200 !== $response->getStatusCode()) {
+                throw new ExtractionFailed('The provider rejected the request.');
+            }
+            $length = $response->getHeaders(false)['content-length'][0] ?? '';
+            if (ctype_digit($length) && (float) $length > self::MAX_RESPONSE_BYTES) {
+                throw new ExtractionFailed('The response is too large.');
+            }
+            $payload = '';
+            foreach ($this->httpClient->stream($response, 10) as $chunk) {
+                if ($chunk->isTimeout()) {
+                    throw new ExtractionFailed('The provider timed out.');
+                }
+                $data = $chunk->getContent();
+                if (strlen($payload) + strlen($data) > self::MAX_RESPONSE_BYTES) {
+                    throw new ExtractionFailed('The response is too large.');
+                }
+                $payload .= $data;
+            }
+            $data = json_decode($payload, true, 16, JSON_THROW_ON_ERROR);
+            $choices = is_array($data) ? ($data['choices'] ?? null) : null;
+            if (!is_array($choices) || 1 !== count($choices) || 'stop' !== ($choices[0]['finish_reason'] ?? null) || !empty($choices[0]['message']['refusal']) || !empty($choices[0]['message']['tool_calls'])) {
+                throw new ExtractionFailed('The provider did not complete a proposal.');
+            }
+            $content = $choices[0]['message']['content'] ?? null;
+            if (!is_string($content) || strlen($content) > self::MAX_PROPOSAL_BYTES) {
+                throw new ExtractionFailed('Invalid proposal size.');
+            }
+
+            return new Proposal($this->reader->read($content, $tax, $allowsWithholding), ProposalOrigin::Extracted);
         } catch (\Throwable) {
             throw new ExtractionFailed('The document could not be read.');
+        } finally {
+            try {
+                $response?->cancel();
+            } catch (\Throwable) {
+                // Cancellation must not hide the safe manual-review fallback.
+            } finally {
+                try {
+                    $lock->release();
+                } catch (\Throwable) {
+                    throw new ExtractionFailed('The extractor could not release its slot.');
+                }
+            }
         }
+    }
 
-        return new Proposal($this->reader->read(is_string($content) ? $content : '', $tax, $allowsWithholding), ProposalOrigin::Extracted);
+    private function slot(): LockInterface
+    {
+        try {
+            for ($index = 0; $index < $this->maxConcurrent; ++$index) {
+                $lock = $this->locks->createLock('aselto-ai-extraction-'.$index, 45);
+                if ($lock->acquire()) {
+                    return $lock;
+                }
+            }
+        } catch (\Throwable) {
+            throw new ExtractionFailed('The extractor is temporarily unavailable.');
+        }
+        throw new ExtractionFailed('The extractor is temporarily busy.');
     }
 
     /**
