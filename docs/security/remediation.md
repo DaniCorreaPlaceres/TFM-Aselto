@@ -139,6 +139,23 @@ Verificaciones ejecutadas:
 
 Las pruebas HTTP usan MockArraySessionStorage y reloj controlado; no esperan horas reales ni prueban replay contra el almacenamiento de Hostinger. La invalidación/rotación se observa en ese entorno y utiliza la API estándar de sesión. La caducidad se verifica al entrar en una petición; no aborta operaciones ya autorizadas, no retira respuestas entregadas y no cambia el TTL del hub. No hay heartbeat de teclado ni aviso preventivo; escribir sin enviar no renueva la sesión del servidor. Producción y revisión visual de navegador pendientes. Los workflows siguen pendientes de incorporación como checks obligatorios (F13).
 
+## F06 · Protección CSRF del cierre de sesión
+
+Implementado y verificado en Docker local el **15/11/2026**, en `feature/logout-csrf`, desde develop `a866b17` tras integrar F05 (PR #52). [Ficha](../sdd/logout-csrf.md), [funcionamiento](logout-csrf.md) y [evidencia](evidence/f06-logout-csrf.json).
+
+Se activa `enable_csrf` del logout nativo con `_csrf_token` e identificador `logout`, coincidiendo con el formulario existente. El intento inválido se rechaza antes de emitir LogoutEvent, sin revocar la sesión ni la suscripción. La salida válida conserva la invalidación y limpieza previas. La caducidad F05 de una sesión vencida mantiene prioridad y la API JWT permanece independiente.
+
+Durante la verificación se detectó que `_logout_main`, generado por el importador de seguridad, admitía ANY pese a la declaración POST del controlador. El importador se restringe ahora a POST. El primer check GET con token válido reprodujo ese defecto; después, los seis métodos no POST probados reciben 405.
+
+Verificaciones ejecutadas:
+
+- Workflow nuevo: **45 comprobaciones**, correctas. Login real, tokens ausente/inválido/tipo array/otra sesión/otro propósito, conservación del identificador y acceso, suscripción intacta al rechazar, métodos y ruta codificada, salida válida, reentrada con token anterior rechazado, independencia JWT y prioridad de F05. Fixtures revertidos, sin SMTP/IA ni impresión de tokens.
+- PHPUnit: **404 pruebas / 1.042 aserciones**, correctas. Regresiones autenticación **74**, tiempo real **38** y caducidad **78**, correctas.
+- [Probe posterior](evidence/f06-after-logout.json): POST sin CSRF pasa de 302 a **403**, `logout_missing_csrf_rejected: true`. Conserva F01–F04 e identidades tras rollback; no se recalcula la auditoría histórica.
+- PHPStan, contenedor, 23 YAML y formato del script correctos. Las rutas efectivas `_logout_main` y `logout` muestran POST. Sin nuevas dependencias, migraciones ni cambios de páginas generales de error.
+
+Los checks HTTP usan MockArraySessionStorage y no representan un ataque entre sitios reales ni replay contra Hostinger. Revisión visual de navegador y producción pendientes. El formulario envía el token en el cuerpo; se conserva la lectura de parámetros nativa de Symfony. No se cambia la caducidad de F05, el contrato JWT ni otros hallazgos. Los workflows siguen pendientes de incorporación como checks obligatorios (F13).
+
 ## Siguiente hallazgo propuesto
 
-**F06: proteger el cierre de sesión con CSRF.** Pendiente en otra rama y ficha. El resto de hallazgos de la línea base sigue pendiente de acuerdo y verificación; la tarea 43 no está cerrada.
+**F07: cabeceras globales de seguridad del navegador.** Pendiente en otra rama y ficha, verificando compatibilidad con recursos locales, PDF.js, tiempo real y páginas con enlaces sensibles. El resto de hallazgos de la línea base sigue pendiente de acuerdo y verificación; la tarea 43 no está cerrada.
