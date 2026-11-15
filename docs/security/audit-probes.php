@@ -7,6 +7,8 @@ use App\Identidad\Application\ChoosePassword;
 use App\Identidad\Application\IssueAccessToken;
 use App\Identidad\Domain\AccessPurpose;
 use App\Identidad\Domain\InvalidAccessToken;
+use App\Identidad\Domain\PasswordRejected;
+use App\Identidad\Domain\PasswordTooShort;
 use App\Identidad\Domain\Role;
 use App\Identidad\Domain\User;
 use App\Identidad\Infrastructure\Mail\CanonicalAccountUrls;
@@ -110,8 +112,18 @@ try {
         $results['expired_reset_token_rejected'] = true;
     }
     $raw = $issuer->issue($users->find($id), AccessPurpose::Reset, '+2 hours');
-    $choose->execute($raw, '12345678', AccessPurpose::Reset);
-    $results['common_eight_character_password_accepted'] = true;
+    $results['common_eight_character_password_accepted'] = false;
+    try {
+        $choose->execute($raw, '12345678', AccessPurpose::Reset);
+        $results['common_eight_character_password_accepted'] = true;
+    } catch (PasswordTooShort|PasswordRejected) {
+    }
+    $results['long_common_password_rejected'] = false;
+    try {
+        $choose->execute($raw, 'films+pic+galeries', AccessPurpose::Reset);
+    } catch (PasswordRejected $rejection) {
+        $results['long_common_password_rejected'] = PasswordRejected::COMMON === $rejection->reason;
+    }
     $results['token_stored_only_as_hash'] = hash('sha256', $raw) === $db->fetchOne('SELECT token_hash FROM access_token WHERE user_id=? AND token_hash=?', [$id, hash('sha256', $raw)]);
 
     $mail = new class implements MailerInterface {

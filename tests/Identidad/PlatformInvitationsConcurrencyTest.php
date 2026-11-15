@@ -4,7 +4,9 @@ namespace App\Tests\Identidad;
 
 use App\Asesoria\Domain\FirmRepository;
 use App\Cliente\Domain\ClientRepository;
+use App\Identidad\Application\PasswordPolicy;
 use App\Identidad\Application\PlatformInvitations;
+use App\Identidad\Domain\CommonPasswords;
 use App\Identidad\Domain\InvitationNotifier;
 use App\Identidad\Domain\InvitationRepository;
 use App\Identidad\Domain\InvitationTarget;
@@ -51,7 +53,7 @@ final class PlatformInvitationsConcurrencyTest extends TestCase
         $clock->method('now')->willReturn($now);
         $passwords = $this->createStub(PasswordHasher::class);
         $passwords->method('hash')->willReturn('synthetic-hash');
-        $service = new PlatformInvitations($invitations, $users, $this->createStub(FirmRepository::class), $this->createStub(ClientRepository::class), $this->createStub(InvitationNotifier::class), $this->createStub(TokenGenerator::class), $this->createStub(IdGenerator::class), $clock, $passwords);
+        $service = new PlatformInvitations($invitations, $users, $this->createStub(FirmRepository::class), $this->createStub(ClientRepository::class), $this->createStub(InvitationNotifier::class), $this->createStub(TokenGenerator::class), $this->createStub(IdGenerator::class), $clock, $passwords, new PasswordPolicy($this->createStub(CommonPasswords::class)));
         $this->expectException(InvitationUnavailable::class);
         $service->accept($raw, 'Ficticia', FiscalContact::required('00000000T', '600000000', 'Dirección ficticia', '28001', 'Municipio de ejemplo', 'Madrid'), 'synthetic-password');
     }

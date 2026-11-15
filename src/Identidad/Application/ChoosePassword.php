@@ -8,7 +8,6 @@ use App\Identidad\Domain\AccessTokenRepository;
 use App\Identidad\Domain\AccountTransaction;
 use App\Identidad\Domain\InvalidAccessToken;
 use App\Identidad\Domain\PasswordHasher;
-use App\Identidad\Domain\PasswordTooShort;
 use App\Identidad\Domain\UserRepository;
 use App\Shared\Domain\Clock;
 
@@ -20,6 +19,7 @@ final class ChoosePassword
         private readonly PasswordHasher $passwords,
         private readonly Clock $clock,
         private readonly AccountTransaction $transaction,
+        private readonly PasswordPolicy $policy,
     ) {
     }
 
@@ -28,13 +28,11 @@ final class ChoosePassword
         $this->usableToken($rawToken, $purpose);
     }
 
-    public function execute(string $rawToken, string $plainPassword, AccessPurpose $purpose): void
+    public function execute(string $rawToken, #[\SensitiveParameter] string $plainPassword, AccessPurpose $purpose): void
     {
         $token = $this->usableToken($rawToken, $purpose);
 
-        if (mb_strlen($plainPassword) < 8) {
-            throw new PasswordTooShort('The password is too short.');
-        }
+        $this->policy->assertAcceptable($plainPassword);
 
         $this->transaction->forUser($token->userId(), function () use ($rawToken, $plainPassword, $purpose): void {
             $token = $this->usableToken($rawToken, $purpose);

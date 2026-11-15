@@ -6,6 +6,7 @@ use App\Identidad\Application\ChoosePassword;
 use App\Identidad\Application\RequestPasswordReset;
 use App\Identidad\Domain\AccessPurpose;
 use App\Identidad\Domain\InvalidAccessToken;
+use App\Identidad\Domain\PasswordRejected;
 use App\Identidad\Domain\PasswordTooShort;
 use App\Identidad\Infrastructure\Security\AuthenticationRateLimits;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -74,8 +75,8 @@ final class AccountAccessController extends AbstractController
                 } catch (InvalidAccessToken) {
                     $error = 'Este enlace ya no vale. Pide otro.';
                     $showForm = false;
-                } catch (PasswordTooShort) {
-                    $error = 'La contraseña debe tener al menos 8 caracteres.';
+                } catch (PasswordTooShort|PasswordRejected $rejection) {
+                    $error = PasswordPolicyMessage::for($rejection);
                 }
             }
         } else {
@@ -91,6 +92,6 @@ final class AccountAccessController extends AbstractController
             'title' => $title,
             'error' => $error,
             'showForm' => $showForm,
-        ]);
+        ], new Response(status: $request->isMethod('POST') ? 422 : 200));
     }
 }

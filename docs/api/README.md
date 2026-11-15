@@ -13,6 +13,8 @@ La cookie de sesión web no sustituye al token. El token solo se admite en la ca
 
 La contraseña se utiliza exactamente como se recibe, incluidos los espacios. El correo usa la normalización del proveedor de usuarios existente. El cuerpo de acceso no puede superar 16 KiB y admite únicamente ambos campos de texto; la contraseña tiene un límite de 4096 bytes.
 
+La política de 15 a 128 caracteres Unicode y lista local de comunes se aplica al **elegir una contraseña** desde activación, recuperación o invitación web. No se aplica de nuevo al login: las credenciales existentes siguen funcionando y el contrato de acceso conserva sus límites. [Detalle de la política](../security/password-list.md).
+
 ## Errores
 
 Todos tienen la forma `{"error":{"code":"...","message":"..."}}`, con un mensaje en español. Los errores de documento incompleto pueden añadir `error.fields` con los campos que faltan. Acceso incorrecto, cuenta inexistente e inactiva reciben el mismo `401 invalid_credentials`.

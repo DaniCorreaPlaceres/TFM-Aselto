@@ -11,6 +11,7 @@ use App\Identidad\Domain\InvitationAlreadyExists;
 use App\Identidad\Domain\InvitationDeliveryFailed;
 use App\Identidad\Domain\InvitationTarget;
 use App\Identidad\Domain\InvitationUnavailable;
+use App\Identidad\Domain\PasswordRejected;
 use App\Identidad\Domain\PasswordTooShort;
 use App\Identidad\Infrastructure\Security\SecurityUser;
 use App\Shared\Domain\InvalidFiscalContact;
@@ -114,8 +115,8 @@ final class PlatformInvitationController extends AbstractController
                     $error = FiscalContactForm::message($exception);
                 } catch (InvalidFirm|InvalidClient) {
                     $error = 'Escribe un nombre válido de hasta 120 caracteres.';
-                } catch (PasswordTooShort) {
-                    $error = 'La contraseña debe tener al menos 8 caracteres.';
+                } catch (PasswordTooShort|PasswordRejected $rejection) {
+                    $error = PasswordPolicyMessage::for($rejection);
                 }
             }
         }

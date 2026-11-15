@@ -90,6 +90,36 @@ Almacenamiento acotado a procesos de un mismo servidor y disco accesible para el
 
 Fuentes técnicas: [RateLimiter de Symfony 7.4](https://symfony.com/doc/7.4/rate_limiter.html) para almacenamiento/bloqueos y [protección de acceso](https://symfony.com/doc/7.4/security.html#limiting-login-attempts) como referencia. Aquí se aplica un presupuesto previo compartido que cuenta todas las solicitudes admitidas, en lugar de contadores separados por firewall.
 
+## F04 · Política de selección y lista local de contraseñas comunes
+
+Implementado y verificado en Docker local el **15/11/2026**, en `feature/password-policy`, desde develop `7d4efd8` tras integrar F03 (PR #50). Ficha: [password-policy](../sdd/password-policy.md). [Política, origen y licencia](password-list.md).
+
+`ChoosePassword` y `PlatformInvitations` comparten `PasswordPolicy`: mínimo 15 y máximo 128 puntos de código Unicode, sin reglas de composición ni rotación periódica. El puerto CommonPasswords tiene un adaptador local con 10.001 entradas importadas y nueve complementos previsibles. Rechaza también valores solo de espacios. No hay consultas externas ni cambio de algoritmo; los espacios y Unicode de una credencial aceptada se conservan exactamente. Solo se normaliza una copia para comparar con la lista.
+
+La política se ejecuta antes de hash/escritura/consumo del enlace. Los errores de longitud/comunes tienen mensajes en español y los POST inválidos se renderizan con 422. No se obliga a cambiar contraseñas existentes: la comprobación de acceso mantiene compatibilidad, incluido un usuario sintético con contraseña anterior de ocho caracteres. No se modifican credenciales de demo.
+
+Verificaciones ejecutadas:
+
+- PHPUnit completo: **388 pruebas / 1.017 aserciones**, correctas. Longitudes 14/15/128/129, UTF-8 inválido, frases sin símbolos, Unicode, variantes comunes, digest/cantidad/pertenencia de la lista, archivo ausente/alterado y hash largo sin truncamiento.
+- Activación y recuperación HTTP: **33 comprobaciones**, correctas. Rechazo con mensaje y estado adecuados, conservación del enlace/hash/versión, aceptación posterior, uso único, credencial heredada válida y comparación exacta de contraseña larga con espacios y sufijos distintos tras los primeros 72 bytes.
+- Invitaciones HTTP para asesoría, autónomo y empresa: **118 comprobaciones**, correctas, incluyendo comunes/largas rechazadas sin crear cuenta ni consumir invitación y aceptación posterior.
+- Regresiones: autenticación **74**, límites de acceso/recuperación **45** y asesorías/cambio de correo **70**, correctas. Fixtures sintéticos revertidos/retirados, sin SMTP ni IA externos.
+- [Probe posterior](evidence/f04-after-policy.json): contraseña común corta no aceptada, común larga rechazada por lista, JWT anterior tras reset 401, host canónico e identidades conservadas tras rollback. Otros hallazgos siguen presentes; no se recalcula la auditoría histórica.
+- PHPStan, contenedor, 61 Twig y 23 YAML correctos. Recurso externo preservado byte a byte mediante .gitattributes y digest fijado; sin nuevas dependencias de Composer.
+
+Reproducir en Docker local ya preparado, secuencialmente:
+
+```powershell
+docker compose exec -T --user www-data app php vendor/bin/phpunit
+docker compose exec -T --user www-data app php tests/Integration/password-policy-workflow.php
+docker compose exec -T --user www-data app php tests/Integration/platform-invitations-workflow.php
+docker compose exec -T --user www-data app php tests/Integration/api-authentication-workflow.php
+docker compose exec -T --user www-data app php tests/Integration/authentication-rate-limits-workflow.php
+docker compose exec -T --user www-data app php docs/security/audit-probes.php
+```
+
+La lista finita no acredita ausencia en todas las filtraciones ni alta entropía de cualquier valor aceptado. Su actualización es manual y verificable; si falta o cambia el recurso sin actualizar el digest, la selección falla explícitamente. Hostinger y revisión visual de navegador no comprobados en esta tarea. Los workflows siguen pendientes de incorporación como checks obligatorios (F13).
+
 ## Siguiente hallazgo propuesto
 
-**F04: bloquear contraseñas comunes y concretar la política sin MFA.** Pendiente en otra rama y ficha. El resto de hallazgos de la línea base sigue pendiente de acuerdo y verificación; la tarea 43 no está cerrada.
+**F05: caducidad de sesiones por inactividad y duración absoluta.** Pendiente en otra rama y ficha. El resto de hallazgos de la línea base sigue pendiente de acuerdo y verificación; la tarea 43 no está cerrada.

@@ -13,7 +13,6 @@ use App\Identidad\Domain\InvitationRepository;
 use App\Identidad\Domain\InvitationTarget;
 use App\Identidad\Domain\InvitationUnavailable;
 use App\Identidad\Domain\PasswordHasher;
-use App\Identidad\Domain\PasswordTooShort;
 use App\Identidad\Domain\PlatformInvitation;
 use App\Identidad\Domain\Role;
 use App\Identidad\Domain\TokenGenerator;
@@ -36,6 +35,7 @@ final class PlatformInvitations
         private readonly IdGenerator $ids,
         private readonly Clock $clock,
         private readonly PasswordHasher $passwords,
+        private readonly PasswordPolicy $policy,
     ) {
     }
 
@@ -92,15 +92,13 @@ final class PlatformInvitations
         return $invitation;
     }
 
-    public function accept(string $raw, string $name, FiscalContact $contact, string $password): void
+    public function accept(string $raw, string $name, FiscalContact $contact, #[\SensitiveParameter] string $password): void
     {
         $invitation = $this->inspect($raw);
         if (!$contact->isComplete()) {
             throw new InvalidFiscalContact(InvalidFiscalContact::TAX_ID_MISSING);
         }
-        if (mb_strlen($password) < 8) {
-            throw new PasswordTooShort('The password is too short.');
-        }
+        $this->policy->assertAcceptable($password);
         $passwordHash = $this->passwords->hash($password);
         $this->invitations->locked($invitation->id, function (PlatformInvitation $current) use ($raw, $name, $contact, $passwordHash): void {
             if (!hash_equals($current->tokenHash, hash('sha256', $raw)) || !$current->isUsable($this->clock->now())) {
