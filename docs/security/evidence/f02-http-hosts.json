@@ -1,0 +1,24 @@
+{
+  "recorded_at": "2026-11-15T14:05:49.2919566Z",
+  "base_url": "http://localhost:8080",
+  "path": "/recuperar",
+  "checks": [
+    {
+      "host": "localhost:8080",
+      "status": 200
+    },
+    {
+      "host": "127.0.0.1:8080",
+      "status": 200
+    },
+    {
+      "host": "audit-invalid.example.test",
+      "status": 400
+    },
+    {
+      "host": "localhost.audit-invalid.example.test",
+      "status": 400
+    }
+  ],
+  "scope": "GET local sin correo, tokens ni datos privados"
+}

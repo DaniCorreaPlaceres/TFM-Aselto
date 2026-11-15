@@ -55,6 +55,16 @@ services:
     App\Identidad\Domain\AccessTokenRepository:
         alias: App\Identidad\Infrastructure\Persistence\DoctrineAccessTokenRepository
 
+    app.account_url_generator:
+        class: Symfony\Component\Routing\Generator\UrlGeneratorInterface
+        factory: ['@router.default', 'getGenerator']
+        autowire: false
+        autoconfigure: false
+
+    App\Identidad\Infrastructure\Mail\CanonicalAccountUrls:
+        arguments:
+            $urls: '@app.account_url_generator'
+
     App\Identidad\Domain\AccountNotifier:
         alias: App\Identidad\Infrastructure\Mail\SymfonyAccountNotifier
 

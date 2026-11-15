@@ -1,5 +1,6 @@
 # see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
+    trusted_hosts: ['%env(TRUSTED_HOSTS)%']
     secret: '%env(APP_SECRET)%'
     http_client:
         scoped_clients:

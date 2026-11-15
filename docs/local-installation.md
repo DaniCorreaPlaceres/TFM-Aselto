@@ -31,6 +31,10 @@ La clave de OpenAI vacía permite probar la aplicación con la propuesta sintét
 
 Compose ya proporciona las direcciones internas de MySQL, Mailpit y Mercure. Dentro de los contenedores no se usa `localhost` para conectar con otros servicios. Las variables de Compose tienen prioridad sobre `.env.local`.
 
+`DEFAULT_URI=http://localhost:8080` fija también el origen de los correos de activación, recuperación, invitación y confirmación de correo; no se deduce de Host ni de cabeceras de proxy. `TRUSTED_HOSTS` es una expresión regular anclada de nombres permitidos, sin esquema ni puerto: el valor local admite solo `localhost`, `127.0.0.1` y `[::1]`. Un host ajeno recibe 400. Si se cambia el dominio público, configurar ambas variables y recrear el contenedor si se cambió su entorno; cambiar solo `.env.local` no sustituye el DEFAULT_URI explícito de Compose.
+
+Fuera del loopback, DEFAULT_URI debe usar HTTPS. Ejemplo ficticio de despliegue: `DEFAULT_URI=https://aselto.example.test` y `TRUSTED_HOSTS='^aselto\.example\.test$'`. Se admite puerto HTTPS y un prefijo de ruta si el despliegue los necesita. No incluir usuario, contraseña, consulta ni fragmento. No permitir hosts con `.*`, ni confiar en cualquier proxy; las direcciones reales del proxy y la terminación HTTPS se verificarán en la tarea de publicación. Esto protege los enlaces, pero no sustituye configurar el certificado y las redirecciones del servidor.
+
 ## 3. Arrancar los servicios básicos
 
 ```powershell

@@ -9,6 +9,7 @@ use App\Identidad\Domain\AccessPurpose;
 use App\Identidad\Domain\InvalidAccessToken;
 use App\Identidad\Domain\Role;
 use App\Identidad\Domain\User;
+use App\Identidad\Infrastructure\Mail\CanonicalAccountUrls;
 use App\Identidad\Infrastructure\Mail\SymfonyAccountNotifier;
 use App\Identidad\Infrastructure\Persistence\DoctrineUserRepository;
 use App\Identidad\Infrastructure\Security\SecurityUser;
@@ -34,7 +35,7 @@ final class SecurityAuditKernel extends Kernel
         $container->addCompilerPass(new class implements CompilerPassInterface {
             public function process(ContainerBuilder $container): void
             {
-                foreach ([ChoosePassword::class, IssueAccessToken::class, 'security.token_storage'] as $id) {
+                foreach ([ChoosePassword::class, IssueAccessToken::class, CanonicalAccountUrls::class, 'security.token_storage'] as $id) {
                     $container->getDefinition($id)->setPublic(true);
                 }
             }
@@ -123,8 +124,8 @@ try {
     $router = $container->get('router');
     $originalContext = $router->getContext();
     try {
-        $router->setContext((new RequestContext())->fromRequest(Request::create('http://audit-invalid.example.test/recuperar')));
-        (new SymfonyAccountNotifier($mail, $router))->sendPasswordReset('synthetic@example.test', str_repeat('a', 64));
+        $router->setContext(new RequestContext('', 'GET', 'audit-invalid.example.test', 'http', 9999));
+        (new SymfonyAccountNotifier($mail, $container->get(CanonicalAccountUrls::class)))->sendPasswordReset('synthetic@example.test', str_repeat('a', 64));
         preg_match('#https?://[^\s]+#', $mail->body ?? '', $link);
         $results['reset_link_host_from_request_context'] = parse_url($link[0] ?? '', PHP_URL_HOST);
     } finally {
