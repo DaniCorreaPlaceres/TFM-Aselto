@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-15",
+  "branch": "feature/local-service-bindings",
+  "base": "50b0df9",
+  "environment": "Windows, Docker Desktop Linux containers, Docker Engine 29.2.1",
+  "configured_and_running_bindings": [
+    {"service": "web", "host_ip": "127.0.0.1", "published": 8080, "target": 80},
+    {"service": "database", "host_ip": "127.0.0.1", "published": 3306, "target": 3306},
+    {"service": "mailpit", "host_ip": "127.0.0.1", "published": 8025, "target": 8025},
+    {"service": "mailpit", "host_ip": "127.0.0.1", "published": 1025, "target": 1025},
+    {"service": "mercure", "host_ip": "127.0.0.1", "published": 9080, "target": 80}
+  ],
+  "verification": {
+    "compose_effective_configuration": "All published bindings checked, all IPv4 loopback",
+    "container_inspection": "All running project container bindings checked; no 0.0.0.0 or :: publication",
+    "database_volume_before": "aselto_database_data",
+    "database_volume_after": "aselto_database_data",
+    "services_running": 7,
+    "healthy_services": ["database", "mailpit", "mercure"],
+    "http": [
+      {"url": "http://localhost:8080/salud", "status": 200, "database": "ok"},
+      {"url": "http://127.0.0.1:8080/salud", "status": 200, "database": "ok"},
+      {"url": "http://localhost:8080/", "status": 200},
+      {"url": "http://localhost:8080/api/docs", "status": 200},
+      {"url": "http://localhost:8025/", "status": 200},
+      {"url": "http://localhost:9080/.well-known/mercure", "status": 400, "reason": "Missing topic, expected hub response"},
+      {"url": "http://localhost:8080/.well-known/mercure", "status": 400, "reason": "Missing topic, expected proxied hub response"}
+    ],
+    "smtp_loopback_greeting": 220,
+    "mail_sent": false,
+    "compose_yaml": "passed",
+    "live_quarter_workflow": {"checks": 38, "result": "passed", "delivery": "real SSE", "fixtures_removed": true, "existing_fiscal_data_comparison": "unchanged"},
+    "full_phpunit_suite": "not rerun; no PHP or JS code changed"
+  },
+  "pending": ["Second authorized machine connectivity check", "Host firewall and external routing", "Hostinger production configuration", "Long-running SSE and network reconnection"],
+  "historical_audit_score": "unchanged; production CFG-05 remains unverified"
+}

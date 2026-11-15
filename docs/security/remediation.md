@@ -2,6 +2,14 @@
 
 La [auditoría original](README.md) conserva su fecha, matriz y puntuación. Este documento registra verificaciones posteriores, sin considerar cerrada toda la tarea 43 ni los controles que todavía tengan otras carencias.
 
+## F12 · Publicación de servicios locales
+
+Implementado y verificado el **15/11/2026**, en `feature/local-service-bindings`, desde develop `50b0df9` tras integrar F11 (PR #57). [Ficha](../sdd/local-service-bindings.md), [guía](local-service-bindings.md) y [evidencia](evidence/f12-local-service-bindings.json).
+
+Los cinco puertos publicados conservan sus números y se enlazan exclusivamente a `127.0.0.1`. Se mantienen comunicaciones internas y volúmenes; no se publica acceso LAN ni IPv6. Configuración efectiva e inspección de los contenedores confirman ausencia de enlaces `0.0.0.0` y `::`. Servicios recreados, volumen de MySQL conservado, salud/base de datos correctas por localhost y 127.0.0.1, home/Swagger/Mailpit 200, saludo SMTP 220 sin correo y hub/proxy Mercure con 400 esperado sin tema. Trimestre en vivo: **38 comprobaciones con SSE real**, fixtures eliminados y datos fiscales existentes sin cambios. Compose/YAML y diferencias correctos. No se ha repetido PHPUnit completo: no cambia PHP ni JS.
+
+Solo acredita el entorno local Docker Engine 29.2.1 inspeccionado. Quedan la prueba desde otra máquina autorizada, firewall/rutas externas y Hostinger. CFG-05 productivo y puntuación histórica siguen intactos. Siguiente propuesta: **F13, controles de seguridad en CI y acuerdo sobre checks obligatorios**, sin modificar protecciones de rama sin permiso. F08 permanece aplazado y la tarea 43 abierta.
+
 ## F11 · Registro privado y resúmenes de seguridad
 
 Implementado y verificado localmente el **15/11/2026**, en `feature/security-event-logging`, desde develop `0510c74` tras integrar F10 (PR #56). [Ficha](../sdd/security-event-logging.md), [operación y límites](security-event-logging.md), [evidencia](evidence/f11-security-event-logging.json).
