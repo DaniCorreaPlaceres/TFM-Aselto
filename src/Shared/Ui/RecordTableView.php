@@ -56,7 +56,7 @@ final readonly class RecordTableView
             'conversations' => [(string) $row['subject'], (string) $row['status'], (string) $row['client'], $row['unread'].' mensajes nuevos para ti'],
             'movements' => [(string) $row['issued_on'], (string) $row['direction'], (string) $row['name'], (float) ((int) $row['base_cents'] / 100), (string) $row['tax'], (float) ((int) $row['total_cents'] / 100)],
             'invitations' => [(string) $row['email'], match ($row['target']) {
-                'advisory' => 'Asesoría (cuenta de admin)', 'company' => 'Empresa sin asesoría', default => 'Autónomo sin asesoría'
+                'advisory' => 'Asesoría (cuenta de admin)', 'company' => 'Empresa sin asesoría', default => 'Autónomo sin asesoría',
             }, (string) $row['status'], $this->date((string) $row['sent_at']), $this->date((string) $row['expires_at'])],
             default => throw new \InvalidArgumentException('Unknown listing.'),
         };
@@ -69,7 +69,7 @@ final readonly class RecordTableView
     {
         $cells = array_map(static fn (string|float $value): string => htmlspecialchars(is_float($value) ? number_format($value, 2, ',', '.').' €' : $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), $this->values($kind, $row));
         $route = match ($kind) {
-            'documents' => 'client_document', 'inbox' => 'firm_document', 'clients' => 'client_fiscal', 'independent' => 'platform_independent_client', 'firms' => 'platform_firm_detail', 'conversations' => 'message_thread', default => null
+            'documents' => 'client_document', 'inbox' => 'firm_document', 'clients' => 'client_fiscal', 'independent' => 'platform_independent_client', 'firms' => 'platform_firm_detail', 'conversations' => 'message_thread', default => null,
         };
         if (null !== $route) {
             $cells[0] = '<a href="'.htmlspecialchars($this->urls->generate($route, ['id' => $row['id']]), ENT_QUOTES).'">'.$cells[0].'</a>';
