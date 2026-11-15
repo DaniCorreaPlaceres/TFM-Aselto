@@ -8,11 +8,10 @@ use App\Identidad\Domain\InvitationTarget;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class SymfonyInvitationNotifier implements InvitationNotifier
 {
-    public function __construct(private readonly MailerInterface $mailer, private readonly UrlGeneratorInterface $urls)
+    public function __construct(private readonly MailerInterface $mailer, private readonly CanonicalAccountUrls $urls)
     {
     }
 
@@ -23,7 +22,7 @@ final class SymfonyInvitationNotifier implements InvitationNotifier
             InvitationTarget::SelfEmployed => 'tu cuenta de autónomo sin asesoría',
             InvitationTarget::Company => 'tu cuenta de empresa sin asesoría',
         };
-        $link = $this->urls->generate('invitation_accept', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
+        $link = $this->urls->generate('invitation_accept', $token);
         try {
             $this->mailer->send((new Email())->from('Aselto <no-responder@aselto.test>')->to($email)->subject('Invitación para registrarte en Aselto')->text("Te invitamos a registrar $label. Completa tus datos y crea tu contraseña. El enlace es de uso único y caduca en 24 horas. Si recibes un reenvío, utiliza el enlace más reciente.\n\n$link\n"));
         } catch (TransportExceptionInterface $error) {

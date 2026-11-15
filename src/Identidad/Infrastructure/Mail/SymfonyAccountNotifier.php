@@ -5,19 +5,18 @@ namespace App\Identidad\Infrastructure\Mail;
 use App\Identidad\Domain\AccountNotifier;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class SymfonyAccountNotifier implements AccountNotifier
 {
     public function __construct(
         private readonly MailerInterface $mailer,
-        private readonly UrlGeneratorInterface $urls,
+        private readonly CanonicalAccountUrls $urls,
     ) {
     }
 
     public function sendActivation(string $email, string $token): void
     {
-        $link = $this->urls->generate('account_activate', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
+        $link = $this->urls->generate('account_activate', $token);
         $this->send(
             $email,
             'Confirma tu correo en Aselto',
@@ -27,7 +26,7 @@ final class SymfonyAccountNotifier implements AccountNotifier
 
     public function sendPasswordReset(string $email, string $token): void
     {
-        $link = $this->urls->generate('password_reset', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
+        $link = $this->urls->generate('password_reset', $token);
         $this->send(
             $email,
             'Crea una contraseña nueva en Aselto',

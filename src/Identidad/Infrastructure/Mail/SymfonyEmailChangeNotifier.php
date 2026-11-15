@@ -7,17 +7,16 @@ use App\Identidad\Domain\EmailChangeNotifier;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class SymfonyEmailChangeNotifier implements EmailChangeNotifier
 {
-    public function __construct(private readonly MailerInterface $mailer, private readonly UrlGeneratorInterface $urls)
+    public function __construct(private readonly MailerInterface $mailer, private readonly CanonicalAccountUrls $urls)
     {
     }
 
     public function request(string $email, string $token): void
     {
-        $url = $this->urls->generate('admin_email_confirm', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
+        $url = $this->urls->generate('admin_email_confirm', $token);
         $this->send($email, 'Confirma tu nuevo correo en Aselto', "El administrador de Aselto ha solicitado usar esta dirección para tu cuenta de admin de asesoría. El correo actual sigue vigente hasta que confirmes. Este enlace es de uso único y caduca en 24 horas. Utiliza siempre el último enlace recibido.\n\n$url\n\nSi no esperabas este cambio, no lo confirmes y contacta con Aselto.");
     }
 
