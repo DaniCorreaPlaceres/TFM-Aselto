@@ -1,5 +1,7 @@
 {
   "date": "2026-11-15",
+  "snapshot_stage": "Initial implementation before PR #59; pending items below reflect that stage",
+  "follow_up_evidence": "f13-merge-protection.json records successful remote execution, authorized active protections and the blocked temporary PR",
   "branch": "feature/security-ci-checks",
   "base": "ce4eab6",
   "local_environment": "Isolated copy inside Docker, PHP 8.5.12, MySQL 8.4, new aselto_f13_security_ci database",
