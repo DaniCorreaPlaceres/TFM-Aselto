@@ -3,7 +3,6 @@
 namespace App\Asesoria\Ui;
 
 use App\Asesoria\Application\CreateFirm;
-use App\Asesoria\Application\ListFirms;
 use App\Asesoria\Domain\InvalidFirm;
 use App\Identidad\Domain\EmailAlreadyUsed;
 use App\Identidad\Infrastructure\Security\SecurityUser;
@@ -18,7 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class FirmController extends AbstractController
 {
     #[Route('/asesorias', name: 'firms', methods: ['GET'])]
-    public function list(ListFirms $listFirms): Response
+    public function list(\App\Shared\Ui\RecordTableView $tables): Response
     {
         $user = $this->getUser();
         if (!$user instanceof SecurityUser) {
@@ -26,7 +25,7 @@ final class FirmController extends AbstractController
         }
 
         return $this->render('firm/list.html.twig', [
-            'firms' => $listFirms->execute($user->id()),
+            'cells' => $tables->initial($user->id(), 'firms'),
         ]);
     }
 

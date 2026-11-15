@@ -1,0 +1,46 @@
+framework:
+    cache:
+        pools:
+            cache.resource_limits:
+                adapter: cache.adapter.filesystem
+    rate_limiter:
+        resource_upload_actor:
+            policy: sliding_window
+            limit: 10
+            interval: '1 minute'
+            cache_pool: cache.resource_limits
+        resource_upload_firm:
+            policy: sliding_window
+            limit: 120
+            interval: '1 minute'
+            cache_pool: cache.resource_limits
+        resource_read_actor:
+            policy: sliding_window
+            limit: 180
+            interval: '1 minute'
+            cache_pool: cache.resource_limits
+        resource_read_firm:
+            policy: sliding_window
+            limit: 1800
+            interval: '1 minute'
+            cache_pool: cache.resource_limits
+        resource_write_actor:
+            policy: sliding_window
+            limit: 60
+            interval: '1 minute'
+            cache_pool: cache.resource_limits
+        resource_write_firm:
+            policy: sliding_window
+            limit: 600
+            interval: '1 minute'
+            cache_pool: cache.resource_limits
+        resource_export_actor:
+            policy: sliding_window
+            limit: 3
+            interval: '15 minutes'
+            cache_pool: cache.resource_limits
+        resource_export_firm:
+            policy: sliding_window
+            limit: 30
+            interval: '15 minutes'
+            cache_pool: cache.resource_limits

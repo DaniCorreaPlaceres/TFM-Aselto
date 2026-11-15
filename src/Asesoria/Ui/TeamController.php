@@ -3,12 +3,9 @@
 namespace App\Asesoria\Ui;
 
 use App\Asesoria\Application\InviteAdvisor;
-use App\Asesoria\Application\ListTeam;
 use App\Asesoria\Domain\InvalidFirm;
 use App\Identidad\Domain\EmailAlreadyUsed;
-use App\Identidad\Domain\Role;
 use App\Identidad\Infrastructure\Security\SecurityUser;
-use App\Identidad\Ui\RoleLabel;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class TeamController extends AbstractController
 {
     #[Route('/equipo', name: 'team', methods: ['GET', 'POST'])]
-    public function show(Request $request, ListTeam $listTeam, InviteAdvisor $inviteAdvisor): Response
+    public function show(Request $request, \App\Shared\Ui\RecordTableView $tables, InviteAdvisor $inviteAdvisor): Response
     {
         $current = $this->getUser();
 
@@ -45,18 +42,10 @@ final class TeamController extends AbstractController
             }
         }
 
-        $team = [];
-
-        foreach ($listTeam->execute($current->firmId()) as $member) {
-            $team[] = [
-                'email' => $member->email(),
-                'role' => RoleLabel::inSpanish($member->role()),
-                'isAdvisor' => Role::Advisor === $member->role(),
-            ];
-        }
+        $cells = $tables->initial($current->id(), 'team');
 
         return $this->render('firm/team.html.twig', [
-            'team' => $team,
+            'cells' => $cells,
             'email' => $email,
             'error' => $error,
         ]);

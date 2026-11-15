@@ -25,6 +25,6 @@ final class ShowQuarter
         $history = array_values(array_filter($this->quarters->forOwner($access->ownerId), $access->mayRead(...)));
         $firmId = $this->access->scope($access, $scope, $history);
 
-        return new QuarterView($access, $firmId, $period, $this->quarters->find($access->ownerId, $firmId, $period), new QuarterCalculation($access->ownerId, $firmId, $period, $this->records->forClient($access->ownerId, $firmId)), $history);
+        return new QuarterView($access, $firmId, $period, $this->quarters->find($access->ownerId, $firmId, $period), new QuarterCalculation($access->ownerId, $firmId, $period, $this->records->forClient($access->ownerId, $firmId, $period)), $history);
     }
 }

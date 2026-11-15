@@ -27,9 +27,9 @@ final class PlatformInvitationController extends AbstractController
     private const TARGETS = ['advisory' => 'Asesoría (cuenta de admin)', 'self_employed' => 'Autónomo sin asesoría', 'company' => 'Empresa sin asesoría'];
 
     #[Route('/invitaciones', name: 'platform_invitations', methods: ['GET'])]
-    public function list(PlatformInvitations $invitations): Response
+    public function list(\App\Shared\Ui\RecordTableView $tables): Response
     {
-        return $this->privateResponse($this->render('identity/invitations.html.twig', ['invitations' => $invitations->list($this->actorId()), 'targets' => self::TARGETS]));
+        return $this->privateResponse($this->render('identity/invitations.html.twig', ['cells' => $tables->initial($this->actorId(), 'invitations'), 'targets' => self::TARGETS]));
     }
 
     #[Route('/invitaciones/nueva', name: 'platform_invitation_new', methods: ['GET', 'POST'])]

@@ -4,6 +4,8 @@ El acceso permite entrar y consultar la identidad actual; el bloque de [document
 
 ## Operaciones disponibles
 
+El contrato **0.6.0** incorpora [paginación de los listados y presupuestos operativos compartidos](pagination.md). Los consumidores deben recorrer las páginas; ya no deben asumir que una respuesta documental o de conversaciones contiene todos los registros. Se añade 429 `resource_limit_exceeded`, separado del límite de acceso.
+
 - `POST /api/v1/auth/login`: cuerpo JSON con `email` y `password`. Devuelve `token`, `token_type` (`Bearer`) y `expires_in` (3600 segundos).
 - `GET /api/v1/me`: exige `Authorization: Bearer <token>` y devuelve `id`, `email`, `role`, `firm_id` y `activated`.
 

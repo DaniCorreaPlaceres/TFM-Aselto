@@ -13,6 +13,10 @@ parameters:
     env(OPENAI_MODEL): 'gpt-4o-mini'
 
 services:
+    App\Finanzas\Domain\QuarterRecordCatalog:
+        alias: App\Finanzas\Infrastructure\Persistence\DoctrineQuarterRecordCatalog
+    App\Shared\Domain\RecordCatalog:
+        alias: App\Shared\Infrastructure\DoctrineRecordCatalog
     # default configuration for services in *this* file
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.

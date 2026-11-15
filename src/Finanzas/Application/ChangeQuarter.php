@@ -35,7 +35,7 @@ final class ChangeQuarter
             }
             $at = $this->clock->now();
             if ($close) {
-                $calculation = new QuarterCalculation($access->ownerId, $firmId, $period, $this->records->forClient($access->ownerId, $firmId));
+                $calculation = new QuarterCalculation($access->ownerId, $firmId, $period, $this->records->forClient($access->ownerId, $firmId, $period));
                 if ([] !== $calculation->pending) {
                     throw new InvalidQuarter('Pending or undated records prevent closing.');
                 }

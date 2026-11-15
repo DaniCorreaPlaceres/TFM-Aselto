@@ -21,27 +21,37 @@ final class ApiConversationController extends AbstractController
     }
 
     #[Route('/api/v1/conversation-recipients', name: 'api_conversation_recipients', methods: ['GET'])]
-    public function recipients(): JsonResponse
+    public function recipients(Request $request, \App\Shared\Application\BrowseRecords $browse, \App\Shared\Ui\RecordTableInput $input): JsonResponse
     {
         $actor = $this->actor();
 
-        return $this->response(['recipients' => array_map(static fn ($client): array => ['client_id' => $client->id(), 'owner_id' => $client->userId(), 'name' => $client->name()], $this->messaging->recipients($actor->id()))]);
+        $criteria = $input->read($request);
+        $page = $browse->execute($actor->id(), 'recipients', $criteria);
+
+        return $this->response(['recipients' => array_map(static fn (array $row): array => ['client_id' => $row['id'], 'owner_id' => $row['owner_id'], 'name' => $row['name']], $page->rows), 'pagination' => ['offset' => $criteria->offset, 'limit' => $criteria->limit, 'total' => $page->total, 'filtered' => $page->filtered]]);
     }
 
     #[Route('/api/v1/conversation-recipients/{ownerId}/documents', name: 'api_conversation_documents', methods: ['GET'])]
-    public function documents(string $ownerId): JsonResponse
+    public function documents(string $ownerId, Request $request, \App\Shared\Application\BrowseRecords $browse, \App\Shared\Ui\RecordTableInput $input): JsonResponse
     {
         $actor = $this->actor();
 
-        return $this->response(['documents' => array_map(static fn ($document): array => ['id' => $document->id(), 'name' => $document->originalName(), 'status' => $document->status()->value], $this->messaging->sharedDocuments($actor->id(), $ownerId))]);
+        $this->messaging->recipient($actor->id(), $ownerId);
+        $criteria = $input->read($request);
+        $page = $browse->execute($actor->id(), 'shared_documents', new \App\Shared\Domain\RecordCriteria($criteria->offset, $criteria->limit, $criteria->search, owner: $ownerId));
+
+        return $this->response(['documents' => array_map(static fn (array $row): array => ['id' => $row['id'], 'name' => $row['original_name'], 'status' => $row['status']], $page->rows), 'pagination' => ['offset' => $criteria->offset, 'limit' => $criteria->limit, 'total' => $page->total, 'filtered' => $page->filtered]]);
     }
 
     #[Route('/api/v1/conversations', name: 'api_conversations', methods: ['GET'])]
-    public function index(): JsonResponse
+    public function index(Request $request, \App\Shared\Application\BrowseRecords $browse, \App\Shared\Ui\RecordTableInput $input): JsonResponse
     {
         $actor = $this->actor();
 
-        return $this->response(['conversations' => array_map(fn ($conversation): array => $this->presenter->view($conversation, $actor->id()), $this->messaging->list($actor->id()))]);
+        $criteria = $input->read($request);
+        $page = $browse->execute($actor->id(), 'conversations', $criteria);
+
+        return $this->response(['conversations' => array_map(fn (array $row): array => $this->presenter->view($this->messaging->preview($actor->id(), (string) $row['id']), $actor->id()), $page->rows), 'pagination' => ['offset' => $criteria->offset, 'limit' => $criteria->limit, 'total' => $page->total, 'filtered' => $page->filtered]]);
     }
 
     #[Route('/api/v1/conversations', name: 'api_conversation_start', methods: ['POST'])]

@@ -4,7 +4,6 @@ namespace App\Documento\Ui;
 
 use App\Documento\Application\DocumentWithholdingPolicy;
 use App\Documento\Application\FirmDocumentAccess;
-use App\Documento\Application\ListFirmDocuments;
 use App\Documento\Application\ReadSupportingDocument;
 use App\Documento\Application\ReviewSubmittedDocument;
 use App\Documento\Domain\DocumentChanged;
@@ -30,26 +29,16 @@ final class FirmInboxController extends AbstractController
     private const ID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
 
     #[Route('/bandeja', name: 'firm_inbox', methods: ['GET'])]
-    public function index(Request $request, ListFirmDocuments $list): Response
+    public function index(Request $request, \App\Shared\Ui\RecordTableView $tables): Response
     {
         $user = $this->actor();
         $filter = (string) $request->query->get('status', 'submitted');
         if (!in_array($filter, ['submitted', 'rejected', 'validated'], true)) {
             $filter = 'submitted';
         }
-        try {
-            $documents = [];
-            foreach ($list->execute($user->id()) as $entry) {
-                $document = $entry->document;
-                if ($document->status()->value === $filter) {
-                    $documents[] = ['id' => $document->id(), 'client' => $entry->clientName, 'name' => $document->partyName() ?: $document->originalName(), 'status' => DocumentLabel::forDocument($document), 'total' => DocumentLabel::euros($document->totalCents())];
-                }
-            }
-        } catch (DocumentNotFound) {
-            throw $this->createAccessDeniedException();
-        }
+        $cells = $tables->initial($user->id(), 'inbox', $filter);
 
-        return $this->render('firm/inbox.html.twig', ['documents' => $documents, 'filter' => $filter]);
+        return $this->render('firm/inbox.html.twig', ['cells' => $cells, 'filter' => $filter]);
     }
 
     #[Route('/bandeja/{id}', name: 'firm_document', methods: ['GET', 'POST'], requirements: ['id' => self::ID])]

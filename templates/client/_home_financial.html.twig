@@ -15,6 +15,7 @@
 
     <section class="client-pending">
         <h2>Pendiente de revisión</h2>
+        {% if pendingTotal > pending|length %}<p>Se muestran {{ pending|length }} de {{ pendingTotal }} documentos pendientes. <a href="{{ path('client_documents') }}">Ver todos los documentos</a></p>{% endif %}
         {% if pending is empty %}
             <p>No hay documentos que necesiten una acción tuya.</p>
         {% else %}

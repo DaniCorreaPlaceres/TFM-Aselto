@@ -5,8 +5,6 @@ namespace App\Documento\Ui;
 use App\Documento\Application\AmendPersonalDocument;
 use App\Documento\Application\ConfirmDocument;
 use App\Documento\Application\FirmDocumentAccess;
-use App\Documento\Application\ListClientDocuments;
-use App\Documento\Application\ListFirmDocuments;
 use App\Documento\Application\OpenClientDocument;
 use App\Documento\Application\ReadSupportingDocument;
 use App\Documento\Application\ReviewSubmittedDocument;
@@ -34,13 +32,15 @@ final class ApiDocumentController extends AbstractController
 
     #[Route('/api/v1/documents', name: 'api_documents', methods: ['GET'])]
     #[Route('/api/v1/advisory/documents', name: 'api_advisory_documents', methods: ['GET'])]
-    public function index(Request $request, ListClientDocuments $clients, ListFirmDocuments $firms): JsonResponse
+    public function index(Request $request, \App\Shared\Application\BrowseRecords $browse, \App\Shared\Ui\RecordTableInput $input): JsonResponse
     {
         $actor = $this->actor($request);
         $advisory = $this->advisory($request);
-        $documents = $advisory ? array_map(static fn ($record): Document => $record->document, $firms->execute($actor->id())) : $clients->execute($actor->id());
+        $criteria = $input->read($request);
+        $page = $browse->execute($actor->id(), $advisory ? 'inbox' : 'documents', $criteria);
+        $documents = array_map(fn (array $row): Document => $advisory ? $this->advisors->open($actor->id(), (string) $row['id'])->document : $this->owners->execute($actor->id(), (string) $row['id']), $page->rows);
 
-        return $this->jsonResponse(['documents' => array_map(fn (Document $document): array => $this->presenter->view($document, $advisory), $documents)]);
+        return $this->jsonResponse(['documents' => array_map(fn (Document $document): array => $this->presenter->view($document, $advisory), $documents), 'pagination' => ['offset' => $criteria->offset, 'limit' => $criteria->limit, 'total' => $page->total, 'filtered' => $page->filtered]]);
     }
 
     #[Route('/api/v1/documents', name: 'api_document_upload', methods: ['POST'])]
