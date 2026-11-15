@@ -16,7 +16,9 @@ docker version
 docker compose version
 ```
 
-Si el repositorio requiere identificación, Git debe tener acceso a GitHub. Utilizar una carpeta distinta de cualquier instalación existente. Puertos necesarios: 8080 (web), 3306 (MySQL), 8025 y 1025 (Mailpit), 9080 (Mercure). Detener el servicio que los ocupa o preparar otra configuración antes de continuar.
+Si el repositorio requiere identificación, Git debe tener acceso a GitHub. Utilizar una carpeta distinta de cualquier instalación existente. Puertos necesarios en `127.0.0.1`: 8080 (web), 3306 (MySQL), 8025 y 1025 (Mailpit), 9080 (Mercure). Detener el servicio que los ocupa o preparar otra configuración antes de continuar. Todos se publican únicamente en IPv4 loopback; no se publican en `0.0.0.0` ni en `::`.
+
+El entorno está preparado para acceder desde el propio equipo mediante `localhost` o `127.0.0.1`. No publica acceso LAN para móviles u otros equipos, ni un enlace en `[::1]`. Si `localhost` se resuelve exclusivamente a IPv6, usar `127.0.0.1`. Una demostración desde otro dispositivo requiere un entorno de acceso expresamente preparado, fuera de esta configuración local. Detalles y verificaciones en [publicación local de servicios](security/local-service-bindings.md).
 
 ## 2. Configuración privada
 

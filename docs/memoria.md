@@ -249,7 +249,7 @@ Entorno local:
 docker compose up --build
 ```
 
-La web queda en <http://localhost:8080>. MySQL publica el puerto 3306, con base `aselto`, usuario `aselto` y contraseña `aselto`. Mercure publica el puerto 9080 y se sirve a la web por `/.well-known/mercure` en el mismo origen. La imagen local se fija al digest comprobado de Mercure 1.1.6. El servicio `quarter_updates` reintenta los avisos pendientes cada dos segundos; su tabla es `quarter_update_outbox`. El buzón local es Mailpit, en <http://localhost:8025>. Esas credenciales son solo de desarrollo.
+La web queda en <http://localhost:8080>. MySQL publica el puerto 3306, con base `aselto`, usuario `aselto` y contraseña `aselto`. Mercure publica el puerto 9080 y se sirve a la web por `/.well-known/mercure` en el mismo origen. La imagen local se fija al digest comprobado de Mercure 1.1.6. El servicio `quarter_updates` reintenta los avisos pendientes cada dos segundos; su tabla es `quarter_update_outbox`. El buzón local es Mailpit, en <http://localhost:8025>, y su SMTP local en 1025. Todos los puertos publicados del Compose de desarrollo se enlazan exclusivamente a `127.0.0.1`, conservando las conexiones internas por nombre de servicio. No se publica acceso LAN ni IPv6; una prueba desde otro dispositivo requiere otro entorno preparado expresamente. Esas credenciales son solo de desarrollo. Comprobaciones y límites en `security/local-service-bindings.md`.
 
 Dentro de los contenedores la base se llama `database`. Desde la máquina anfitriona, `127.0.0.1`.
 
