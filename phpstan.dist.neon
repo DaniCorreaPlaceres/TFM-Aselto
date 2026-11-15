@@ -4,3 +4,4 @@ parameters:
         - src
         - tests
         - bin/validate-openapi.php
+        - bin/check-security.php

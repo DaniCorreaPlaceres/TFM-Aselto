@@ -29,6 +29,8 @@ final class ApiCommunicationCheckKernel extends Kernel
         $container->addCompilerPass(new class implements Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface {
             public function process(Symfony\Component\DependencyInjection\ContainerBuilder $container): void
             {
+                // Validation/authorization cases are independent; budgets are tested in resource-limits-workflow.
+                $container->register('cache.resource_limits', Symfony\Component\Cache\Adapter\ArrayAdapter::class)->setPublic(true);
                 $container->getDefinition('security.token_storage')->setPublic(true);
             }
         });
@@ -81,6 +83,7 @@ try {
     }
     $http = static function (string $url, string $method = 'GET', ?array $data = null, ?string $token = null, string $contentType = 'application/json', array $uploads = []) use ($kernel, $em): Response {
         $em->clear();
+        $kernel->getContainer()->get('cache.resource_limits')->clear();
         $kernel->getContainer()->get('security.token_storage')->setToken(null);
         $server = ['CONTENT_TYPE' => $contentType];
         if (null !== $token) {

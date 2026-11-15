@@ -85,6 +85,7 @@ Cada PR hacia `develop` o `main`, y cada push a esas ramas, ejecuta el [flujo de
 - PHPUnit, compilación de recursos y pruebas JavaScript de trimestre, exportación y subida.
 - Validación del contrato OpenAPI.
 - Migraciones y validación de esquema en MySQL 8.4, con prueba de conservación de registros y notificaciones pendientes.
+- Seguridad web/API: 19 workflows secuenciales en base desechable, con permisos, aislamiento, archivos y autenticación. [Cobertura y configuración](docs/security/security-ci-checks.md).
 
 Ejemplos de ejecución local:
 
@@ -93,7 +94,7 @@ docker compose exec -T --user www-data app php vendor/bin/phpunit
 node --test tests/Frontend/live-quarter.test.mjs tests/Frontend/table-export.test.mjs tests/Frontend/document-upload.test.mjs
 ```
 
-La prueba de integración `schema-workflow.php` se ejecuta en el quinto trabajo de CI, contra un MySQL temporal creado desde cero con las migraciones. Las demás pruebas de [tests/Integration](tests/Integration) se ejecutan expresamente contra MySQL y el entorno local preparado. Cada ficha describe los requisitos y las verificaciones realizadas. Antes de ejecutarlas, consultar su documentación y evitar ediciones manuales concurrentes sobre los datos que contrastan.
+El job de esquema ejecuta sus integraciones contra un MySQL temporal creado desde cero con las migraciones. El job de seguridad ejecuta su lista cerrada con `php bin/check-security.php`, que exige una base desechable vacía y separada; no utilizar la base habitual. Las demás pruebas de [tests/Integration](tests/Integration) siguen siendo de ejecución explícita. Cada ficha describe los requisitos y las verificaciones realizadas. Antes de ejecutarlas, consultar su documentación y evitar ediciones manuales concurrentes sobre los datos que contrastan. Los checks obligatorios de merge requieren configurar las protecciones: añadir el job no las activa.
 
 ## Documentación y estado del proyecto
 

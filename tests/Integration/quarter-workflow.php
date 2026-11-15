@@ -69,28 +69,34 @@ $expect = static function (string $exception, callable $operation) use ($check):
 };
 $uuid = static fn (): string => Uuid::v4()->toRfc4122();
 // Two independent database connections must serialize before entering a client mutation.
-$lockOwner = $db->fetchOne('SELECT user_id FROM client_profile LIMIT 1');
-if (false === $lockOwner) {
-    throw new RuntimeException('Create a local demonstration client before running this integration check.');
-}
+$lockOwner = $uuid();
+$lockProfile = $uuid();
+(new DoctrineUserRepository($em))->save(new User($lockOwner, $uuid().'@example.test', 'synthetic-hash', Role::Client, null, true));
+(new DoctrineClientRepository($em))->save(new Client($lockProfile, $lockOwner, ClientKind::SelfEmployed, 'Cliente sintético de bloqueo', null));
 $competing = Doctrine\DBAL\DriverManager::getConnection($db->getParams());
-$competing->executeStatement('SET SESSION innodb_lock_wait_timeout = 1');
-$competingEm = new Doctrine\ORM\EntityManager($competing, $em->getConfiguration());
-$competingTransaction = new DoctrineClientTransaction($competingEm);
-$entered = false;
-$db->beginTransaction();
 try {
-    $db->fetchOne('SELECT id FROM client_profile WHERE user_id = ? FOR UPDATE', [$lockOwner]);
-    $expect(Doctrine\DBAL\Exception\LockWaitTimeoutException::class, function () use ($competingTransaction, $lockOwner, &$entered): void {
-        $competingTransaction->run($lockOwner, function () use (&$entered): void { $entered = true; });
-    });
-    $check(!$entered, 'A competing mutation must not enter before the lock is released.');
+    $competing->executeStatement('SET SESSION innodb_lock_wait_timeout = 1');
+    $competingEm = new Doctrine\ORM\EntityManager($competing, $em->getConfiguration());
+    $competingTransaction = new DoctrineClientTransaction($competingEm);
+    $entered = false;
+    $db->beginTransaction();
+    try {
+        $db->fetchOne('SELECT id FROM client_profile WHERE user_id = ? FOR UPDATE', [$lockOwner]);
+        $expect(Doctrine\DBAL\Exception\LockWaitTimeoutException::class, function () use ($competingTransaction, $lockOwner, &$entered): void {
+            $competingTransaction->run($lockOwner, function () use (&$entered): void { $entered = true; });
+        });
+        $check(!$entered, 'A competing mutation must not enter before the lock is released.');
+    } finally {
+        $db->rollBack();
+    }
+    $competingTransaction->run($lockOwner, function () use (&$entered): void { $entered = true; });
+    $check($entered, 'The competing mutation must proceed after the lock is released.');
 } finally {
-    $db->rollBack();
+    $competing->close();
+    $db->executeStatement('DELETE FROM client_profile WHERE id = ?', [$lockProfile]);
+    $db->executeStatement('DELETE FROM identity_user WHERE id = ?', [$lockOwner]);
+    $em->clear();
 }
-$competingTransaction->run($lockOwner, function () use (&$entered): void { $entered = true; });
-$check($entered, 'The competing mutation must proceed after the lock is released.');
-$competing->close();
 $db->beginTransaction();
 try {
     $users = new DoctrineUserRepository($em);

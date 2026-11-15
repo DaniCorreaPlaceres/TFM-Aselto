@@ -21,6 +21,7 @@ Toda la documentación del proyecto vive en esta carpeta, en la raíz del reposi
 - [security/ai-resource-limits.md](security/ai-resource-limits.md). Límites de tamaño, tiempo, tokens y concurrencia de IA, cancelación y revisión manual.
 - [security/security-event-logging.md](security/security-event-logging.md). Canal privado, retención de 30 días y resúmenes de seguridad por correo.
 - [security/local-service-bindings.md](security/local-service-bindings.md). Puertos de desarrollo restringidos a IPv4 loopback, aplicación del cambio y verificaciones locales.
+- [security/security-ci-checks.md](security/security-ci-checks.md). Integraciones de seguridad en CI, base desechable y propuesta de checks obligatorios pendiente de autorización.
 - [api/pagination.md](api/pagination.md). Paginación y respuestas 429 del contrato 0.6.0.
 - [public-content-batch.md](public-content-batch.md). Entregas y evidencias del lote de comercialización y contenido público (PR #39–44).
 - [local-installation.md](local-installation.md). Instalación desde cero con Docker, comprobaciones y problemas conocidos.

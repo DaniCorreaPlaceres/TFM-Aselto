@@ -2,6 +2,16 @@
 
 La [auditoría original](README.md) conserva su fecha, matriz y puntuación. Este documento registra verificaciones posteriores, sin considerar cerrada toda la tarea 43 ni los controles que todavía tengan otras carencias.
 
+## F13 · Integraciones de seguridad en CI y protecciones pendientes
+
+Preparado en `feature/security-ci-checks`, desde develop `ce4eab6` tras PR #58. [Ficha](../sdd/security-ci-checks.md), [cobertura y propuesta de reglas](security-ci-checks.md), [evidencia](evidence/f13-security-ci-checks.json).
+
+Nuevo job `Seguridad web y API` en PR/push a develop/main, PHP 8.4 y MySQL efímero, sin filtros de rutas ni tolerar fallos. Ejecutor de 19 workflows secuenciales con procesos y tiempos acotados, guardas de base desechable vacía y comprobación de limpieza tras cada workflow. Correo nulo, IA sin clave y JWT sintéticos. Se corrigen dependencias de pruebas en contadores de comunicación y un cliente demo de bloqueo; no cambia el código de negocio.
+
+Verificado localmente con PHP 8.5: **19 workflows correctos**, PHPUnit **449 / 1.286**, PHPStan, YAML y formato PHP 8.4 (**405 archivos**). Mutación de permiso de propietario solo en la copia aislada detectada con salida 1; restaurada y suite completa correcta. Se conserva la observación de retroceso del reloj local y el rechazo JWT correcto, sin añadir tolerancia o reintentos.
+
+**No cerrado:** falta ejecutar el nuevo job en GitHub tras publicar el PR. Main sigue sin checks obligatorios y develop sin protección; no se modifican reglas. La propuesta concreta de seis checks y rama actualizada para main/develop requiere autorización, aplicación y comprobación real del bloqueo del merge ante fallo. La auditoría histórica queda intacta. F08 aplazado; tarea 43 abierta. Tras resolver lo acordado de F13, siguiente tarea de producto: 44, versionado 1.0.0.
+
 ## F12 · Publicación de servicios locales
 
 Implementado y verificado el **15/11/2026**, en `feature/local-service-bindings`, desde develop `50b0df9` tras integrar F11 (PR #57). [Ficha](../sdd/local-service-bindings.md), [guía](local-service-bindings.md) y [evidencia](evidence/f12-local-service-bindings.json).
