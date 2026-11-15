@@ -15,7 +15,7 @@ final class ApiLoginRequest
     public function __invoke(RequestEvent $event): void
     {
         $request = $event->getRequest();
-        if ('/api/v1/auth/login' !== $request->getPathInfo() || !$request->isMethod('POST')) {
+        if ('/api/v1/auth/login' !== rawurldecode($request->getPathInfo()) || !$request->isMethod('POST')) {
             return;
         }
         if ('json' !== $request->getContentTypeFormat()) {

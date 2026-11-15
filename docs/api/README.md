@@ -19,6 +19,8 @@ Todos tienen la forma `{"error":{"code":"...","message":"..."}}`, con un mensaje
 
 En una operación protegida, `401 token_missing`, `token_invalid` o `token_expired` requiere volver a autenticarse o enviar el token correctamente. La respuesta incluye `WWW-Authenticate: Bearer`. Los errores de petición usan 400, tipo de contenido incorrecto 415, tamaño excesivo 413, ruta inexistente 404 y método incorrecto 405, con cabecera Allow. Los errores internos usan un 500 genérico sin trazas.
 
+El acceso web y `POST /api/v1/auth/login` comparten límites de ventana deslizante: 5 intentos por minuto por correo normalizado + IP y 60 por minuto por IP. Cuentan también los accesos correctos: reutiliza el JWT válido para las operaciones siguientes. Al superar un límite se devuelve **429**, código `too_many_attempts`, cabecera `Retry-After` con segundos de espera y respuesta privada sin caché. Espera ese tiempo antes de reintentar; no se bloquea permanentemente la cuenta ni se altera un JWT ya emitido. La respuesta es la misma con independencia de que el correo exista. El contrato OpenAPI pasa a 0.5.1 por esta respuesta adicional; no cambia la versión del producto.
+
 Restablecer la contraseña incrementa la versión de autenticación e invalida los JWT de API y las sesiones web anteriores, también si se elige la misma contraseña. El token anterior responde `401 token_invalid`; hay que volver a entrar. Confirmar un cambio de correo del admin también invalida sus accesos anteriores. Todavía no hay renovación ni un endpoint de revocación o cierre de sesión JWT. La caducidad es de una hora; salir de la web no revoca el JWT. No se debe guardar un token en Git, incluirlo en una URL ni imprimirlo en un informe o registro.
 
 ## Preparación local

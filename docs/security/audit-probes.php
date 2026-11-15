@@ -35,6 +35,7 @@ final class SecurityAuditKernel extends Kernel
         $container->addCompilerPass(new class implements CompilerPassInterface {
             public function process(ContainerBuilder $container): void
             {
+                $container->register('cache.authentication_limits', Symfony\Component\Cache\Adapter\ArrayAdapter::class);
                 foreach ([ChoosePassword::class, IssueAccessToken::class, CanonicalAccountUrls::class, 'security.token_storage'] as $id) {
                     $container->getDefinition($id)->setPublic(true);
                 }

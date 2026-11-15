@@ -58,6 +58,38 @@ docker compose exec -T --user www-data app php docs/security/audit-probes.php
 
 Las evidencias no contienen tokens reales, cuerpos de mensajes privados ni cookies. La prueba utiliza token y destinatario sintéticos y nunca envía correo externo. El despliegue con dominio real, proxy, certificado y correo queda para la tarea de producción. Las instrucciones siguen el mecanismo de [hosts confiables de Symfony](https://symfony.com/doc/current/reference/configuration/framework.html#trusted-hosts) y mantienen independiente el contexto de generación.
 
+## F03 · Límites de acceso y recuperación
+
+Implementado y verificado en Docker local el **15/11/2026**, en `feature/authentication-rate-limits`, desde develop `2b1572a` después de integrar F02 (PR #49). Ficha: [authentication-rate-limits](../sdd/authentication-rate-limits.md). [Evidencias y alcance](evidence/f03-rate-limits.json).
+
+Symfony RateLimiter y Lock añaden ventanas deslizantes persistidas en caché de disco y bloqueos flock. Acceso web/API comparte 5 intentos por minuto por correo normalizado + IP y 60 por IP. Se cuentan también éxitos y no se reinicia el contador con credenciales válidas. No existe un bloqueo global de la cuenta desde otras IP: limita ataques concentrados y variación de correos desde una IP, sin afirmar protección completa frente a botnets distribuidas.
+
+Recuperación HTTP: 3 solicitudes por correo y 10 por IP cada 15 minutos. La comprobación ocurre después de CSRF y antes de consultar la cuenta o generar tokens; aplica igual a cuentas activas, inactivas y ausentes. Bloquear una solicitud no reemplaza enlaces ni emite notificaciones. No hay bloqueo permanente ni modificación de credenciales. Las claves son HMAC; no se guardan el correo ni la IP en claro. La normalización agrupa mayúsculas, espacios exteriores y variantes acentuadas para no depender de diferencias de cotejamiento de la base de datos.
+
+API y web devuelven 429 con Retry-After positivo y sin caché; la API usa `too_many_attempts` y mantiene el esquema JSON. OpenAPI 0.5.1 añade esa respuesta; la versión del producto no cambia. Los caminos codificados se normalizan como en el autenticador de Symfony, evitando evadir el límite mediante percent-encoding. La validación del cuerpo JSON sigue ocurriendo antes de autenticar.
+
+Verificaciones ejecutadas:
+
+- PHPUnit completo: **370 pruebas / 982 aserciones**, correctas. Umbrales, variantes de correo, aislamiento de IP, recuperación por correo entre IP y expiración con estado temporal de prueba, sin esperas reales.
+- HTTP sintético: **45 comprobaciones**, correctas. Alternancia web/API, rutas codificadas, 429/Retry-After, acceso desde otra IP, límite global pese a cambio de correo, igualdad de mensajes para cuentas activas/inactivas/inexistentes, supresión de correo/token y CSRF previo al contador. Notificaciones en memoria y rollback de fixtures, sin SMTP/IA reales.
+- Persistencia/concurrencia: **6 procesos simultáneos, 30 intentos, 5 aceptados y 25 limitados**, y el proceso padre observa el límite. Usa las políticas de configuración reales con FilesystemAdapter/CacheStorage/FlockStore en un namespace de prueba, sin consumir ni limpiar contadores de la aplicación. Se confirma también la inyección de lock.default.factory en los limitadores del contenedor.
+- Regresión de autenticación **74** y enlaces canónicos **17**, correctas; probe de auditoría conserva JWT previo 401, host canónico y rollback. La regresión y el probe aíslan sus contadores para no provocar bloqueos locales ni resultados dependientes de ejecuciones previas.
+- PHPStan, contenedor, 23 YAML, OpenAPI y Composer validate correctos; consulta Composer sin avisos ni abandonos. Se añaden dos componentes oficiales; OptionsResolver, ya fijado, pasa a dependencia de ejecución. No se actualizan los paquetes existentes ni se cambian protecciones GitHub.
+
+Reproducción en Docker local preparado, de forma secuencial:
+
+```powershell
+docker compose exec -T --user www-data app php vendor/bin/phpunit
+docker compose exec -T --user www-data app php tests/Integration/authentication-rate-limits-workflow.php
+docker compose exec -T --user www-data app php tests/Integration/authentication-limit-storage-workflow.php
+docker compose exec -T --user www-data app php tests/Integration/api-authentication-workflow.php
+docker compose exec -T --user www-data app php tests/Integration/canonical-account-links-workflow.php
+```
+
+Almacenamiento acotado a procesos de un mismo servidor y disco accesible para el usuario de PHP. Limpiar caché o cambiar el secreto puede reiniciar presupuestos; en varios servidores se requerirá almacenamiento y bloqueos compartidos. La IP procede de Request y no se habilita confianza en proxies arbitrarios. No se ha comprobado Hostinger ni la topología productiva. No sustituye protección de red contra DDoS. Otras altas y correos administrativos conservan sus flujos y quedan fuera de esta corrección acotada. Los workflows siguen pendientes de incorporación como checks obligatorios (F13).
+
+Fuentes técnicas: [RateLimiter de Symfony 7.4](https://symfony.com/doc/7.4/rate_limiter.html) para almacenamiento/bloqueos y [protección de acceso](https://symfony.com/doc/7.4/security.html#limiting-login-attempts) como referencia. Aquí se aplica un presupuesto previo compartido que cuenta todas las solicitudes admitidas, en lugar de contadores separados por firewall.
+
 ## Siguiente hallazgo propuesto
 
-**F03: limitar intentos de acceso y recuperación.** Pendiente en otra rama y ficha. El resto de hallazgos de la línea base sigue pendiente de acuerdo y verificación; la tarea 43 no está cerrada.
+**F04: bloquear contraseñas comunes y concretar la política sin MFA.** Pendiente en otra rama y ficha. El resto de hallazgos de la línea base sigue pendiente de acuerdo y verificación; la tarea 43 no está cerrada.

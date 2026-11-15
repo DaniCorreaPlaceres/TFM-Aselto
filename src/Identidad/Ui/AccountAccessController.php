@@ -7,6 +7,7 @@ use App\Identidad\Application\RequestPasswordReset;
 use App\Identidad\Domain\AccessPurpose;
 use App\Identidad\Domain\InvalidAccessToken;
 use App\Identidad\Domain\PasswordTooShort;
+use App\Identidad\Infrastructure\Security\AuthenticationRateLimits;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class AccountAccessController extends AbstractController
 {
     #[Route('/recuperar', name: 'password_reset_request', methods: ['GET', 'POST'])]
-    public function request(Request $request, RequestPasswordReset $reset): Response
+    public function request(Request $request, RequestPasswordReset $reset, AuthenticationRateLimits $limits): Response
     {
         $email = (string) $request->request->get('email', '');
         $error = null;
@@ -24,6 +25,13 @@ final class AccountAccessController extends AbstractController
             if (!$this->isCsrfTokenValid('request_password', (string) $request->request->get('_csrf_token'))) {
                 $error = 'La sesión del formulario ha caducado. Vuelve a intentarlo.';
             } else {
+                $retry = $limits->recovery($request->getClientIp() ?? 'unknown', $email);
+                if (0 !== $retry) {
+                    return $this->render('identity/request_password.html.twig', [
+                        'email' => $email,
+                        'error' => 'Has hecho demasiados intentos. Espera unos minutos antes de pedir otro enlace.',
+                    ], new Response(status: 429, headers: ['Retry-After' => (string) $retry, 'Cache-Control' => 'private, no-store']));
+                }
                 $reset->execute($email);
                 $this->addFlash('success', 'Si el correo está dado de alta, te hemos enviado un enlace.');
 

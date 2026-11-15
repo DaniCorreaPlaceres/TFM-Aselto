@@ -4,6 +4,8 @@ Guía de desarrollo para Windows con PowerShell y Docker Desktop usando contened
 
 No es una guía de producción. Las contraseñas y la clave compartida de Mercure de `compose.yaml` son de desarrollo.
 
+El acceso web/API está limitado a 5 intentos por minuto por correo + IP y 60 por IP; la recuperación a 3 solicitudes por correo y 10 por IP cada 15 minutos. Una respuesta 429 indica cuándo reintentar mediante Retry-After. Las pruebas específicas usan contadores aislados y no consumen los de tu navegador. Se necesita APP_SECRET propio y no vacío, y permisos de escritura sobre la caché y los bloqueos locales. `composer install` incorpora Symfony RateLimiter y Lock desde composer.lock. Limpiar caché puede reiniciar los contadores: no usar esa limpieza para resolver repetidamente un bloqueo. En varios servidores haría falta almacenamiento/bloqueos compartidos y verificar el proxy de confianza; no se configura aún en esta tarea.
+
 ## 1. Obtener el proyecto
 
 ```powershell
