@@ -12,7 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:quarter-updates:publish', description: 'Publish committed quarter notifications and retry pending deliveries.')]
 final class PublishQuarterUpdatesCommand extends Command
 {
-    public function __construct(private readonly QuarterUpdatePublisher $publisher)
+    public function __construct(private readonly QuarterUpdatePublisher $publisher, #[\Symfony\Component\DependencyInjection\Attribute\Autowire('%app.quarter_live_enabled%')] private readonly bool $enabled = true)
     {
         parent::__construct();
     }
@@ -24,6 +24,11 @@ final class PublishQuarterUpdatesCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        if (!$this->enabled) {
+            $output->writeln('Las cifras se actualizan manualmente; no se inicia el publicador.');
+
+            return Command::SUCCESS;
+        }
         while (true) {
             $count = $this->publisher->publish();
             if (!$input->getOption('watch')) {

@@ -10,12 +10,15 @@ use Symfony\Component\Uid\Uuid;
 
 final class QuarterUpdatePublisher
 {
-    public function __construct(private readonly EntityManagerInterface $entityManager, private readonly HubInterface $hub, private readonly LoggerInterface $logger)
+    public function __construct(private readonly EntityManagerInterface $entityManager, private readonly HubInterface $hub, private readonly LoggerInterface $logger, #[\Symfony\Component\DependencyInjection\Attribute\Autowire('%app.quarter_live_enabled%')] private readonly bool $enabled = true)
     {
     }
 
     public function publish(?string $ownerId = null): int
     {
+        if (!$this->enabled) {
+            return 0;
+        }
         try {
             return $this->publishPending($ownerId);
         } catch (\Throwable $error) {

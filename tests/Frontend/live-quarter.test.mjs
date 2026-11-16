@@ -13,13 +13,14 @@ function harness(fetch) {
     const content = { innerHTML: 'previous figures', contains: () => false, replaceChildren() { this.innerHTML = ''; }, querySelector: () => null };
     const document = { hidden: false, activeElement: null, addEventListener() {}, removeEventListener() {} };
     const timers = [];
+    const intervals = [];
     const context = vm.createContext({ document, fetch, AbortController, CSS: { escape: value => value }, window: {
-        setTimeout: callback => { timers.push(callback); return timers.length; }, clearTimeout() {}, setInterval() {}, clearInterval() {},
+        setTimeout: callback => { timers.push(callback); return timers.length; }, clearTimeout() {}, setInterval: callback => { intervals.push(callback); return intervals.length; }, clearInterval() {},
     } });
     vm.runInContext(source, context);
     const controller = new context.LiveQuarter();
-    Object.assign(controller, { active: true, pending: true, dirty: false, refreshing: false, contentTarget: content, statusTarget: { textContent: '' }, element, urlValue: '/ingresos?year=2026&quarter=4', authValue: '/trimestre/en-vivo/acceso' });
-    return { controller, content, document, listeners, timers };
+    Object.assign(controller, { liveValue: true, active: true, pending: true, dirty: false, refreshing: false, contentTarget: content, statusTarget: { textContent: '' }, element, urlValue: '/ingresos?year=2026&quarter=4', authValue: '/trimestre/en-vivo/acceso' });
+    return { controller, content, document, listeners, timers, intervals };
 }
 
 test('refresh requests only a financial fragment and replaces its content', async () => {
@@ -127,4 +128,48 @@ test('a stale permission response cannot clear a reconnected view', async () => 
     await pending;
     assert.equal(content.innerHTML, 'previous figures');
     assert.equal(controller.active, true);
+});
+
+
+test('manual mode never authorizes, schedules renewal or refreshes on visibility alone', async () => {
+    let requests = 0;
+    const { controller, intervals } = harness(async () => { requests++; });
+    controller.liveValue = false;
+    controller.connect();
+    controller.onVisibility();
+    await controller.authorize();
+    assert.equal(requests, 0);
+    assert.equal(controller.renewal, undefined);
+    assert.equal(intervals.length, 0);
+    assert.equal(controller.pending, false);
+    controller.disconnect();
+});
+
+test('manual mode fetches only after an explicit update and sends session activity', async () => {
+    const requests = [];
+    const { controller, content } = harness(async (url, options) => {
+        requests.push({ url, options });
+        return { ok: true, status: 200, text: async () => 'fresh manual figures' };
+    });
+    controller.liveValue = false;
+    controller.connect();
+    controller.manual();
+    await controller.refresh();
+    assert.equal(requests.length, 1);
+    assert.equal(requests[0].url, controller.urlValue);
+    assert.equal(requests[0].options.headers['X-Session-Activity'], 'manual');
+    assert.equal(content.innerHTML, 'fresh manual figures');
+    assert.match(controller.statusTarget.textContent, /Pulsa Actualizar/);
+    controller.disconnect();
+});
+
+
+test('a revoked manual update removes private figures', async () => {
+    const { controller, content } = harness(async () => ({ ok: false, status: 403 }));
+    controller.liveValue = false;
+    controller.connect();
+    controller.manual();
+    await controller.refresh();
+    assert.equal(content.innerHTML, '');
+    assert.equal(controller.active, false);
 });

@@ -10,7 +10,7 @@
     </div><a class="action" href="{{ path('client_document_new') }}"><span aria-hidden="true">＋</span> Añadir documento</a></div>
     <p class="client-hint">Tus facturas y justificantes se reúnen en Documentos.</p>
 
-    <div data-controller="live-quarter" data-live-quarter-auth-value="{{ path('quarter_subscription') }}" data-live-quarter-url-value="{{ app.request.requestUri }}">
+    <div data-controller="live-quarter" data-live-quarter-live-value="{{ quarter_live_enabled ? 'true' : 'false' }}" data-live-quarter-auth-value="{{ path('quarter_subscription') }}" data-live-quarter-url-value="{{ app.request.requestUri }}">
         {{ include('finance/_live_status.html.twig') }}
         <div data-live-quarter-target="content">{{ include('client/_home_financial.html.twig') }}</div>
     </div>
