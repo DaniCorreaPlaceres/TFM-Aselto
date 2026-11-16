@@ -2,7 +2,7 @@ import { Controller } from '@hotwired/stimulus';
 
 export default class extends Controller {
     static targets = ['content', 'status'];
-    static values = { auth: String, url: String };
+    static values = { auth: String, url: String, live: { type: Boolean, default: true } };
 
     connect() {
         this.active = true;
@@ -15,14 +15,16 @@ export default class extends Controller {
         this.onEdit = (event) => {
             if (this.contentTarget.contains(event.target)) this.dirty = true;
         };
-        this.onVisibility = () => { if (!document.hidden) this.schedule(); };
+        this.onVisibility = () => { if (!document.hidden && (this.liveValue || this.manualPending)) this.schedule(); };
         this.element.addEventListener('input', this.onEdit);
         this.element.addEventListener('change', this.onEdit);
         document.addEventListener('visibilitychange', this.onVisibility);
         this.beforeCache = () => this.disconnect();
         document.addEventListener('turbo:before-cache', this.beforeCache);
-        this.authorize();
-        this.renewal = window.setInterval(() => this.authorize(), 45000);
+        if (this.liveValue) {
+            this.authorize();
+            this.renewal = window.setInterval(() => this.authorize(), 45000);
+        }
     }
 
     disconnect() {
@@ -39,7 +41,7 @@ export default class extends Controller {
     }
 
     async authorize() {
-        if (!this.active || this.authorizing) return;
+        if (!this.liveValue || !this.active || this.authorizing) return;
         this.authorizing = true;
         const generation = this.generation;
         const abort = this.authAbort = new AbortController();
@@ -106,7 +108,9 @@ export default class extends Controller {
             const focusId = this.contentTarget.contains(document.activeElement) ? document.activeElement.id : null;
             this.contentTarget.innerHTML = html;
             if (focusId) this.contentTarget.querySelector(`#${CSS.escape(focusId)}`)?.focus();
-            this.statusTarget.textContent = 'Cifras actualizadas. Los cambios del trimestre aparecerán aquí.';
+            this.statusTarget.textContent = this.liveValue
+                ? 'Cifras actualizadas. Los cambios del trimestre aparecerán aquí.'
+                : 'Cifras actualizadas. Pulsa Actualizar para consultar nuevos cambios.';
         } catch (error) {
             if (this.active && generation === this.generation) this.statusTarget.textContent = 'No hemos podido actualizar. Se conservan las últimas cifras. Vuelve a intentarlo.';
         } finally {

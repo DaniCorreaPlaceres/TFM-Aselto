@@ -7,6 +7,7 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    app.quarter_live_enabled: true
     app.version: '1.0.0-dev'
     env(SECURITY_ALERT_EMAIL_ENABLED): '0'
     env(SECURITY_ALERT_RECIPIENT): 'webmaster@aselto.com'
@@ -161,3 +162,7 @@ services:
 
     App\Comunicacion\Domain\AttachmentStore:
         alias: App\Comunicacion\Infrastructure\Storage\LocalAttachmentStore
+
+when@prod:
+    parameters:
+        app.quarter_live_enabled: false

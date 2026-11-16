@@ -16,9 +16,16 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class QuarterSubscriptionController extends AbstractController
 {
+    public function __construct(#[\Symfony\Component\DependencyInjection\Attribute\Autowire('%app.quarter_live_enabled%')] private readonly bool $enabled = true)
+    {
+    }
+
     #[Route('/trimestre/en-vivo/acceso', name: 'quarter_subscription', methods: ['GET'])]
     public function subscribe(Request $request, UserRepository $users, HubInterface $hub): JsonResponse
     {
+        if (!$this->enabled) {
+            throw $this->createNotFoundException();
+        }
         $security = $this->getUser();
         $actor = $security instanceof SecurityUser ? $users->find($security->id()) : null;
         if (null === $actor || !$actor->isActivated() || !in_array($actor->role(), [Role::Client, Role::FirmAdmin, Role::Advisor], true)) {

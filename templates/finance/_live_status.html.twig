@@ -1,5 +1,5 @@
 <div class="live-quarter-status">
-    <p role="status" aria-live="polite" data-live-quarter-target="status">Conectando las actualizaciones del trimestre…</p>
+    <p role="status" aria-live="polite" data-live-quarter-target="status">{{ quarter_live_enabled ? 'Conectando las actualizaciones del trimestre…' : 'Cifras del momento de consulta. Recarga la página o pulsa Actualizar para ver los cambios.' }}</p>
     <button type="button" class="quiet" data-action="live-quarter#manual">Actualizar cifras</button>
     <noscript><p>Recarga esta página para consultar los cambios del trimestre.</p></noscript>
 </div>

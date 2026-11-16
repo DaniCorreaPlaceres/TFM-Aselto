@@ -45,7 +45,26 @@ use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Uid\Uuid;
 
-$kernel = new Kernel('dev', true);
+final class ManualQuarterCheckKernel extends Kernel
+{
+    protected function build(Symfony\Component\DependencyInjection\ContainerBuilder $container): void
+    {
+        parent::build($container);
+        $container->addCompilerPass(new class implements Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface {
+            public function process(Symfony\Component\DependencyInjection\ContainerBuilder $container): void
+            {
+                $container->setParameter('app.quarter_live_enabled', false);
+                $container->getDefinition('twig')->addMethodCall('addGlobal', ['quarter_live_enabled', false]);
+            }
+        });
+    }
+
+    public function getCacheDir(): string
+    {
+        return parent::getCacheDir().'/manual-quarter-check';
+    }
+}
+$kernel = new ManualQuarterCheckKernel('dev', true);
 $kernel->boot();
 $em = $kernel->getContainer()->get('doctrine')->getManager();
 $db = $em->getConnection();
@@ -205,6 +224,8 @@ try {
         return $response;
     };
     $response = $http($owner, '/ingresos?year=2026&quarter=4');
+    $check(str_contains($response->getContent(), 'data-live-quarter-live-value="false"'), 'Manual mode must be rendered into the page. HTTP '.$response->getStatusCode().' mode '.json_encode($kernel->getContainer()->getParameter('app.quarter_live_enabled')));
+    $check(str_contains($response->getContent(), 'Recarga la página o pulsa Actualizar'), 'Manual mode must explain how to update.');
     $check(200 === $response->getStatusCode() && str_contains($response->getContent(), '200,00') && str_contains($response->getContent(), 'Control personal'), 'Owner quarter HTML must render real frozen figures.');
     $profile = $http($admin, '/clientes/'.$assigned->id());
     $check(200 === $profile->getStatusCode() && str_contains($profile->getContent(), '/clientes/'.$assigned->id().'/trimestre'), 'Client fiscal profile must link to its quarter.');

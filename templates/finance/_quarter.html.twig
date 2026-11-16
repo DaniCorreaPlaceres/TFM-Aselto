@@ -1,4 +1,4 @@
-<div class="quarter-view" data-controller="live-quarter section-navigation" data-action="click->section-navigation#navigate" data-live-quarter-auth-value="{{ path('quarter_subscription') }}" data-live-quarter-url-value="{{ app.request.requestUri }}">
+<div class="quarter-view" data-controller="live-quarter section-navigation" data-action="click->section-navigation#navigate" data-live-quarter-live-value="{{ quarter_live_enabled ? 'true' : 'false' }}" data-live-quarter-auth-value="{{ path('quarter_subscription') }}" data-live-quarter-url-value="{{ app.request.requestUri }}">
     <header class="quarter-heading">
         <div><p class="eyebrow">Tu actividad, con perspectiva</p><h1>Ingresos y gastos</h1><p>{{ quarter.access.clientName }} · {{ quarter.firmId ? 'Validado por la asesoría' : 'Control personal' }}</p></div>
         {% if quarter.access.owner %}<div class="quarter-actions" aria-label="Añadir un registro">
