@@ -16,4 +16,6 @@ Al cerrar, la ficha anota solo lo comprobado.
 
 ## Publicación
 
+- [hostinger-cicd.md](hostinger-cicd.md). Preparación del CI/CD tras el cierre aceptado de la tarea 45; pruebas locales, requisitos de activación y límites.
+
 - [hostinger-first-install.md](hostinger-first-install.md). Primera instalación guiada en Hostinger, incidencias, pruebas y límites de las evidencias reales. Recopilación para la defensa en [hostinger-tfm.md](../deployment/hostinger-tfm.md).

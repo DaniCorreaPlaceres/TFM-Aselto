@@ -39,3 +39,7 @@ CI/CD, cambios en protecciones/DNS, migraciones, creación de cuentas, envío de
 API anónima rechazada; login/identidad autenticados, lectura propia y rechazo de documento ajeno confirmados por el usuario. Un original recuperado leído sin fallos desde una transacción de solo lectura en Hostinger. Salidas de ambos cron confirmadas, sin fechas exactas capturadas. Preparación local del helper: ocho comprobaciones sintéticas y PHPStan correctos. No se han modificado reglas del producto ni ejecutado migraciones o envíos reales en esta rama.
 
 La tarea 45 conserva límites declarados: copia externa aplazada; adjuntos/justificantes ausentes de la copia; fechas de cron, resumen con umbral superado, matriz API completa entre asesorías y capacidad efectiva no verificados aquí. No se da por cerrada toda la publicación ni se inicia CI/CD con este balance.
+
+## Cierre aceptado de la preparación
+
+El 18/11/2026, tras integrar el PR 66, el usuario acepta expresamente cerrar la preparación (45) con estas evidencias y trasladar los controles restantes a revisión final (47), manteniendo la copia externa aplazada. Esto permite comenzar CI/CD (46), sin declarar realizadas las comprobaciones pendientes ni publicada la versión final.

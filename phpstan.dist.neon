@@ -5,3 +5,4 @@ parameters:
         - tests
         - bin/validate-openapi.php
         - bin/check-security.php
+        - bin/deploy
