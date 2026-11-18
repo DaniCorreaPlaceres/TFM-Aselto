@@ -2,6 +2,8 @@
 
 Complementa la [primera instalación](hostinger-tfm.md) y su [ficha de evidencias](../sdd/hostinger-verification-evidence.md). Tarea 45, sin automatización de despliegue.
 
+Actualización: el usuario acepta cerrar la preparación 45 con estas evidencias y trasladar los controles restantes a 47. No se marcan como realizados; copia externa aplazada. Se inicia por separado la [preparación del CI/CD](github-hostinger.md).
+
 ## API sin autenticar
 
 Consultas GET reales desde el equipo del asistente: `/salud` devuelve 200; `/api/v1/me`, `/api/v1/documents`, `/api/v1/advisory/documents` y `/api/v1/conversations` devuelven 401. Las cuatro respuestas API incluyen `Cache-Control: no-store, private`. Esto acredita rechazo de acceso anónimo, no autorización con JWT ni aislamiento por rol en API. Los recorridos web anteriores no sustituyen estos últimos controles.

@@ -7,6 +7,16 @@ on:
     branches: [develop, main]
 
 jobs:
+  production-package:
+    name: Paquete y despliegue
+    needs: [php-cs-fixer, phpstan, phpunit, schema, openapi, security-integration]
+    permissions:
+      contents: read
+    uses: ./.github/workflows/publicacion-hostinger.yml
+    with:
+      deploy: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.HOSTINGER_DEPLOY_ENABLED == 'true' }}
+    secrets: inherit
+
   php-cs-fixer:
     name: PHP-CS-Fixer
     runs-on: ubuntu-latest
@@ -42,6 +52,7 @@ jobs:
           coverage: none
       - run: composer install --no-interaction --prefer-dist --no-scripts
       - run: vendor/bin/phpunit
+      - run: php tests/Integration/deployment-package-workflow.php
       - run: php bin/console importmap:install --env=test
       - run: php bin/console sass:build --env=test
       - run: php bin/console asset-map:compile --env=test

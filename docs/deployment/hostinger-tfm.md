@@ -2,6 +2,10 @@
 
 Fecha de recopilación: **18/11/2026**. Tarea 45, rama `feature/hostinger-first-install`. Documento preparado a partir de las salidas SSH compartidas por el usuario, sus confirmaciones funcionales, las pruebas locales y las consultas HTTP públicas realizadas durante el trabajo. No contiene contraseñas, tokens, claves ni datos documentales.
 
+Estado posterior a los PR 65/66: el usuario acepta cerrar la preparación (45) con los límites indicados y trasladar controles restantes a la revisión final (47). La copia externa permanece aplazada. El [CI/CD (46)](github-hostinger.md) se prepara en una tarea separada, sin atribuirle todavía un despliegue real. Las menciones a preparación abierta en la secuencia siguiente reflejan el estado de aquellas comprobaciones antes de este cierre aceptado.
+
+El [capítulo explicativo de configuración](configuracion-despliegue-tfm.md) desarrolla para la memoria del TFM qué hace cada componente y por qué se utiliza. Este documento conserva el relato de la instalación y las incidencias.
+
 ## 1. Qué se ha conseguido
 
 Se ha instalado y probado Aselto en Hostinger Cloud Startup, con acceso HTTPS, conexión a MariaDB, migraciones, recursos compilados, alta por correo y visor PDF. Se ha creado una copia privada y se ha ensayado su recuperación en otra base y otro directorio del mismo hosting. Se han configurado tareas programadas de seguridad.
