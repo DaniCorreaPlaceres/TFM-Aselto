@@ -1,6 +1,8 @@
 # Preparación de producción en Hostinger
 
-**Estado: guía preparada para Cloud Startup; compatibilidad y paquete ensayados localmente, pendiente de verificar el entorno real.** El usuario confirma Cloud Startup, SSH disponible y `aselto.com` asociado al hosting. También comunica PHP 8.4 y MariaDB 11.8.9-MariaDB-log. Son datos aportados por el usuario, no una inspección de la cuenta. No se ha conectado por SSH ni desplegado, ni se han cambiado DNS. La [ficha](../sdd/hostinger-production-guide.md) separa lo comprobado de lo pendiente. La integración automática con GitHub corresponde a la tarea 46, después de resolver esta preparación.
+**Actualización 18/11/2026: primera instalación manual de ensayo realizada por el usuario en Cloud Startup.** PHP CLI 8.4.27 y requisitos Composer comprobados por salidas SSH; 19 migraciones y esquema correcto, acceso por correo y visor confirmados. Copia e importación en una base separada, arranque de la aplicación recuperada y comparación de documentos/claves comprobados. Cron configurado y confirmado por el usuario, sin salidas fechadas de cada ejecución automática. El asistente no se conecta por SSH: el usuario ejecuta las instrucciones. No se han cambiado DNS ni implementado CI/CD. El relato, evidencias y pendientes actuales están en [material para el TFM](hostinger-tfm.md) y la [ficha de instalación](../sdd/hostinger-first-install.md).
+
+Las secciones siguientes conservan el procedimiento y el ensayo local previo del 16/11. Sus indicaciones sobre comprobaciones pendientes describen esa preparación; deben leerse junto al estado actualizado enlazado, sin atribuir las cifras del ensayo sintético local a la instalación real.
 
 ## 1. Datos del entorno que hay que confirmar
 
@@ -84,7 +86,7 @@ Si ya se ejecutaron migraciones, **volver al código anterior no revierte el esq
 
 La receta exacta debe ensayarse antes de autorizar el primer despliegue y registrar duración, resultado y límites. Esta tarea todavía no acredita un RPO/RTO ni una copia restaurable del hosting.
 
-## Estado de comprobación
+## Estado del ensayo local previo (16/11/2026)
 
 Ensayo local del 16/11/2026 sobre `1912def`, sin cambios de SQL/metadatos: MariaDB **11.8.9** con plataforma Doctrine `MariaDB110700Platform`, 19 migraciones y esquema correcto; **19 workflows** correctos, incluida actualización manual, SQL JSON y exportación. Paquete sin dependencias de desarrollo, 34 recursos compilados, caché prod y login/vistas manuales correctos. Restauración de demostración sintética: **13 tablas / 91 filas**, **39 archivos y claves por hash**, **33 originales legibles**. [Evidencia detallada](hostinger-evidence.json).
 
@@ -94,4 +96,4 @@ El ensayo utiliza PHP **8.5.12 local**, no el PHP 8.4 del hosting. La CI existen
 - Contrastado en documentación oficial: distinción de planes, MariaDB Web/Cloud, restricciones de raíz pública y capacidades de SSH/procesos. SSH se documenta para Premium Web o superior, con alcance restringido al directorio de usuario; no confirma el plan de esta cuenta. [SSH de Hostinger](https://www.hostinger.com/support/1583645-how-to-enable-ssh-access-in-hostinger/).
 - Confirmado por el usuario: Cloud Startup, SSH y aselto.com asociado. **Pendiente de inspección/verificación:** versiones y límites reales, ruta/raíz efectiva, disposición segura de archivos, configuración/privilegios reales de MariaDB, SMTP, persistencia, ensayo final en staging de Hostinger y restauración de sus copias reales. No se han ejecutado comandos por SSH contra Hostinger.
 
-Las fuentes se consultaron el 15 y 16/11/2026. La documentación comercial puede cambiar; se volverá a contrastar con la cuenta real antes de publicar. La guía y los ensayos locales están preparados; la tarea 45 permanece abierta por las verificaciones reales indicadas y no se inicia la tarea 46 en esta entrega.
+Las fuentes de esta preparación se consultaron el 15 y 16/11/2026. La documentación comercial puede cambiar. El estado real posterior del 18/11 se recoge en [hostinger-tfm.md](hostinger-tfm.md), incluida la instalación y recuperación ejecutadas por el usuario. La tarea 45 permanece abierta por los controles restantes allí enumerados; la tarea 46 de CI/CD todavía no se ha implementado.

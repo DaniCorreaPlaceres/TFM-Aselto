@@ -1,6 +1,6 @@
 # Pasos de publicación en Cloud Startup
 
-Preparación de la tarea 45. **No ejecutados en la cuenta de Hostinger.** Aplicar primero en un sitio/base de ensayo separados, con datos sintéticos. No copiar las credenciales, claves ni la base de Docker. [Requisitos y recuperación](hostinger.md).
+Procedimiento de la tarea 45. La primera instalación guiada se ejecutó por el usuario el 18/11/2026 en el dominio de destino, inicialmente vacío; la recuperación se probó en una base y carpeta privadas separadas, sin subdominio staging. [Resultados, incidencias, alcance y pendientes para el TFM](hostinger-tfm.md). Las instrucciones siguientes son una guía reutilizable: no todas sus comprobaciones están cerradas. Usar datos sintéticos, no copiar credenciales/claves de Docker y preparar un destino aislado antes de futuros ensayos. [Requisitos y recuperación](hostinger.md).
 
 ## 1. Confirmar PHP y las rutas
 
@@ -71,6 +71,18 @@ No ejecutar `schema:update --force` ni seeds demo en producción. No habilitar t
 
 ## 4. Cron, correo y activación
 
+### Alta inicial de superadmin
+
+No ejecutar `app:seed-dev-access` ni `app:seed-demo` en producción. Cuando SMTP y el remitente estén verificados, crear una cuenta nueva desde la consola privada con `PHP_BIN bin/console app:superadmin:create CORREO_NUEVO --env=prod --no-debug` y confirmar interactivamente. El comando reutiliza StartAccount, asigna Superadmin sin asesoría y envía la activación de 24 horas; no muestra ni acepta contraseñas, hashes o tokens. La persona elige su contraseña mediante el correo. El comando requiere acceso operativo al servidor y no añade ninguna ruta web ni autoriza al superadmin a leer documentos.
+
+Los correos existentes se rechazan sin modificar rol, contraseña ni asesoría. No es una conversión de cliente a superadmin. Un fallo de transporte deja la cuenta pendiente: corregir SMTP y usar Recuperar acceso, sin repetir el alta ni editar SQL. Una ejecución no interactiva se rechaza. Tras la primera activación, comprobar los accesos administrativos y el aislamiento documental por separado.
+
+Antes de probar los documentos, verificar los Content-Type de los recursos públicos: los módulos `.mjs` deben servirse como `application/javascript` (no `text/plain`) y `.wasm` como `application/wasm`. La primera prueba real detectó `.mjs` con `text/plain` en LiteSpeed; el ejemplo .htaccess incorpora AddType para corregirlo. Estos módulos participan en el registro eager de Stimulus, por lo que el error puede dejar el visor en «Preparando vista previa» y afectar a otros controles. Mantener nosniff y CSP; corregir el MIME en vez de relajar las cabeceras. Confirmar después por HTTP y con un PDF sintético que el visor muestra página y navegación. Cambiar la configuración no prueba por sí solo el resultado.
+
+Configurar `MAILER_FROM='Aselto <no-responder@aselto.com>'` junto con `MAILER_DSN` en el archivo privado. Activación, recuperación, invitaciones y avisos de cambio de correo usan ese remitente; el valor de desarrollo termina en `.test` y no sirve para entrega productiva. Las alertas mantienen su remitente independiente `SECURITY_ALERT_FROM`. Para los datos SMTP comunicados por el usuario, el DSN es `smtps://no-responder%40aselto.com:CONTRASENA_CODIFICADA@smtp.hostinger.com:465`; introducir la contraseña del buzón privadamente y codificar los caracteres reservados. No desactivar la verificación TLS. Tras configurar, reconstruir caché y probar con una cuenta de ensayo autorizada. El DSN `null://null` descarta los mensajes, aunque la interfaz muestre confirmación de envío.
+
+Durante esta primera instalación se prepara un parche mínimo local `var/releases/aselto-mail-sender-patch.zip`: tres notificadores y `config/services.yaml`, más un manifiesto de hashes. No contiene `.env.local`, claves ni datos. Antes de aplicarlo: verificar el hash comunicado y respaldar esos cuatro archivos fuera del directorio público; este parche se prepara para el paquete 87adb42. Añadir `MAILER_FROM` al entorno privado, extraer el parche en `private/aselto`, validar su manifiesto y reconstruir caché. Si falla, detener las pruebas; la copia previa permite reponer únicamente esos archivos. No ejecutar migraciones por este parche. El envío real permanece pendiente hasta evidencia del destinatario.
+
 El modo manual productivo no requiere Mercure ni cron de notificaciones financieras. Para seguridad, crear tareas personalizadas con el PHP_BIN y ruta privada verificados, en UTC: retención diaria (`app:security retention`) y alertas (`app:security alerts --send`, por ejemplo cada 15 minutos). El estado limita los intentos a uno por hora. No publicar un endpoint HTTP para ejecutar cron. [Configuración de cron en Hostinger](https://www.hostinger.com/support/1583465-how-to-set-up-a-cron-job-at-hostinger/).
 
 Usar SMTP autorizado y remitente verificado para los enlaces de cuenta. Mantener SECURITY_ALERT_EMAIL_ENABLED=0 hasta comprobar transporte, remitente, destinatario y estado privado; después activarlo y autorizar un envío de ensayo. OPENAI_API_KEY vacía significa modo de ejemplo, no extracción real: decidirlo explícitamente antes de activar altas. Una clave real requiere su configuración privada y una prueba autorizada, sin usar documentos fiscales reales.
@@ -80,6 +92,8 @@ Comprobar en staging: HTTPS, redirección a host canónico, salud, login web/API
 No habilitar HSTS con subdominios o preload sin verificar todos sus requisitos. No confiar en cualquier proxy para obtener HTTPS o IP; identificar el proxy real si existe y comprobar cómo entrega las cabeceras.
 
 ## 5. Actualizaciones y recuperación
+
+Al recuperar `.htaccess` desde una copia privada con permisos 0600, asignar **0644 al archivo público**: `cp -p` conserva el permiso privado y no basta para reactivar el enrutamiento. Preferir `install -m 644 /ruta/privada/public.htaccess /ruta/dominio/public_html/.htaccess`. Mantener la copia privada a 0600. Verificar no solo la portada, sino también `/entrar`, `/salud` y una ruta API: DirectoryIndex puede servir la portada aunque las reglas de rewrite no estén funcionando.
 
 Antes de actualizar: modo mantenimiento efectivo en servidor, pausa de nuevas escrituras y cron, y espera a operaciones activas. Realizar una copia **coherente** de base, archivos, claves y configuración en la zona privada, con permisos restringidos. Revisar retención y espacio antes de copiar. Conservar el paquete anterior y su SHA.
 

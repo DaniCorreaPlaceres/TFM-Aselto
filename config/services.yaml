@@ -9,6 +9,7 @@
 parameters:
     app.quarter_live_enabled: true
     app.version: '1.0.0-dev'
+    env(MAILER_FROM): 'Aselto <no-responder@aselto.test>'
     env(SECURITY_ALERT_EMAIL_ENABLED): '0'
     env(SECURITY_ALERT_RECIPIENT): 'webmaster@aselto.com'
     env(SECURITY_ALERT_FROM): 'no-responder@aselto.com'

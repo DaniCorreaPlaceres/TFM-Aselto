@@ -66,19 +66,23 @@ try {
             }
         };
         $token = str_repeat('a', 64);
-        (new SymfonyAccountNotifier($mail, $urls))->sendActivation('synthetic@example.test', $token);
-        (new SymfonyAccountNotifier($mail, $urls))->sendPasswordReset('synthetic@example.test', $token);
-        (new SymfonyInvitationNotifier($mail, $urls))->send('synthetic@example.test', InvitationTarget::Advisory, $token);
-        (new SymfonyEmailChangeNotifier($mail, $urls))->request('synthetic@example.test', $token);
+        $sender = 'Aselto synthetic <delivery@example.test>';
+        (new SymfonyAccountNotifier($mail, $urls, $sender))->sendActivation('synthetic@example.test', $token);
+        (new SymfonyAccountNotifier($mail, $urls, $sender))->sendPasswordReset('synthetic@example.test', $token);
+        (new SymfonyInvitationNotifier($mail, $urls, $sender))->send('synthetic@example.test', InvitationTarget::Advisory, $token);
+        (new SymfonyEmailChangeNotifier($mail, $urls, $sender))->request('synthetic@example.test', $token);
         $check(4 === count($mail->messages), 'Four sensitive mail types must be checked.');
         $paths = ['/activar/', '/recuperar/', '/invitacion/', '/confirmar-correo-admin/'];
         $origin = rtrim((string) ($_ENV['DEFAULT_URI'] ?? $_SERVER['DEFAULT_URI'] ?? ''), '/');
         $check('' !== $origin, 'Configure the canonical origin before running this workflow.');
         foreach ($mail->messages as $index => $message) {
+            $check('delivery@example.test' === $message->getFrom()[0]->getAddress() && 'Aselto synthetic' === $message->getFrom()[0]->getName(), 'Every account mail must use the configured sender.');
             $body = $message->getTextBody() ?? '';
             $check(str_contains($body, $origin.$paths[$index].$token), 'Sensitive mail must use the exact canonical origin and route.');
             $check(!str_contains($body, 'untrusted.example.test') && !str_contains($body, '/poisoned'), 'Mail must ignore the HTTP request context.');
         }
+        (new SymfonyEmailChangeNotifier($mail, $urls, $sender))->confirmed('old-synthetic@example.test');
+        $check('delivery@example.test' === $mail->messages[4]->getFrom()[0]->getAddress(), 'The old-address notice must also use the configured sender.');
         $check($hostile === $router->getContext() && 'untrusted.example.test' === $hostile->getHost(), 'Generation must not mutate the shared router context.');
     } finally {
         $router->setContext($original);
