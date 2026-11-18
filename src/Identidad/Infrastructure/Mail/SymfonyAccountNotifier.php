@@ -3,6 +3,7 @@
 namespace App\Identidad\Infrastructure\Mail;
 
 use App\Identidad\Domain\AccountNotifier;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
@@ -11,6 +12,7 @@ final class SymfonyAccountNotifier implements AccountNotifier
     public function __construct(
         private readonly MailerInterface $mailer,
         private readonly CanonicalAccountUrls $urls,
+        #[Autowire('%env(MAILER_FROM)%')] private readonly string $sender,
     ) {
     }
 
@@ -38,7 +40,7 @@ final class SymfonyAccountNotifier implements AccountNotifier
     {
         $this->mailer->send(
             (new Email())
-                ->from('Aselto <no-responder@aselto.test>')
+                ->from($this->sender)
                 ->to($to)
                 ->subject($subject)
                 ->text($text),

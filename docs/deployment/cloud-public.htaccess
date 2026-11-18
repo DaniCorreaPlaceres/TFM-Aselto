@@ -2,6 +2,12 @@
 Options -Indexes -MultiViews
 DirectoryIndex index.php
 
+# ES modules require a JavaScript MIME type, including .mjs on LiteSpeed.
+<IfModule mod_mime.c>
+    AddType application/javascript .js .mjs
+    AddType application/wasm .wasm
+</IfModule>
+
 <FilesMatch "^\.">
     Require all denied
 </FilesMatch>

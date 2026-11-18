@@ -4,13 +4,14 @@ namespace App\Identidad\Infrastructure\Mail;
 
 use App\Identidad\Domain\EmailChangeDeliveryFailed;
 use App\Identidad\Domain\EmailChangeNotifier;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
 final class SymfonyEmailChangeNotifier implements EmailChangeNotifier
 {
-    public function __construct(private readonly MailerInterface $mailer, private readonly CanonicalAccountUrls $urls)
+    public function __construct(private readonly MailerInterface $mailer, private readonly CanonicalAccountUrls $urls, #[Autowire('%env(MAILER_FROM)%')] private readonly string $sender)
     {
     }
 
@@ -28,7 +29,7 @@ final class SymfonyEmailChangeNotifier implements EmailChangeNotifier
     private function send(string $email, string $subject, string $text): void
     {
         try {
-            $this->mailer->send((new Email())->from('Aselto <no-responder@aselto.test>')->to($email)->subject($subject)->text($text));
+            $this->mailer->send((new Email())->from($this->sender)->to($email)->subject($subject)->text($text));
         } catch (TransportExceptionInterface $error) {
             throw new EmailChangeDeliveryFailed('Email delivery failed.', previous: $error);
         }

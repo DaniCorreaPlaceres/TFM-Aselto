@@ -20,14 +20,81 @@ use App\Identidad\Domain\Role;
 use App\Identidad\Domain\TokenGenerator;
 use App\Identidad\Domain\User;
 use App\Identidad\Domain\UserRepository;
+use App\Identidad\Infrastructure\Command\CreateSuperadminCommand;
 use App\Identidad\Infrastructure\Security\LocalCommonPasswords;
 use App\Shared\Domain\Clock;
 use App\Shared\Domain\IdGenerator;
 use App\Shared\Domain\Transaction;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\Mailer\Exception\TransportException;
 
 final class AccountAccessTest extends TestCase
 {
+    public function testConsoleSuperadminRequiresConfirmationAndActivation(): void
+    {
+        $users = new MemoryUserRepository();
+        $notifier = new RecordingNotifier();
+        $command = new CommandTester(new CreateSuperadminCommand($this->accounts($users, $notifier), $users));
+        $command->setInputs(['yes']);
+        self::assertSame(0, $command->execute(['email' => ' Admin@Example.test '], ['interactive' => true]));
+        $user = $users->findByEmail('admin@example.test');
+        self::assertNotNull($user);
+        self::assertSame(Role::Superadmin, $user->role());
+        self::assertNull($user->firmId());
+        self::assertFalse($user->isActivated());
+        self::assertSame([['activation', 'admin@example.test']], $notifier->messages);
+        self::assertStringNotContainsString($notifier->tokens[0], $command->getDisplay());
+    }
+
+    public function testConsoleSuperadminDoesNotPromoteAnExistingClient(): void
+    {
+        $users = new MemoryUserRepository();
+        $client = new User('00000000-0000-4000-8000-000000000099', 'client@example.test', 'hash', Role::Client, null, true);
+        $users->save($client);
+        $notifier = new RecordingNotifier();
+        $command = new CommandTester(new CreateSuperadminCommand($this->accounts($users, $notifier), $users));
+        self::assertSame(1, $command->execute(['email' => 'CLIENT@example.test']));
+        self::assertSame($client, $users->findByEmail('client@example.test'));
+        self::assertSame([], $notifier->messages);
+    }
+
+    public function testConsoleSuperadminCancellationAndNonInteractiveCallsCreateNothing(): void
+    {
+        $users = new MemoryUserRepository();
+        $notifier = new RecordingNotifier();
+        $command = new CommandTester(new CreateSuperadminCommand($this->accounts($users, $notifier), $users));
+        $command->setInputs(['no']);
+        self::assertSame(0, $command->execute(['email' => 'admin@example.test'], ['interactive' => true]));
+        self::assertNull($users->findByEmail('admin@example.test'));
+        self::assertSame(1, $command->execute(['email' => 'admin@example.test'], ['interactive' => false]));
+        self::assertNull($users->findByEmail('admin@example.test'));
+        self::assertSame([], $notifier->messages);
+    }
+
+    public function testConsoleSuperadminRejectsInvalidEmail(): void
+    {
+        $users = new MemoryUserRepository();
+        $notifier = new RecordingNotifier();
+        $command = new CommandTester(new CreateSuperadminCommand($this->accounts($users, $notifier), $users));
+        self::assertSame(2, $command->execute(['email' => 'invalid']));
+        self::assertSame([], $notifier->messages);
+    }
+
+    public function testConsoleSuperadminMailFailureLeavesAPendingAccountWithoutLeakingErrors(): void
+    {
+        $users = new MemoryUserRepository();
+        $notifier = $this->createMock(AccountNotifier::class);
+        $notifier->expects(self::once())->method('sendActivation')->willThrowException(new TransportException('synthetic-private-smtp-details'));
+        $command = new CommandTester(new CreateSuperadminCommand($this->accounts($users, $notifier), $users));
+        $command->setInputs(['yes']);
+        self::assertSame(1, $command->execute(['email' => 'admin@example.test'], ['interactive' => true]));
+        self::assertNotNull($users->findByEmail('admin@example.test'));
+        self::assertFalse($users->findByEmail('admin@example.test')->isActivated());
+        self::assertStringContainsString('Recuperar acceso', $command->getDisplay());
+        self::assertStringNotContainsString('synthetic-private-smtp-details', $command->getDisplay());
+    }
+
     public function testStartingAnAccountSendsAnActivationLink(): void
     {
         $users = new MemoryUserRepository();
@@ -159,7 +226,7 @@ final class AccountAccessTest extends TestCase
 
     private function accounts(
         UserRepository $users,
-        RecordingNotifier $notifier,
+        AccountNotifier $notifier,
         ?AccessTokenRepository $tokens = null,
         ?Clock $clock = null,
     ): StartAccount {
