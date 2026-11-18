@@ -4,6 +4,8 @@
 
 La fuente única del valor ejecutable es `app.version`, en `config/services.yaml`. El estado inicial es **1.0.0-dev**: preparación de la primera versión, todavía sin publicación. No se toma la versión de Composer ni se calcula a partir de Git en el servidor; una copia sin `.git` también debe poder identificar su versión.
 
+El footer público muestra «Versión 1.0.0-dev» junto al copyright de Daniel Correa Placeres. Twig recibe `product_version` desde ese mismo parámetro, sin un segundo literal de versión. Se ve en las páginas que ya incluyen el footer (inicio público, acceso, precios y otras páginas comerciales); no añade un footer a las pantallas de trabajo. Tras publicar, su aparición permite reconocer este cambio de interfaz, aunque el número de producto no identifica por sí solo un commit único.
+
 Consulta desde operaciones, en el directorio de la versión instalada:
 
 ```powershell

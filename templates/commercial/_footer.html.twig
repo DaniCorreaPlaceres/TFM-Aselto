@@ -5,5 +5,5 @@
         <nav aria-label="Conoce Aselto"><h2>Conoce Aselto</h2>{% set about = public_page('commercial_about') %}{% if about %}<a href="{{ about }}">Quiénes somos</a>{% endif %}<a href="{{ path(app.user ? 'account' : 'login') }}">{{ app.user ? 'Tu cuenta' : 'Entrar' }}</a><a href="{{ path('client_register') }}">Crear cuenta</a></nav>
         <nav aria-label="Información legal"><h2>Información</h2>{% for route, label in {'commercial_privacy':'Política de privacidad','commercial_cookies':'Política de cookies'} %}{% set target = public_page(route) %}{% if target %}<a href="{{ target }}">{{ label }}</a>{% endif %}{% endfor %}</nav>
     </div>
-    <div class="public-footer-bottom">© {{ 'now'|date('Y', 'Atlantic/Canary') }} Daniel Correa Placeres<span>Aselto · Tus finanzas bajo control</span></div>
+    <div class="public-footer-bottom">© {{ 'now'|date('Y', 'Atlantic/Canary') }} Daniel Correa Placeres · Versión {{ product_version }}<span>Aselto · Tus finanzas bajo control</span></div>
 </footer>
