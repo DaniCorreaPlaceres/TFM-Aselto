@@ -6,6 +6,8 @@ Estado posterior a los PR 65/66: el usuario acepta cerrar la preparación (45) c
 
 El [capítulo explicativo de configuración](configuracion-despliegue-tfm.md) desarrolla para la memoria del TFM qué hace cada componente y por qué se utiliza. Este documento conserva el relato de la instalación y las incidencias.
 
+Primera publicación automática posterior: el 18/11/2026 a las 21:05:51 UTC, GitHub Actions confirma desplegado main 3633342 con copia privada y esquema sincronizado; la consulta web posterior muestra el footer «Versión 1.0.0-dev». [Ejecución](https://github.com/DaniCorreaPlaceres/TFM-Aselto/actions/runs/44397469824) y [relato de la incidencia previa y su recuperación](../sdd/hostinger-deployment-investigation.md). El interruptor ya está activo. No se confunde este resultado con la release final 1.0.0, con una restauración probada de esa copia nueva ni con invalidación de OPcache demostrada.
+
 ## 1. Qué se ha conseguido
 
 Se ha instalado y probado Aselto en Hostinger Cloud Startup, con acceso HTTPS, conexión a MariaDB, migraciones, recursos compilados, alta por correo y visor PDF. Se ha creado una copia privada y se ha ensayado su recuperación en otra base y otro directorio del mismo hosting. Se han configurado tareas programadas de seguridad.
