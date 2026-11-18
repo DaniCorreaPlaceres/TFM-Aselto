@@ -1,6 +1,6 @@
 # CI/CD GitHub–Hostinger
 
-Tarea 46, en preparación. **Código y ensayos locales preparados; conexión de GitHub, primer despliegue y recuperación reales todavía pendientes.** [Ficha y evidencias](../sdd/hostinger-cicd.md). La preparación de Hostinger (45) se cierra por aceptación expresa del usuario el 18/11/2026; sus límites se trasladan a revisión final (47), sin darlos por verificados.
+**Primer despliegue automático completado el 18/11/2026.** [Ejecución 44397469824](https://github.com/DaniCorreaPlaceres/TFM-Aselto/actions/runs/44397469824), commit main 3633342: comprobaciones, paquete y job SSH correctos; migraciones al día, esquema sincronizado y footer nuevo visible mediante HTTP. El interruptor permanece true por autorización del usuario. [Incidencia previa, recuperación y evidencias](../sdd/hostinger-deployment-investigation.md). Versión 1.0.0-dev, sin etiqueta final. Las secciones de preparación y ensayo siguientes describen el procedimiento; la restauración de esta copia concreta y los límites operativos siguen pendientes en revisión final.
 
 Para explicar la finalidad de cada elemento en la memoria, véase [Configuración y preparación del despliegue de Aselto](configuracion-despliegue-tfm.md). Esta guía conserva las instrucciones operativas; ese capítulo desarrolla la justificación técnica y el estado de las pruebas.
 
