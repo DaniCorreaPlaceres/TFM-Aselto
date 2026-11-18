@@ -28,6 +28,8 @@ Toda la documentación del proyecto vive en esta carpeta, en la raíz del reposi
 - [Tareas.md](Tareas.md). Lista de tareas del proyecto, sin el detalle de cada una.
 - [versioning.md](versioning.md). Consulta de versión del producto, criterio SemVer y preparación de la etiqueta final de main.
 - [manual-quarter-refresh.md](manual-quarter-refresh.md). Actualización manual de cifras en producción sin hub, con modo en vivo conservado para desarrollo.
+- [deployment/hostinger.md](deployment/hostinger.md). Guía para Cloud Startup, compatibilidad MariaDB y evidencias locales; controles reales del hosting pendientes.
+- [deployment/cloud-startup-steps.md](deployment/cloud-startup-steps.md). Construcción, estructura privada/public_html, configuración, migraciones, cron y recuperación para ensayar en staging.
 - [releases/1.0.0.md](releases/1.0.0.md). Notas de 1.0.0 en preparación, sin fecha de publicación ni etiqueta creadas.
 - [producto/Aselto_Documento_introductorio.docx](producto/Aselto_Documento_introductorio.docx). Texto de presentación del proyecto.
 - [diseno/reglas-visuales.md](diseno/reglas-visuales.md). Reglas de interfaz. Los bocetos están en [diseno/bocetos](diseno/bocetos).
