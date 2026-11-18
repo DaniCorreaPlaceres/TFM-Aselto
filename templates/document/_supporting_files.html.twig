@@ -1,0 +1,10 @@
+{% if supportingFiles is not empty %}
+    <section class="review-files" aria-labelledby="supporting-files-title">
+        <h2 id="supporting-files-title">Justificantes aportados</h2>
+        <ul>
+            {% for file in supportingFiles %}
+                <li><a href="{{ path(supportingRoute, {id: document.id, fileId: file.id}) }}">{{ file.name }}</a> · {{ file.date }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endif %}

@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-15",
+  "finding": "F10",
+  "branch": "feature/ai-resource-limits",
+  "base": "4e13407",
+  "environment": "Local Docker PHP 8.5; PHP 8.4 offline formatting check on normalized temporary copy",
+  "provider_calls": "MockHttpClient only; no real provider calls",
+  "limits": {
+    "input_bytes": 8000000,
+    "request_json_bytes": 11000000,
+    "response_bytes": 65536,
+    "proposal_bytes": 16384,
+    "json_depth": 16,
+    "idle_seconds": 10,
+    "http_max_duration_seconds": 30,
+    "completion_tokens": 1024,
+    "candidates": 1,
+    "concurrent_calls_per_installation": 2,
+    "redirects": 0,
+    "automatic_retries_enabled": false,
+    "store": false,
+    "response_buffering": false
+  },
+  "manual_fallback": {"uploaded_record_preserved": true, "file_write_verified": true, "quota_consumed_once": true, "no_confirmation_or_validation": true, "busy_provider_calls": 0},
+  "phpunit": {"tests": 438, "assertions": 1236},
+  "quality": {"phpstan": "pass", "container": "pass", "yaml": 24, "php_cs_fixer_php84_files": 390, "php_cs_fixer_php84_changes_required": 0},
+  "regressions": {"document_upload": 43, "api_documents": 108, "resource_limits": 56, "api_quarters_isolated_rerun": 60},
+  "regression_note": "The first sequential API quarter run returned an unexpected response at linked-client scope; an isolated rerun passed all 60 checks. No cause is claimed and no unrelated authentication change was made.",
+  "not_verified": ["real OpenAI calls", "real-time 30 second delay", "provider account/model access", "provider billing", "real documents or extraction quality", "Hostinger", "multiple application nodes"],
+  "historical_audit_score_unchanged": true
+}

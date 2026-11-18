@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{% block client_title %}Inicio{% endblock %}{% endblock %}
+
+{% block body %}
+    <div class="client-shell">
+        <main class="client-main">
+            {% block client_body %}{% endblock %}
+        </main>
+        <div class="toasts" data-controller="toast">
+            {% for message in app.flashes('success') %}
+                <p class="toast toast-success" role="status" data-toast-target="item">{{ message }}</p>
+            {% endfor %}
+            {% for message in app.flashes('warning') %}
+                <p class="toast toast-warning" role="status" data-toast-target="item">{{ message }}</p>
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                <p class="toast toast-error" role="alert" data-toast-target="item">{{ message }}</p>
+            {% endfor %}
+        </div>
+
+    </div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+{% block title %}Enviar invitación{% endblock %}
+{% block body %}
+<main class="panel">
+    <h1>Enviar invitación</h1>
+    <p>El destinatario completará su nombre, datos fiscales y contraseña. La cuenta se creará cuando acepte el enlace, que caduca en 24 horas.</p>
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    <form method="post">
+        <label for="target">Tipo de cuenta</label>
+        <select id="target" name="target" required>{% for value, label in targets %}<option value="{{ value }}" {{ target == value ? 'selected' : '' }}>{{ label }}</option>{% endfor %}</select>
+        <label for="email">Correo del destinatario</label>
+        <input id="email" name="email" type="email" maxlength="180" value="{{ email }}" required autocomplete="off">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('platform_invite') }}">
+        <button type="submit">Enviar invitación</button>
+    </form>
+    <a class="quiet-link" href="{{ path('platform_invitations') }}">Volver a invitaciones</a>
+</main>
+{% endblock %}

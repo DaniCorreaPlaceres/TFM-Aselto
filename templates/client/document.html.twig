@@ -1,0 +1,63 @@
+{% extends 'client/_layout.html.twig' %}
+
+{% block client_title %}Revisar documento{% endblock %}
+
+{% block client_body %}
+    <h1>Revisar documento</h1>
+    <p>{{ document.originalName }} · {{ document.status }}</p>
+
+    <div class="document-workspace"><aside class="document-original">
+    <h2>Documento original</h2>
+    {% if document.image %}
+        <img class="document-preview" src="{{ path('client_document_file', {id: document.id}) }}" alt="Vista del documento">
+    {% else %}
+        {{ include('document/_pdf_preview.html.twig', {pdfUrl: path('client_document_file', {id: document.id})}) }}
+    {% endif %}
+    <a class="quiet-link" href="{{ path('client_document_file', {id: document.id}) }}" target="_blank" rel="noopener">Ver archivo</a>
+    </aside><section class="document-data" aria-label="Revisión del registro">
+    {% if document.statusCode == 'rejected' %}
+        <p class="error">La asesoría ha rechazado el registro. Consulta el motivo, corrige los datos y vuelve a confirmar.</p>
+    {% endif %}
+    {% if document.pendingRequest %}
+        <section aria-labelledby="supporting-title">
+            <h2 id="supporting-title">Tu asesoría pide otro justificante</h2>
+            <p class="review-reason">{{ document.pendingRequest }}</p>
+            <form method="post" action="{{ path('client_document_support', {id: document.id}) }}" enctype="multipart/form-data">
+                <label for="supporting-file">Añadir justificante</label>
+                <input id="supporting-file" type="file" name="file" accept="application/pdf,image/jpeg,image/png,image/webp" required>
+                <p>PDF, JPEG, PNG o WebP, hasta 8 MB. El archivo original se conserva.</p>
+                <input type="hidden" name="version" value="{{ document.version }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('support_document_' ~ document.id) }}">
+                <button type="submit">Aportar justificante</button>
+            </form>
+        </section>
+    {% endif %}
+    {{ include('document/_supporting_files.html.twig', {supportingRoute: 'client_supporting_file'}) }}
+
+
+    {% if canAmendPersonal %}
+        <form method="post" action="{{ path('client_document_amend', {id: document.id}) }}">
+            <input type="hidden" name="version" value="{{ document.version }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('amend_document_' ~ document.id) }}">
+            <button type="submit">Corregir registro</button>
+            <p>Reabre primero su trimestre si está cerrado. La corrección conserva el historial y requiere confirmar de nuevo.</p>
+        </form>
+    {% endif %}
+    {% if document.editable %}
+        {% if entryDirection %}<p class="warning">Has elegido añadir un {{ entryDirection }}. El tipo está preseleccionado para que lo revises; todavía no se ha guardado este cambio. Comprueba todos los datos antes de confirmar.</p>{% endif %}
+        {% if document.proposal == 'extracted' %}
+            <p>Hemos extraído estos datos. Revísalos antes de confirmar.</p>
+        {% elseif document.proposal == 'sample' %}
+            <p>No hay lectura automática. Estos datos son un ejemplo. Revísalos antes de confirmar.</p>
+        {% else %}
+            <p>Escribe los datos y revísalos antes de confirmar.</p>
+        {% endif %}
+        <p class="client-hint">El total suma la base, la cuota de {{ document.taxName }} y el recargo, si lo hay{% if document.allowsWithholding %}, y resta la retención de IRPF, si la hay{% endif %}.</p>
+        {{ include('document/_details_form.html.twig') }}
+    {% else %}
+        <p>{% if document.statusCode == 'validated' %}Tu asesoría ha validado este registro.{% elseif document.pendingRequest %}Falta el justificante solicitado. El registro sigue pendiente de revisión.{% elseif hasFirm %}Has confirmado el registro. Tu asesoría todavía no lo ha validado.{% else %}Has confirmado el registro.{% endif %}</p>
+        {{ include('document/_amount_summary.html.twig') }}
+    {% endif %}
+    {{ include('document/_review_history.html.twig') }}
+    </section></div>
+{% endblock %}

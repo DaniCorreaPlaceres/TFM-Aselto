@@ -1,0 +1,18 @@
+{% extends 'client/_layout.html.twig' %}
+
+{% block client_title %}Inicio{% endblock %}
+
+{% block client_body %}
+    <div class="page-heading"><div>
+        <div class="eyebrow">Tu actividad, con perspectiva</div>
+        <h1>{% if name %}Hola, {{ name }}{% else %}Hola{% endif %}</h1>
+        <p>Este es el resumen de tu actividad.</p>
+    </div><a class="action" href="{{ path('client_document_new') }}"><span aria-hidden="true">＋</span> Añadir documento</a></div>
+    <p class="client-hint">Tus facturas y justificantes se reúnen en Documentos.</p>
+
+    <div data-controller="live-quarter" data-live-quarter-live-value="{{ quarter_live_enabled ? 'true' : 'false' }}" data-live-quarter-auth-value="{{ path('quarter_subscription') }}" data-live-quarter-url-value="{{ app.request.requestUri }}">
+        {{ include('finance/_live_status.html.twig') }}
+        <div data-live-quarter-target="content">{{ include('client/_home_financial.html.twig') }}</div>
+    </div>
+    <section class="client-pending"><h2>Mensajes y solicitudes</h2><p>{{ unreadConversations }} conversaciones con mensajes nuevos · {{ openRequests }} solicitudes pendientes.</p><a href="{{ path('messages') }}">Ver mensajes</a></section>
+{% endblock %}

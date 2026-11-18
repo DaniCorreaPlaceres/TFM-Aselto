@@ -1,0 +1,50 @@
+{
+  "recorded_at": "2026-11-14",
+  "source_commit": "78c73e52fc5c54a5b44a603e6fb6ce8e3c11c016",
+  "execution": "Docker local; secuencial para workflows que escriben fixtures. Sin correo externo ni proveedor IA.",
+  "results": [
+    {
+      "command": "php vendor/bin/phpunit",
+      "tests": 346,
+      "assertions": 860,
+      "exit_code": 0
+    },
+    {
+      "command": "php tests/Integration/api-authentication-workflow.php",
+      "checks": 54,
+      "exit_code": 0
+    },
+    {
+      "command": "php tests/Integration/api-documents-workflow.php",
+      "checks": 108,
+      "exit_code": 0
+    },
+    {
+      "command": "php tests/Integration/api-communication-workflow.php",
+      "checks": 79,
+      "exit_code": 0
+    },
+    {
+      "command": "php tests/Integration/platform-independent-clients-workflow.php",
+      "checks": 55,
+      "exit_code": 0
+    },
+    {
+      "command": "php tests/Integration/platform-firms-workflow.php",
+      "checks": 70,
+      "exit_code": 0
+    },
+    {
+      "command": "php tests/Integration/quarter-workflow.php",
+      "checks": 43,
+      "exit_code": 0
+    },
+    {
+      "command": "php tests/Integration/live-quarter-workflow.php",
+      "checks": 38,
+      "exit_code": 0
+    }
+  ],
+  "data_preservation": "Workflows retiran o revierten fixtures sintéticos y comprueban conservación de datos existentes; auditoría de identidad contrasta hash de id/password_hash/auth_version antes/después sin publicarlo.",
+  "scope_limit": "Pasar regresiones no acredita controles no cubiertos. Licencias/schema no se repitieron en esta tarea; concurrencia acreditada solo por pruebas trimestrales indicadas."
+}

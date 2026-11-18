@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+{% block title %}Invitaciones{% endblock %}
+{% block body %}
+<main class="panel wide">
+    <h1>Invitaciones</h1>
+    <p>Las cuentas se crean al aceptar. Reenviar renueva el plazo de 24 horas e invalida el enlace anterior.</p>
+    {% for message in app.flashes('success') %}<p class="success" role="status">{{ message }}</p>{% endfor %}
+    {% for message in app.flashes('error') %}<p class="error" role="alert">{{ message }}</p>{% endfor %}
+    <a class="action" href="{{ path('platform_invitation_new') }}">Enviar invitación</a>
+    {{ include('ui/_server_table.html.twig', {kind: 'invitations', caption: 'Invitaciones de registro de la plataforma', headers: ['Correo', 'Tipo de cuenta', 'Estado', 'Último envío', 'Caducidad']}) }}
+    <p class="muted">Fechas en horario de Canarias. «Último envío» no acredita entrega en el buzón.</p>
+</main>
+{% endblock %}

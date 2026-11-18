@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <main class="panel wide review-layout">
+        {% for message in app.flashes('success') %}<p class="success" role="status">{{ message }}</p>{% endfor %}
+        {% for message in app.flashes('error') %}<p class="error" role="alert">{{ message }}</p>{% endfor %}
+        {% block review_body %}{% endblock %}
+    </main>
+{% endblock %}

@@ -1,0 +1,75 @@
+security:
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
+    providers:
+        identity:
+            id: App\Identidad\Infrastructure\Security\UserProvider
+
+    firewalls:
+        dev:
+            pattern: ^/(_profiler(/|$)|(_wdt|assets|build)/)
+            security: false
+        api_login:
+            pattern: ^/api/v1/auth/login$
+            stateless: true
+            provider: identity
+            user_checker: App\Identidad\Infrastructure\Security\ActivatedUserChecker
+            json_login:
+                check_path: api_login
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+        api:
+            pattern: ^/api(?:/|$)
+            stateless: true
+            provider: identity
+            user_checker: App\Identidad\Infrastructure\Security\ActivatedUserChecker
+            access_denied_handler: App\Identidad\Infrastructure\Security\ApiAccessDeniedHandler
+            jwt: ~
+        main:
+            lazy: true
+            provider: identity
+            form_login:
+                login_path: /entrar
+                check_path: /entrar
+                default_target_path: /cuenta
+                username_parameter: email
+                password_parameter: password
+                enable_csrf: true
+            logout:
+                path: /salir
+                target: /entrar
+                enable_csrf: true
+                csrf_parameter: _csrf_token
+                csrf_token_id: logout
+            user_checker: App\Identidad\Infrastructure\Security\ActivatedUserChecker
+
+    access_control:
+        - { path: ^/api/docs(?:/openapi\.yaml)?$, roles: PUBLIC_ACCESS }
+        - { path: ^/swagger-ui/, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/auth/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/api(?:/|$), roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/salud, roles: PUBLIC_ACCESS }
+        - { path: ^/entrar, roles: PUBLIC_ACCESS }
+        - { path: ^/registro, roles: PUBLIC_ACCESS }
+        - { path: ^/invitacion/, roles: PUBLIC_ACCESS }
+        - { path: ^/activar, roles: PUBLIC_ACCESS }
+        - { path: ^/confirmar-correo-admin/, roles: PUBLIC_ACCESS }
+        - { path: ^/recuperar, roles: PUBLIC_ACCESS }
+        - { path: ^/(autonomos|empresas|asesorias-profesionales|quienes-somos|privacidad|cookies|precios)?$, roles: PUBLIC_ACCESS }
+        - { path: ^/asesorias, roles: ROLE_SUPERADMIN }
+        - { path: ^/clientes-independientes, roles: ROLE_SUPERADMIN }
+        - { path: ^/invitaciones, roles: ROLE_SUPERADMIN }
+        - { path: ^/equipo, roles: ROLE_FIRM_ADMIN }
+        - { path: ^/, roles: ROLE_USER }
+
+when@test:
+    security:
+        password_hashers:
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4
+                time_cost: 3
+                memory_cost: 10

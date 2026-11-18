@@ -1,0 +1,30 @@
+# Example for LiteSpeed/Apache; verify rewrite/headers support in staging.
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+
+# ES modules require a JavaScript MIME type, including .mjs on LiteSpeed.
+<IfModule mod_mime.c>
+    AddType application/javascript .js .mjs
+    AddType application/wasm .wasm
+</IfModule>
+
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+    Header onsuccess unset X-Content-Type-Options
+    Header onsuccess unset X-Frame-Options
+    Header onsuccess unset Referrer-Policy
+    Header onsuccess unset Permissions-Policy
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "no-referrer"
+    Header always set Permissions-Policy "camera=(self), microphone=(), geolocation=(), payment=(), usb=(), display-capture=()"
+</IfModule>
+
+RewriteEngine On
+RewriteRule ^index\.php$ - [L]
+RewriteRule \.php(?:/|$) - [R=404,L,NC]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [QSA,L]

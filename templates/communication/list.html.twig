@@ -1,0 +1,11 @@
+{% extends 'communication/_layout.html.twig' %}
+{% block communication_body %}
+    <h1>Mensajes y solicitudes</h1>
+    {% if not canMessage %}
+        <p>{{ clientView ? 'Todavía no tienes una asesoría vinculada con la que intercambiar mensajes.' : 'Todavía no hay clientes en tu asesoría.' }}</p>
+    {% else %}
+        <p>{{ clientView ? 'Habla con tu asesoría y responde a sus solicitudes.' : 'El admin y los gestores de tu asesoría pueden atender estas conversaciones.' }}</p>
+        <a class="action" href="{{ path('message_new') }}">Nuevo mensaje</a>
+    {% endif %}
+    {{ include('ui/_server_table.html.twig', {kind: 'conversations', caption: 'Conversaciones y solicitudes', headers: ['Asunto', 'Estado', 'Cliente', 'Nuevos'], filters: ['Conversación', 'Solicitud pendiente', 'Solicitud resuelta']}) }}
+{% endblock %}

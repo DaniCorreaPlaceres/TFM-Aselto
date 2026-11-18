@@ -1,0 +1,9 @@
+<div class="table-card" data-controller="table" data-table-filter-column-value="1">
+<table class="table"><caption>Conversaciones y solicitudes</caption>
+    <thead><tr><th>Asunto</th><th>Estado</th><th>Cliente</th><th>Nuevos</th></tr></thead>
+    <tbody>{% for item in conversations %}<tr>
+        <td><a href="{{ path('message_thread', {id: item.id}) }}">{{ item.subject }}</a></td>
+        <td><span class="status-pill">{{ item.request ? (item.resolvedAt ? 'Solicitud resuelta' : 'Solicitud pendiente') : 'Conversación' }}</span></td>
+        <td>{{ item.client }}</td><td>{{ item.unread }} mensajes nuevos para ti</td>
+    </tr>{% endfor %}</tbody>
+</table></div>

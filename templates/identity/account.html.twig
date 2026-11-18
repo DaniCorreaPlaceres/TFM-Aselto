@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tu acceso{% endblock %}
+
+{% block body %}
+    <main class="panel">
+        <h1>Tu acceso</h1>
+        <p>Has entrado como {{ email }}.</p>
+        <p>Tu papel es {{ role }}.</p>
+
+        {% if destination %}
+            <a class="action" href="{{ path(destination.route) }}">{{ destination.label }}</a>
+        {% endif %}
+        <div class="access-grid">
+        {% if secondary %}
+            <a class="quiet-link" href="{{ path(secondary.route) }}">{{ secondary.label }}</a>
+        {% endif %}
+        {% if messaging %}<a class="quiet-link" href="{{ path('messages') }}">Mensajes</a>{% endif %}
+        {% if team %}
+            <a class="quiet-link" href="{{ path('team') }}">Equipo</a>
+        {% endif %}
+        {% if fiscal %}
+            <a class="quiet-link" href="{{ path(fiscal.route) }}">{{ fiscal.label }}</a>
+        {% endif %}
+        </div>
+    </main>
+{% endblock %}

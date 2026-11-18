@@ -1,0 +1,13 @@
+<div class="pdf-viewer" data-controller="pdf-preview"
+     data-pdf-preview-url-value="{{ pdfUrl }}"
+     data-pdf-preview-library-value="{{ asset('vendor/pdfjs/pdf.min.js') }}"
+     data-pdf-preview-worker-value="{{ asset('vendor/pdfjs/pdf.worker.min.js') }}"
+     data-pdf-preview-resources-value="{{ asset('vendor/pdfjs') }}">
+    <p role="status" data-pdf-preview-target="status">Preparando vista previa…</p>
+    <canvas role="img" aria-label="Vista del documento" data-pdf-preview-target="canvas"></canvas>
+    <div class="pdf-controls">
+        <button type="button" class="quiet" data-pdf-preview-target="previous" data-action="pdf-preview#previous" disabled>Página anterior</button>
+        <button type="button" class="quiet" data-pdf-preview-target="next" data-action="pdf-preview#next" disabled>Página siguiente</button>
+    </div>
+    <details><summary>Texto del documento</summary><p data-pdf-preview-target="text">El texto se mostrará si está disponible en el PDF.</p></details>
+</div>

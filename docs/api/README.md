@@ -1,0 +1,70 @@
+# API v1
+
+El acceso permite entrar y consultar la identidad actual; el bloque de [documentos y revisión](documents.md) ya está disponible. El contrato está en [OpenAPI](../../openapi/openapi.yaml). Los [trimestres](quarters.md) permiten consultar cifras, histórico, cierre y reapertura. La [comunicación](communication.md) incluye conversaciones, solicitudes, lectura individual y adjuntos privados. Los perfiles fiscales todavía no tienen rutas API.
+
+## Operaciones disponibles
+
+El contrato **0.6.0** incorpora [paginación de los listados y presupuestos operativos compartidos](pagination.md). Los consumidores deben recorrer las páginas; ya no deben asumir que una respuesta documental o de conversaciones contiene todos los registros. Se añade 429 `resource_limit_exceeded`, separado del límite de acceso.
+
+- `POST /api/v1/auth/login`: cuerpo JSON con `email` y `password`. Devuelve `token`, `token_type` (`Bearer`) y `expires_in` (3600 segundos).
+- `GET /api/v1/me`: exige `Authorization: Bearer <token>` y devuelve `id`, `email`, `role`, `firm_id` y `activated`.
+
+Los papeles son `superadmin`, `firm_admin`, `advisor` y `client`. Una cuenta sin asesoría devuelve `firm_id: null`. No se devuelve la contraseña ni ningún dato fiscal.
+
+La cookie de sesión web no sustituye al token. El token solo se admite en la cabecera Authorization, no en parámetros de URL ni cookies. En cada petición se recarga el usuario para comprobar su activación, papel y asesoría actuales. Un token no es un permiso permanente: los casos de uso de los siguientes bloques también comprobarán su asesoría y permisos.
+
+La sesión web tiene límites propios de 30 minutos de inactividad y 8 horas absolutas. No alteran el TTL JWT ni se renuevan al llamar a la API, incluso si el navegador envía una cookie web. [Caducidad web](../security/session-expiration.md).
+
+La contraseña se utiliza exactamente como se recibe, incluidos los espacios. El correo usa la normalización del proveedor de usuarios existente. El cuerpo de acceso no puede superar 16 KiB y admite únicamente ambos campos de texto; la contraseña tiene un límite de 4096 bytes.
+
+La política de 15 a 128 caracteres Unicode y lista local de comunes se aplica al **elegir una contraseña** desde activación, recuperación o invitación web. No se aplica de nuevo al login: las credenciales existentes siguen funcionando y el contrato de acceso conserva sus límites. [Detalle de la política](../security/password-list.md).
+
+## Errores
+
+Todos tienen la forma `{"error":{"code":"...","message":"..."}}`, con un mensaje en español. Los errores de documento incompleto pueden añadir `error.fields` con los campos que faltan. Acceso incorrecto, cuenta inexistente e inactiva reciben el mismo `401 invalid_credentials`.
+
+En una operación protegida, `401 token_missing`, `token_invalid` o `token_expired` requiere volver a autenticarse o enviar el token correctamente. La respuesta incluye `WWW-Authenticate: Bearer`. Los errores de petición usan 400, tipo de contenido incorrecto 415, tamaño excesivo 413, ruta inexistente 404 y método incorrecto 405, con cabecera Allow. Los errores internos usan un 500 genérico sin trazas.
+
+El acceso web y `POST /api/v1/auth/login` comparten límites de ventana deslizante: 5 intentos por minuto por correo normalizado + IP y 60 por minuto por IP. Cuentan también los accesos correctos: reutiliza el JWT válido para las operaciones siguientes. Al superar un límite se devuelve **429**, código `too_many_attempts`, cabecera `Retry-After` con segundos de espera y respuesta privada sin caché. Espera ese tiempo antes de reintentar; no se bloquea permanentemente la cuenta ni se altera un JWT ya emitido. La respuesta es la misma con independencia de que el correo exista. El contrato OpenAPI pasa a 0.5.1 por esta respuesta adicional; no cambia la versión del producto.
+
+Restablecer la contraseña incrementa la versión de autenticación e invalida los JWT de API y las sesiones web anteriores, también si se elige la misma contraseña. El token anterior responde `401 token_invalid`; hay que volver a entrar. Confirmar un cambio de correo del admin también invalida sus accesos anteriores. Todavía no hay renovación ni un endpoint de revocación o cierre de sesión JWT. La caducidad es de una hora; salir de la web no revoca el JWT. No se debe guardar un token en Git, incluirlo en una URL ni imprimirlo en un informe o registro.
+
+## Preparación local
+
+Las claves locales están en `config/jwt/` y Git las ignora. Para generarlas sin sobrescribir unas existentes:
+
+```powershell
+docker compose exec -T --user www-data app php bin/console lexik:jwt:generate-keypair --skip-if-exists
+```
+
+La configuración usa `JWT_SECRET_KEY`, `JWT_PUBLIC_KEY` y `JWT_PASSPHRASE`. No se copia la clave privada al repositorio ni se reemplazan claves existentes para probar un acceso.
+
+## Prueba manual en PowerShell
+
+Con el entorno Docker iniciado, el siguiente ejemplo pide las credenciales sin escribir la contraseña en el comando y muestra solo la identidad, sin imprimir el token:
+
+```powershell
+$apiCredentials = Get-Credential -Message 'Acceso de prueba de Aselto'
+$apiBody = @{ email = $apiCredentials.UserName; password = $apiCredentials.GetNetworkCredential().Password } | ConvertTo-Json
+$apiAccess = Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/auth/login' -Method Post -ContentType 'application/json' -Body $apiBody
+Invoke-RestMethod -Uri 'http://localhost:8080/api/v1/me' -Headers @{ Authorization = "Bearer $($apiAccess.token)" }
+Remove-Variable apiBody, apiCredentials, apiAccess
+```
+
+La prueba de integración usa cuentas sintéticas dentro de una transacción y no imprime contraseñas ni tokens:
+
+```powershell
+docker compose exec -T --user www-data app php tests/Integration/api-authentication-workflow.php
+```
+
+## Swagger UI
+
+Los registros admiten `tax_exempt` como booleano explícito, distinto del tipo cero, conservando IVA, IGIC o IPSI. La cuota es cero y no admite porcentaje ni recargo; puede conservar IRPF en ingresos de autónomos. Ver [exenciones y ejemplos](../tax-exempt-records.md). El contrato detalla las entradas y las respuestas de documentos, revisión e instantáneas.
+
+Abrir [la documentación interactiva](http://localhost:8080/api/docs) con Docker arrancado. La página y el [contrato](http://localhost:8080/api/docs/openapi.yaml) son públicos; ejecutar operaciones requiere los permisos habituales.
+
+1. Expandir `POST /api/v1/auth/login`, pulsar «Try it out», introducir las credenciales del entorno y ejecutar.
+2. Copiar el valor `token` de la respuesta y pegarlo en «Authorize», sin el prefijo `Bearer`.
+3. Ejecutar `GET /api/v1/me` o las operaciones documentales. Se utilizan los datos reales del entorno abierto.
+
+El token no se guarda al recargar. Los recursos de Swagger UI 5.34.1 están en `public/swagger-ui/`, proceden de la distribución oficial e incluyen su licencia Apache 2.0. El validador externo está desactivado. Para actualizar, sustituir CSS y bundle desde una misma versión oficial y volver a comprobar la carga y las operaciones.

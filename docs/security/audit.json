@@ -1,0 +1,762 @@
+{
+  "schema_version": 1,
+  "task": 42,
+  "recorded_at": "2026-11-14",
+  "source_commit": "78c73e52fc5c54a5b44a603e6fb6ce8e3c11c016",
+  "environment": "Docker local; observación de código/configuración y reglas GitHub. Hostinger no verificado.",
+  "method": "40 controles propios fijados en SDD; igual peso; diagnóstico inspirado en OWASP, no evaluación completa ni certificación ASVS.",
+  "references": [
+    {
+      "title": "ASVS 5.0.0",
+      "url": "https://github.com/OWASP/ASVS/tree/v5.0.0"
+    },
+    {
+      "title": "OWASP Top 10 web 2025",
+      "url": "https://top10.owasp.org/2025/"
+    },
+    {
+      "title": "OWASP API Top 10 2023",
+      "url": "https://api-security.owasp.org/editions/2023/en/0x11-t10/"
+    },
+    {
+      "title": "Authentication Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"
+    },
+    {
+      "title": "Forgot Password Cheat Sheet",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html"
+    }
+  ],
+  "controls": [
+    {
+      "id": "AUT-01",
+      "group": "Autenticación",
+      "title": "Activación y roles",
+      "status": "cumple",
+      "criterion": "Usuarios activados y rol vigente para web y API.",
+      "method": "Revisión y workflow API de autenticación (54).",
+      "evidence": [
+        "config/packages/security.yaml",
+        "src/Identidad/Infrastructure/Security/ActivatedUserChecker.php"
+      ],
+      "reference": "V6; A07; API2",
+      "findings": []
+    },
+    {
+      "id": "AUT-02",
+      "group": "Autenticación",
+      "title": "Hash de contraseñas",
+      "status": "cumple",
+      "criterion": "Hash adaptativo a través de PasswordHasher, no contraseñas en claro.",
+      "method": "Revisión de configuración y cambio sintético de contraseña.",
+      "evidence": [
+        "config/packages/security.yaml",
+        "evidence/runtime-probes.json"
+      ],
+      "reference": "V6; A04",
+      "findings": []
+    },
+    {
+      "id": "AUT-03",
+      "group": "Autenticación",
+      "title": "Política de contraseñas",
+      "status": "no cumple",
+      "criterion": "Rechazar contraseñas comunes además de longitud mínima.",
+      "method": "Prueba: se acepta una contraseña común de ocho caracteres.",
+      "evidence": [
+        "src/Identidad/Application/ChoosePassword.php:35",
+        "evidence/runtime-probes.json"
+      ],
+      "reference": "V6.2.4; A07; API2",
+      "findings": [
+        "F04"
+      ]
+    },
+    {
+      "id": "AUT-04",
+      "group": "Autenticación",
+      "title": "Protección ante fuerza bruta",
+      "status": "no cumple",
+      "criterion": "Limitar intentos de acceso y recuperación.",
+      "method": "Revisión de firewalls, rutas y servidor; cuatro fallos HTTP no se presentan como prueba de carga.",
+      "evidence": [
+        "config/packages/security.yaml",
+        "evidence/http.json"
+      ],
+      "reference": "V6.3.1; A07; API2",
+      "findings": [
+        "F03"
+      ]
+    },
+    {
+      "id": "AUT-05",
+      "group": "Autenticación",
+      "title": "Respuesta de recuperación",
+      "status": "cumple",
+      "criterion": "Contenido genérico tanto para correos existentes como inexistentes.",
+      "method": "Revisión del mensaje y flujo. No se mide el canal lateral de tiempo/SMTP.",
+      "evidence": [
+        "src/Identidad/Application/RequestPasswordReset.php",
+        "src/Identidad/Ui/AccountAccessController.php"
+      ],
+      "reference": "V6; A07; API2",
+      "findings": []
+    },
+    {
+      "id": "SES-01",
+      "group": "Sesiones y tokens",
+      "title": "CSRF en acciones web",
+      "status": "no cumple",
+      "criterion": "Proteger acciones autenticadas, incluido cierre de sesión.",
+      "method": "Login y formularios usan CSRF; POST sintético /salir sin token devuelve 302.",
+      "evidence": [
+        "config/packages/security.yaml",
+        "evidence/runtime-probes.json"
+      ],
+      "reference": "V3; V7; A01",
+      "findings": [
+        "F06"
+      ]
+    },
+    {
+      "id": "SES-02",
+      "group": "Sesiones y tokens",
+      "title": "Atributos de cookie",
+      "status": "cumple",
+      "criterion": "Configurar HttpOnly, SameSite y Secure según HTTPS.",
+      "method": "Configuración efectiva prod: HttpOnly true, SameSite lax, Secure auto. No acredita el transporte desplegado.",
+      "evidence": [
+        "config/packages/framework.yaml",
+        "evidence/configuration.json"
+      ],
+      "reference": "V3; V7",
+      "findings": []
+    },
+    {
+      "id": "SES-03",
+      "group": "Sesiones y tokens",
+      "title": "Caducidad de sesión web",
+      "status": "no cumple",
+      "criterion": "Definir y aplicar tiempos de inactividad y duración absoluta.",
+      "method": "Revisión: session true sin política explícita de ambos tiempos. No se simula espera de horas.",
+      "evidence": [
+        "config/packages/framework.yaml"
+      ],
+      "reference": "V7.1.1; V7.3.1; V7.3.2; A07",
+      "findings": [
+        "F05"
+      ]
+    },
+    {
+      "id": "SES-04",
+      "group": "Sesiones y tokens",
+      "title": "JWT: validación y revocación",
+      "status": "no cumple",
+      "criterion": "Firma, vigencia, identidad y revocación tras restablecer contraseña.",
+      "method": "JWT válido antes y después del reset en repeticiones: 200/200; contraseña anterior 401 y nueva 200. Otra ejecución devolvió 401; no se atribuye causa a la variación.",
+      "evidence": [
+        "src/Identidad/Domain/User.php:73",
+        "src/Identidad/Infrastructure/Security/JwtIdentityEvents.php",
+        "evidence/runtime-probes.json"
+      ],
+      "reference": "V9; V7.4; A07; API2",
+      "findings": [
+        "F01"
+      ]
+    },
+    {
+      "id": "SES-05",
+      "group": "Sesiones y tokens",
+      "title": "Enlaces de un solo uso",
+      "status": "cumple",
+      "criterion": "Tokens aleatorios, hash persistido, uso único y caducidad.",
+      "method": "Prueba sintética: hash, reutilización y expiración; revisión TTL y reemisión.",
+      "evidence": [
+        "src/Identidad/Application/IssueAccessToken.php",
+        "evidence/runtime-probes.json"
+      ],
+      "reference": "V6; A07",
+      "findings": []
+    },
+    {
+      "id": "ACL-01",
+      "group": "Permisos y aislamiento",
+      "title": "Documentos y archivos entre clientes",
+      "status": "cumple",
+      "criterion": "Impedir acceder a documentos o archivos de otro titular.",
+      "method": "Workflow API documental: 108 comprobaciones, incluidos accesos ajenos.",
+      "evidence": [
+        "tests/Integration/api-documents-workflow.php",
+        "evidence/workflows.json"
+      ],
+      "reference": "V8; A01; API1",
+      "findings": []
+    },
+    {
+      "id": "ACL-02",
+      "group": "Permisos y aislamiento",
+      "title": "Aislamiento de asesorías",
+      "status": "cumple",
+      "criterion": "Limitar cada consulta de negocio a su asesoría y permiso.",
+      "method": "Workflows documental, comunicación y trimestres; revisión de casos de uso.",
+      "evidence": [
+        "src/Finanzas/Application/QuarterAccess.php",
+        "evidence/workflows.json"
+      ],
+      "reference": "V8; A01; API1",
+      "findings": []
+    },
+    {
+      "id": "ACL-03",
+      "group": "Permisos y aislamiento",
+      "title": "Restricciones del superadmin",
+      "status": "cumple",
+      "criterion": "Administrar fichas sin acceso a datos fiscales ni archivos.",
+      "method": "55 comprobaciones de clientes independientes y 70 de asesorías, con pruebas negativas.",
+      "evidence": [
+        "tests/Integration/platform-independent-clients-workflow.php",
+        "tests/Integration/platform-firms-workflow.php"
+      ],
+      "reference": "V8; A01; API5",
+      "findings": []
+    },
+    {
+      "id": "ACL-04",
+      "group": "Permisos y aislamiento",
+      "title": "Campos sensibles",
+      "status": "cumple",
+      "criterion": "Impedir asignar propietario, rol o asesoría por entrada libre.",
+      "method": "Revisión de DTO/JSON y pruebas negativas de API.",
+      "evidence": [
+        "tests/Integration/api-authentication-workflow.php",
+        "tests/Integration/api-documents-workflow.php"
+      ],
+      "reference": "V8; V4; API3",
+      "findings": []
+    },
+    {
+      "id": "ACL-05",
+      "group": "Permisos y aislamiento",
+      "title": "Mensajes y eventos privados",
+      "status": "cumple",
+      "criterion": "Restringir conversaciones, adjuntos y eventos al destinatario autorizado.",
+      "method": "API comunicación 79; eventos reales 38, con aislamiento y retirada de fixtures.",
+      "evidence": [
+        "tests/Integration/api-communication-workflow.php",
+        "tests/Integration/live-quarter-workflow.php"
+      ],
+      "reference": "V8; A01; API1",
+      "findings": []
+    },
+    {
+      "id": "INP-01",
+      "group": "Entradas y salidas",
+      "title": "SQL parametrizado",
+      "status": "cumple",
+      "criterion": "Separar valores y consultas en accesos revisados.",
+      "method": "Revisión de repositorios Doctrine/DBAL y filtros de titular. No equivale a fuzzing SQL exhaustivo.",
+      "evidence": [
+        "src/Documento/Infrastructure/Persistence",
+        "src/Identidad/Infrastructure/Persistence"
+      ],
+      "reference": "V1; A05",
+      "findings": []
+    },
+    {
+      "id": "INP-02",
+      "group": "Entradas y salidas",
+      "title": "Escape HTML",
+      "status": "cumple",
+      "criterion": "Escapar datos de formularios y vistas.",
+      "method": "Twig autoescape, sin raw en plantillas revisadas; payload de formulario reflejado escapado.",
+      "evidence": [
+        "templates",
+        "evidence/runtime-probes.json"
+      ],
+      "reference": "V1; V3; A05",
+      "findings": []
+    },
+    {
+      "id": "INP-03",
+      "group": "Entradas y salidas",
+      "title": "JSON estricto",
+      "status": "cumple",
+      "criterion": "Validar campos, tipos y tamaños; rechazar propiedades no permitidas.",
+      "method": "Workflows API de autenticación, documentación y comunicación.",
+      "evidence": [
+        "tests/Integration/api-documents-workflow.php",
+        "tests/Integration/api-communication-workflow.php"
+      ],
+      "reference": "V2; V4; API3",
+      "findings": []
+    },
+    {
+      "id": "INP-04",
+      "group": "Entradas y salidas",
+      "title": "Origen de enlaces y redirecciones",
+      "status": "no cumple",
+      "criterion": "Enlaces sensibles con origen canónico confiable.",
+      "method": "Host HTTP alternativo aceptado; router y correo capturado en memoria generan enlace con ese host.",
+      "evidence": [
+        "src/Identidad/Infrastructure/Mail/SymfonyAccountNotifier.php:30",
+        "evidence/http.json",
+        "evidence/runtime-probes.json"
+      ],
+      "reference": "V3; V6; A02; API8",
+      "findings": [
+        "F02"
+      ]
+    },
+    {
+      "id": "INP-05",
+      "group": "Entradas y salidas",
+      "title": "Errores sin trazas en producción",
+      "status": "cumple",
+      "criterion": "Ocultar detalles internos al usuario en modo prod.",
+      "method": "404 con Kernel prod/debug false sin traza; revisión de listener API. No prueba todas las excepciones ni Hostinger.",
+      "evidence": [
+        "evidence/runtime-probes.json",
+        "src/Identidad/Infrastructure/Security"
+      ],
+      "reference": "V16; A10; API8",
+      "findings": []
+    },
+    {
+      "id": "FIL-01",
+      "group": "Archivos y recursos",
+      "title": "Formato y tamaño",
+      "status": "cumple",
+      "criterion": "Lista de tipos y límite de 8 MB, con MIME del servidor.",
+      "method": "Revisión de UploadedFile/finfo, validadores y API documental/comunicación.",
+      "evidence": [
+        "src/Documento/Application/DocumentUpload.php",
+        "src/Comunicacion/Application/MessageUpload.php"
+      ],
+      "reference": "V5; API4",
+      "findings": []
+    },
+    {
+      "id": "FIL-02",
+      "group": "Archivos y recursos",
+      "title": "Almacenamiento privado",
+      "status": "cumple",
+      "criterion": "Guardar documentos fuera de public sin URL estática.",
+      "method": "Código y peticiones .env, composer.lock y ruta privada inexistente con 404.",
+      "evidence": [
+        "src/Documento/Infrastructure",
+        "evidence/http.json"
+      ],
+      "reference": "V5; A01",
+      "findings": []
+    },
+    {
+      "id": "FIL-03",
+      "group": "Archivos y recursos",
+      "title": "Descarga autorizada",
+      "status": "cumple",
+      "criterion": "Permiso por archivo y respuesta privada con nosniff.",
+      "method": "Revisión de respuesta y workflows negativos de archivos/adjuntos.",
+      "evidence": [
+        "src/Documento/Ui/DocumentFileResponse.php",
+        "tests/Integration/api-communication-workflow.php"
+      ],
+      "reference": "V5; V8; API1",
+      "findings": []
+    },
+    {
+      "id": "FIL-04",
+      "group": "Archivos y recursos",
+      "title": "Análisis de contenido",
+      "status": "no cumple",
+      "criterion": "Defensa adicional ante PDF/contenido malicioso.",
+      "method": "Hay validación MIME/imagen; no se identifica AV, CDR ni cuarentena. No se envía malware.",
+      "evidence": [
+        "src/Documento/Application/DocumentUpload.php",
+        "src/Comunicacion/Application/MessageUpload.php"
+      ],
+      "reference": "V5; A06",
+      "findings": [
+        "F08"
+      ]
+    },
+    {
+      "id": "FIL-05",
+      "group": "Archivos y recursos",
+      "title": "Consumo de recursos y adjuntos",
+      "status": "no cumple",
+      "criterion": "Límites por petición y frecuencia, además de cuota comercial.",
+      "method": "8 MB, tres adjuntos, cuota Gratis existen; falta limitación temporal por titular y listados cargan todos los registros.",
+      "evidence": [
+        "src/Comunicacion/Application/MessageUpload.php",
+        "config/packages/security.yaml",
+        "compose.yaml"
+      ],
+      "reference": "V2; V5; API4; API6",
+      "findings": [
+        "F09"
+      ]
+    },
+    {
+      "id": "CFG-01",
+      "group": "Configuración",
+      "title": "Secretos fuera de Git",
+      "status": "cumple",
+      "criterion": "No versionar secretos privados de despliegue en HEAD revisado.",
+      "method": "Rutas ignoradas y revisión de archivos rastreados; sin claves privadas detectadas. No se analiza todo el historial ni secretos externos.",
+      "evidence": [
+        ".gitignore",
+        "evidence/configuration.json"
+      ],
+      "reference": "V13; A02",
+      "findings": []
+    },
+    {
+      "id": "CFG-02",
+      "group": "Configuración",
+      "title": "Cabeceras del navegador",
+      "status": "no cumple",
+      "criterion": "Política global de contenido, marcos, referencias y tipo.",
+      "method": "Sin CSP/X-Frame-Options/nosniff/Referrer-Policy globales en respuestas observadas; descargas sí tienen nosniff.",
+      "evidence": [
+        "evidence/http.json",
+        "src/Documento/Ui/DocumentFileResponse.php"
+      ],
+      "reference": "V3; A02; API8",
+      "findings": [
+        "F07"
+      ]
+    },
+    {
+      "id": "CFG-03",
+      "group": "Configuración",
+      "title": "HTTPS productivo",
+      "status": "no comprobado",
+      "criterion": "Certificado, redirección, HSTS y cookies reales en producción.",
+      "method": "Solo HTTP local; Hostinger no está desplegado/verificado en esta tarea.",
+      "evidence": [
+        "evidence/http.json"
+      ],
+      "reference": "V12; A02",
+      "findings": []
+    },
+    {
+      "id": "CFG-04",
+      "group": "Configuración",
+      "title": "CORS y orígenes",
+      "status": "cumple",
+      "criterion": "No autorizar orígenes arbitrarios en API/eventos.",
+      "method": "OPTIONS origen ajeno 405 sin ACAO; configuración Mercure con orígenes explícitos y eventos privados.",
+      "evidence": [
+        "evidence/http.json",
+        "compose.yaml",
+        "tests/Integration/live-quarter-workflow.php"
+      ],
+      "reference": "V3; V4; API8",
+      "findings": []
+    },
+    {
+      "id": "CFG-05",
+      "group": "Configuración",
+      "title": "Aislamiento de servicios en producción",
+      "status": "no comprobado",
+      "criterion": "No publicar MySQL, Mailpit, depuración ni servicios internos productivos.",
+      "method": "No hay infraestructura productiva observada. Puertos dev en todas las interfaces son un hallazgo local separado.",
+      "evidence": [
+        "compose.yaml",
+        "evidence/configuration.json"
+      ],
+      "reference": "V13; A02; API8",
+      "findings": [
+        "F12"
+      ]
+    },
+    {
+      "id": "OPS-01",
+      "group": "Operación y suministro",
+      "title": "Dependencias PHP",
+      "status": "cumple",
+      "criterion": "Auditar composer.lock sin avisos ni abandonos conocidos en consulta.",
+      "method": "Composer audit --locked --format=json exit 0, advisories y abandoned vacíos, 14/11/2026.",
+      "evidence": [
+        "evidence/composer.json"
+      ],
+      "reference": "V15; A03",
+      "findings": []
+    },
+    {
+      "id": "OPS-02",
+      "group": "Operación y suministro",
+      "title": "Bibliotecas del navegador",
+      "status": "no comprobado",
+      "criterion": "Comprobar avisos e integridad de todas las copias JS fijadas.",
+      "method": "Hay versiones y procedencia; no se completa auditoría de avisos/SBOM de JS. No se afirma vulnerabilidad.",
+      "evidence": [
+        "public/vendor/README.md",
+        "public/swagger-ui"
+      ],
+      "reference": "V15; A03",
+      "findings": []
+    },
+    {
+      "id": "OPS-03",
+      "group": "Operación y suministro",
+      "title": "Registro de seguridad",
+      "status": "no cumple",
+      "criterion": "Registrar y conservar sucesos de acceso/administración para investigación.",
+      "method": "Monolog orientado a errores y negocio; no hay canal persistente específico de accesos/reintentos/alertas.",
+      "evidence": [
+        "config/packages/monolog.yaml"
+      ],
+      "reference": "V16; A09",
+      "findings": [
+        "F11"
+      ]
+    },
+    {
+      "id": "OPS-04",
+      "group": "Operación y suministro",
+      "title": "Backup y restauración",
+      "status": "no comprobado",
+      "criterion": "Demostrar restauración y política de copias productivas.",
+      "method": "Copias locales previas no acreditan recuperación de base y documentos en producción.",
+      "evidence": [
+        "docs/local-installation.md"
+      ],
+      "reference": "V14; V13; A06",
+      "findings": []
+    },
+    {
+      "id": "OPS-05",
+      "group": "Operación y suministro",
+      "title": "CI y protección",
+      "status": "no cumple",
+      "criterion": "Protección de main y verificaciones obligatorias de seguridad.",
+      "method": "Main protegida con PR/borrado/no-force; no regla de checks obligatorios. CI no ejecuta los workflows de aislamiento web/API.",
+      "evidence": [
+        ".github/workflows/comprobaciones.yml",
+        "evidence/configuration.json"
+      ],
+      "reference": "V15; A03; A06",
+      "findings": [
+        "F13"
+      ]
+    },
+    {
+      "id": "DAT-01",
+      "group": "Negocio, IA y datos",
+      "title": "Cierres e historial",
+      "status": "cumple",
+      "criterion": "Congelar cifras, bloquear pendientes y registrar reapertura autorizada.",
+      "method": "Workflow trimestral 43 con rollback y conservación del histórico.",
+      "evidence": [
+        "tests/Integration/quarter-workflow.php",
+        "evidence/workflows.json"
+      ],
+      "reference": "V2; A06",
+      "findings": []
+    },
+    {
+      "id": "DAT-02",
+      "group": "Negocio, IA y datos",
+      "title": "Concurrencia",
+      "status": "cumple",
+      "criterion": "Bloquear escrituras incompatibles y rechazar versiones obsoletas.",
+      "method": "Workflow trimestral con dos conexiones, más revisión de versiones y bloqueos; no prueba de carga.",
+      "evidence": [
+        "tests/Integration/quarter-workflow.php",
+        "src/Finanzas",
+        "src/Licencia"
+      ],
+      "reference": "V2; A06",
+      "findings": []
+    },
+    {
+      "id": "DAT-03",
+      "group": "Negocio, IA y datos",
+      "title": "IA con revisión humana",
+      "status": "cumple",
+      "criterion": "Extraer propuestas sin confirmar ni cerrar automáticamente.",
+      "method": "Revisión de extractor y flujos de borrador/confirmación; workflows usan extractor sintético, sin proveedor externo.",
+      "evidence": [
+        "src/Documento/Infrastructure/Extraction/OpenAiDocumentExtractor.php",
+        "tests/Integration/api-documents-workflow.php"
+      ],
+      "reference": "V2; API10",
+      "findings": []
+    },
+    {
+      "id": "DAT-04",
+      "group": "Negocio, IA y datos",
+      "title": "Límites del proveedor externo",
+      "status": "no cumple",
+      "criterion": "Acotar tiempo total, respuesta y consumo del servicio IA.",
+      "method": "URL HTTPS fija y timeout 30 s existen; faltan duración total, tope de respuesta y presupuesto de salida.",
+      "evidence": [
+        "src/Documento/Infrastructure/Extraction/OpenAiDocumentExtractor.php:32"
+      ],
+      "reference": "V4; V12; API4; API10",
+      "findings": [
+        "F10"
+      ]
+    },
+    {
+      "id": "DAT-05",
+      "group": "Negocio, IA y datos",
+      "title": "Minimización y retención",
+      "status": "no comprobado",
+      "criterion": "Políticas y procedimientos verificables de conservación, borrado y proveedor.",
+      "method": "Privacidad es borrador TFM acordado; no se verifica despliegue, retención ni acuerdos con proveedor.",
+      "evidence": [
+        "templates/public",
+        "docs/memoria.md"
+      ],
+      "reference": "V14; A06",
+      "findings": []
+    }
+  ],
+  "findings": [
+    {
+      "id": "F01",
+      "severity": "Alta",
+      "title": "JWT sigue vigente tras restablecer contraseña",
+      "control": "SES-04",
+      "evidence": "El token anterior responde 200 después del reset; el dominio conserva authVersion al cambiar contraseña. Su vigencia máxima configurada es una hora. Se observó también una ejecución con 401; las repeticiones guardadas devolvieron 200. La revocación no está garantizada; no se afirma aceptación universal.",
+      "impact": "Un token robado conserva acceso tras recuperar la cuenta, hasta expirar. No se obtuvo acceso a cuentas reales.",
+      "proposal": "Incrementar versión de autenticación de forma atómica en cambios de contraseña y comprobar revocación web/API.",
+      "verification": "JWT anterior 401 tras reset; nuevo acceso correcto; enlaces únicos y sesiones anteriores invalidados."
+    },
+    {
+      "id": "F02",
+      "severity": "Alta condicionada",
+      "title": "Enlaces de recuperación dependen de Host",
+      "control": "INP-04",
+      "evidence": "HTTP acepta Host alternativo; el notifier genera un enlace al mismo host en un correo capturado en memoria.",
+      "impact": "Si un proxy público permite Host arbitrario y la víctima sigue el correo, un atacante podría recoger el token. No se envió correo ni se demostró compromiso de una cuenta.",
+      "proposal": "Fijar origen HTTPS canónico, validar hosts en aplicación/proxy y revisar todos los enlaces sensibles.",
+      "verification": "Host desconocido rechazado y todos los correos conservan el origen canónico aunque cambie el contexto."
+    },
+    {
+      "id": "F03",
+      "severity": "Alta",
+      "title": "Sin límites de intentos de acceso y recuperación",
+      "control": "AUT-04",
+      "evidence": "No hay login_throttling, RateLimiter ni limitación en nginx revisado; cuatro errores HTTP no constituyen una prueba de fuerza bruta.",
+      "impact": "Facilita adivinación, saturación o abuso de correo si se expone a Internet.",
+      "proposal": "Límites por IP y cuenta con respuesta genérica, espera progresiva y límites de recuperación/reenvío.",
+      "verification": "Umbral y recuperación de ventana probados sin bloquear permanentemente a la víctima."
+    },
+    {
+      "id": "F04",
+      "severity": "Media",
+      "title": "Se aceptan contraseñas comunes",
+      "control": "AUT-03",
+      "evidence": "La prueba de reset acepta una contraseña común de ocho caracteres. Solo se exige longitud mínima.",
+      "impact": "Reduce resistencia ante ataques de diccionario. ASVS 6.2.1 exige mínimo ocho y recomienda quince; el fallo evaluado es la ausencia de lista de contraseñas comunes (6.2.4).",
+      "proposal": "Bloquear contraseñas comunes y acordar longitud adecuada sin MFA; permitir gestores y frases largas sin reglas de composición arbitrarias.",
+      "verification": "Contraseñas comunes rechazadas en alta, invitación y reset; frases robustas aceptadas."
+    },
+    {
+      "id": "F05",
+      "severity": "Media",
+      "title": "Sesiones sin política de caducidad explícita",
+      "control": "SES-03",
+      "evidence": "La configuración activa sesión sin tiempos de inactividad y duración absoluta documentados/aplicados.",
+      "impact": "Una sesión desatendida puede conservar acceso más tiempo del deseado; no se midió su duración real.",
+      "proposal": "Definir ambos tiempos según riesgo y aplicarlos en servidor, con pruebas de reloj.",
+      "verification": "Vencimiento por inactividad y absoluto, incluida renovación de actividad."
+    },
+    {
+      "id": "F06",
+      "severity": "Baja",
+      "title": "Logout sin comprobación CSRF",
+      "control": "SES-01",
+      "evidence": "POST /salir autenticado sin token devuelve 302. La ruta es POST y SameSite lax mitiga varios escenarios entre sitios.",
+      "impact": "Posible cierre de sesión forzado cuando el navegador envía la cookie. No acredita modificación fiscal ni robo de información.",
+      "proposal": "Habilitar CSRF en logout y añadir token al formulario.",
+      "verification": "Salida sin token rechazada, con token válida; conservar revocación de cookie de eventos."
+    },
+    {
+      "id": "F07",
+      "severity": "Media",
+      "title": "Faltan cabeceras globales del navegador",
+      "control": "CFG-02",
+      "evidence": "Las páginas observadas no tienen CSP, protección frente a marcos, nosniff global ni política de referencias; algunos endpoints sí aplican cabeceras.",
+      "impact": "Menor defensa adicional ante inyección/marcos y posibles fugas de URL en navegación; no se ha probado una explotación XSS.",
+      "proposal": "Diseñar CSP compatible con recursos locales/PDF.js, frame-ancestors y cabeceras globales; proteger enlaces con tokens con no-store/no-referrer.",
+      "verification": "Revisar web, API, errores, PDFs y tokens sin romper la interfaz; HSTS solo tras verificar HTTPS."
+    },
+    {
+      "id": "F08",
+      "severity": "Media / defensa adicional",
+      "title": "Sin análisis antimalware de archivos",
+      "control": "FIL-04",
+      "evidence": "MIME real, tamaño y validadores existen; no se identifica escaneo AV/CDR ni cuarentena.",
+      "impact": "Un archivo permitido puede contener contenido malicioso para el lector. No se subió malware ni se demuestra ejecución en servidor.",
+      "proposal": "Acordar escaneo/cuarentena o alternativa acotada para el TFM, sin enviar archivos a terceros sin decisión.",
+      "verification": "Casos sintéticos de rechazo, indisponibilidad del escáner y autorización de descarga."
+    },
+    {
+      "id": "F09",
+      "severity": "Media",
+      "title": "Límites de recursos incompletos",
+      "control": "FIL-05",
+      "evidence": "Hay límites por archivo, adjuntos y cuota Gratis; falta control temporal y los listados cargan todos los registros.",
+      "impact": "Abuso repetido puede consumir CPU, almacenamiento o memoria. No se hizo carga ni se modifica la política comercial aprobada.",
+      "proposal": "Limitar frecuencia y tamaño de consultas/paginación en servidor manteniendo cuotas contratadas.",
+      "verification": "Respuestas acotadas y límites por titular/asesoría, sin acceso cruzado ni consumo duplicado."
+    },
+    {
+      "id": "F10",
+      "severity": "Media",
+      "title": "Consumo IA sin límites completos",
+      "control": "DAT-04",
+      "evidence": "HTTP HTTPS fijo con timeout de 30 s; no se fija duración total ni tope de respuesta/presupuesto de salida.",
+      "impact": "Respuestas lentas o grandes y gasto elevado por repetición; no se llamó al proveedor durante la auditoría.",
+      "proposal": "Acotar duración total, cuerpo/respuesta y presupuesto de tokens; limitar concurrencia y mantener revisión humana.",
+      "verification": "Proveedor simulado lento, respuesta excesiva/error, sin confirmar automáticamente ni exponer documentos."
+    },
+    {
+      "id": "F11",
+      "severity": "Media",
+      "title": "Trazabilidad de seguridad incompleta",
+      "control": "OPS-03",
+      "evidence": "Monolog conserva errores según umbral; historial de negocio no sustituye eventos de autenticación y administración.",
+      "impact": "Dificulta investigar abuso y detectar intentos repetidos. Almacenamiento productivo no observado.",
+      "proposal": "Eventos estructurados con actor, resultado y correlación; evitar tokens/documentos; definir acceso, retención y alertas.",
+      "verification": "Acceso fallido, reset y cambios administrativos registrados sin secretos; permisos y retención verificados."
+    },
+    {
+      "id": "F12",
+      "severity": "Media local / exposición condicionada",
+      "title": "Servicios de desarrollo publicados en todas las interfaces",
+      "control": "CFG-05",
+      "evidence": "Docker publica web, MySQL, Mailpit y Mercure en 0.0.0.0/::; no se verificó firewall ni acceso externo.",
+      "impact": "Otros equipos podrían alcanzar servicios de desarrollo si la red/firewall lo permite. No demuestra exposición de producción ni fuga real.",
+      "proposal": "Vincular puertos dev a localhost o retirar los innecesarios; revisar por separado el despliegue productivo.",
+      "verification": "Servicios internos inaccesibles desde una segunda máquina autorizada y producción sin Mailpit/debug. CFG-05 sigue no comprobado."
+    },
+    {
+      "id": "F13",
+      "severity": "Media",
+      "title": "CI sin controles de seguridad obligatorios",
+      "control": "OPS-05",
+      "evidence": "Main tiene ruleset activo con PR, bloqueo de borrado y force-push; no hay regla required_status_checks. CI no ejecuta workflows negativos de web/API.",
+      "impact": "Cambios que rompan aislamiento podrían integrarse sin que esas comprobaciones sean obligatorias.",
+      "proposal": "Añadir integración sintética de seguridad a CI y acordar checks obligatorios. No se cambia ninguna protección en esta tarea.",
+      "verification": "PR con regresión de aislamiento falla y no puede integrarse bajo la regla acordada."
+    }
+  ],
+  "score": {
+    "counts": {
+      "cumple": 23,
+      "no cumple": 12,
+      "no comprobado": 5
+    },
+    "total": 40,
+    "not_applicable": 0,
+    "conservative": "23/40 = 57,5 %",
+    "observed": "23/35 = 65,7 %",
+    "coverage": "35/40 = 87,5 %",
+    "limitations": "Muestra propia, pesos iguales. No es probabilidad de seguridad ni autorización para producción. No comprobado no cuenta como cumplido."
+  }
+}

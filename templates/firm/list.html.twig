@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Asesorías{% endblock %}
+
+{% block body %}
+    <main class="panel wide">
+        <h1>Asesorías</h1>
+
+        {% for message in app.flashes('success') %}
+            <p class="success">{{ message }}</p>
+        {% endfor %}
+
+    {{ include('ui/_server_table.html.twig', {kind: 'firms', caption: 'Asesorías de la plataforma', headers: ['Asesoría', 'Correo del admin']}) }}
+
+
+        <a class="action" href="{{ path('platform_invitation_new', {target: 'advisory'}) }}">Invitar a una asesoría</a>
+        <a class="quiet-link" href="{{ path('firm_new') }}">Dar de alta con todos sus datos</a>
+    </main>
+{% endblock %}

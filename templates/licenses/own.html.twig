@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+{% block title %}Mi plan · Aselto{% endblock %}
+{% block body %}
+<main class="panel">
+    <p class="eyebrow">Tu cuenta en Aselto</p><h1>Mi plan</h1>
+    {% if quota %}
+        <h2>{{ quota.plan.label }}</h2>
+        <p>Mes {{ quota.month }} · Horario de Canarias</p>
+        <p><strong>{{ quota.used }} documentos incorporados</strong>{% if quota.limit is not null %} de {{ quota.limit }} disponibles este mes.{% else %}. Sin límite mensual de documentos.{% endif %}</p>
+        {% if quota.limit is not null and quota.used >= quota.limit %}<p class="warning" role="status">Has alcanzado el límite de este mes. Puedes seguir consultando y corrigiendo tus registros. Para incorporar más, espera al próximo mes o solicita un cambio de plan.</p>{% endif %}
+        <p>Los borradores y los documentos rechazados también cuentan. Borrar no devuelve cuota. Corregir un registro o adjuntar un justificante no consume otra unidad.</p>
+        <a class="action action-secondary" href="{{ path('client_document_new') }}">Añadir documento</a>
+    {% else %}
+        <h2>{{ firm.plan == 'advisory' ? 'Asesoría' : 'Gratis' }}</h2>
+        <p><strong>{{ firm.clients }} clientes vinculados con cuenta activada.</strong></p>
+        {% if firm.plan == 'advisory' %}<p>Importe mensual de referencia: <strong>{{ (firm.reference_cents / 100)|number_format(2, ',', '.') }} €</strong>, impuestos incluidos. No es una factura ni un cálculo de prorrateos. Los clientes vinculados quedan cubiertos sin límite mensual de documentos.</p>{% else %}<p>Cada cliente vinculado dispone del límite Gratis de 20 documentos por mes natural.</p>{% endif %}
+    {% endif %}
+    <h2>Cómo cambiar de plan</h2><p>La activación la realiza manualmente el superadmin de Aselto tras acordar el plan. Los cambios son inmediatos, conservan tus documentos y no reinician el consumo del mes. Esta web no realiza cobros ni suscripciones automáticas.</p>
+    <p>Los límites de formato y tamaño de los archivos se mantienen en todos los planes. Si estás vinculado a una asesoría, se aplica su cobertura; tu plan independiente se conserva para cuando trabajes por tu cuenta.</p>
+</main>
+{% endblock %}

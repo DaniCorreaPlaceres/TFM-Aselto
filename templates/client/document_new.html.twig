@@ -1,0 +1,36 @@
+{% extends 'client/_layout.html.twig' %}
+{% block client_title %}{{ entryDirection ? (entryDirection == 'ingreso' ? 'Añadir ingreso' : 'Añadir gasto') : 'Añadir documento' }}{% endblock %}
+{% block client_body %}
+    <div class="eyebrow">Tus documentos, en un solo lugar</div>
+    <h1>{{ entryDirection ? (entryDirection == 'ingreso' ? 'Añadir ingreso' : 'Añadir gasto') : 'Añadir documento' }}</h1>
+    <p>Sube una factura o un justificante. Después revisarás los datos antes de confirmarlos.</p>
+    {% if entryDirection %}<p>En la revisión dejaremos seleccionado <strong>{{ entryDirection }}</strong>. Podrás cambiarlo antes de guardar. La fecha del documento determinará su trimestre.</p><a class="quiet-link" href="{{ path('client_movements') }}">Volver a ingresos y gastos</a>{% endif %}
+    <p><a href="{{ path('own_license') }}">Consulta tu plan y el consumo de este mes</a>. Gratis permite 20 documentos por mes natural en horario de Canarias.</p>
+    <form class="document-upload" method="post" enctype="multipart/form-data" novalidate data-controller="document-upload" data-action="submit->document-upload#submit turbo:submit-end->document-upload#finished">
+        <div class="upload-zone" data-document-upload-target="zone" data-action="dragenter->document-upload#dragEnter dragover->document-upload#dragOver dragleave->document-upload#dragLeave drop->document-upload#drop">
+            <div class="upload-symbol" aria-hidden="true">{{ include('ui/_icon.html.twig', {icon: 'document'}) }}</div>
+            <h2>Tu próximo documento empieza aquí</h2>
+            <p class="upload-drag-hint">Arrastra y suelta un archivo o elige cómo añadirlo.</p>
+            <noscript><p>Selecciona el archivo o la foto en el campo inferior y pulsa Subir documento.</p></noscript>
+            <div class="upload-native">
+                <label for="file">Archivo o foto</label>
+                <input id="file" name="file" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" aria-describedby="upload-hint upload-error" data-document-upload-target="field" data-action="change->document-upload#selected">
+            </div>
+            <div class="upload-choices">
+                <button type="button" class="action-secondary" data-document-upload-target="controls" data-action="document-upload#choose">Elegir archivo</button>
+                <button type="button" class="action-secondary" data-document-upload-target="controls" data-action="document-upload#photo">Hacer una foto</button>
+            </div>
+            <p id="upload-hint" class="upload-hint">Un documento cada vez. PDF, JPEG, PNG o WebP, hasta 8 MB.</p>
+        </div>
+        <div class="upload-selection" data-document-upload-target="selection" hidden>
+            <img class="upload-preview" data-document-upload-target="preview" alt="Vista previa de la imagen seleccionada" hidden>
+            <div><strong data-document-upload-target="name"></strong><span data-document-upload-target="size"></span></div>
+            <button type="button" class="quiet" data-document-upload-target="controls" data-action="document-upload#remove">Quitar archivo</button>
+        </div>
+        <p id="upload-error" class="field-error" role="alert" data-document-upload-target="error" hidden></p>
+        <p class="upload-status" role="status" data-document-upload-target="status">Ningún documento seleccionado.</p>
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('upload_document') }}">
+        {% if entryDirection %}<input type="hidden" name="_entry_direction" value="{{ entryDirection }}">{% endif %}
+        <button type="submit" data-document-upload-target="submit">Subir documento</button>
+    </form>
+{% endblock %}

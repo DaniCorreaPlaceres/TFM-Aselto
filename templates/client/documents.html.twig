@@ -1,0 +1,11 @@
+{% extends 'client/_layout.html.twig' %}
+
+{% block client_title %}Documentos{% endblock %}
+
+{% block client_body %}
+    <h1>Documentos</h1>
+    <a class="action" href="{{ path('client_document_new') }}">Añadir documento</a>
+
+    {{ include('ui/_server_table.html.twig', {kind: 'documents', caption: 'Todos tus documentos', headers: ['Documento', 'Tipo', 'Estado'], filters: ['Subido', 'Extrayendo', 'Borrador', 'Enviado', 'Justificante pendiente', 'Validado', 'Rechazado']}) }}
+
+{% endblock %}

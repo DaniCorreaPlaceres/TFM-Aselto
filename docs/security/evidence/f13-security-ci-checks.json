@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-15",
+  "snapshot_stage": "Initial implementation before PR #59; pending items below reflect that stage",
+  "follow_up_evidence": "f13-merge-protection.json records successful remote execution, authorized active protections and the blocked temporary PR",
+  "branch": "feature/security-ci-checks",
+  "base": "ce4eab6",
+  "local_environment": "Isolated copy inside Docker, PHP 8.5.12, MySQL 8.4, new aselto_f13_security_ci database",
+  "github_job": {"name": "Seguridad web y API", "php": "8.4", "mysql": "8.4", "remote_execution": "pending PR publication", "job_timeout_minutes": 25, "workflow_timeout_seconds": 300, "continue_on_error": false},
+  "final_local_suite": {
+    "result": "passed",
+    "workflow_count": 19,
+    "empty_database_checked_before_and_after_each_workflow": true,
+    "checks": {"api-documents": 108, "api-authentication": 74, "api-communication": 79, "api-quarters": 60, "document-upload": 43, "messaging": 37, "quarter": 43, "platform-firms": 70, "platform-independent-clients": 55, "platform-invitations": 118, "canonical-account-links": 17, "authentication-rate-limits": 45, "password-policy": 33, "session-expiration": 78, "logout-csrf": 47, "browser-security-headers": 149, "resource-limits": 56, "security-event-logging": 29},
+    "authentication-limit-storage": {"workers": 6, "attempts": 30, "accepted": 5, "limited": 25}
+  },
+  "mutation": {"isolated_file": "src/Documento/Application/OpenClientDocument.php", "change": "Temporarily remove client ownership condition in isolated copy only", "workflow": "api-documents", "exit_code": 1, "failure": "Another client must not read an original or its metadata.", "restored_and_hash_compared": true, "normal_business_code_changed": false, "full_suite_after_restore": "passed"},
+  "guards": {"missing_opt_in": "rejected with exit 1 before workflows", "wrong_database_name": "rejected with exit 1 before connection", "unknown_selection": "rejected with exit 1", "nonempty_database": "rejected with exit 1; synthetic row removed"},
+  "other_checks": {"phpunit_tests": 449, "phpunit_assertions": 1286, "phpstan": "passed, runner included", "yaml": "passed", "php_cs_fixer_php84": {"files": 405, "result": "passed"}},
+  "initial_issues": [
+    "API communication validation reached HTTP 429; only its test-owned ArrayAdapter is now cleared between independent requests. The resource-limit workflow still tests actual budgets.",
+    "Quarter locking test required a demo client. It now commits its own synthetic lock fixture and removes it explicitly after the concurrency check.",
+    "Intermittent JWT failure diagnosed as local clock rollback: token iat 1794782016, validation time()/DateTime 1794782014. Strict rejection preserved; no leeway or retry added. Local time stability is a repeatability limitation."
+  ],
+  "remote_rules_read_only": {"main_ruleset_id": 26658888, "required_status_checks_present": false, "develop_classic_protection": "404 not protected", "existing_checks_app": {"id": 15368, "slug": "github-actions"}, "rules_modified": false},
+  "pending": ["Remote PHP 8.4 job after PR publication", "Explicit approval of required-check settings", "Applying approved protections and verifying failed checks block merge", "Clock stability if temporal failures recur on a runner"],
+  "external_mail_or_ai": false,
+  "temporary_cleanup": "Business tables verified empty; task database and its grant removed, isolated source copy deleted",
+  "historical_audit_score": "unchanged"
+}

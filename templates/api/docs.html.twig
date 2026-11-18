@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Documentación de la API · Aselto</title>
+    <link rel="stylesheet" href="{{ asset('swagger-ui/swagger-ui.css') }}">
+    <script src="{{ asset('swagger-ui/swagger-ui-bundle.js') }}" defer></script>
+    <script src="{{ asset('swagger-ui/init.js') }}" defer></script>
+</head>
+<body>
+    <header>
+        <h1>API de Aselto</h1>
+        <p>Ejecuta el acceso para obtener un token y pégalo en «Authorize», sin el prefijo Bearer. Las operaciones actúan sobre los datos del entorno actual.</p>
+        <p><a href="{{ path('api_docs_contract') }}">Descargar contrato OpenAPI</a>. El token se pierde al recargar esta página.</p>
+    </header>
+    <div id="swagger-ui" data-contract-url="{{ path('api_docs_contract') }}"></div>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<label for="tax-id">NIF</label>
+<input id="tax-id" name="taxId" type="text" value="{{ taxId }}" required maxlength="16" autocapitalize="characters">
+
+<label for="phone">Teléfono</label>
+<input id="phone" name="phone" type="tel" value="{{ phone }}" required maxlength="16" autocomplete="tel">
+
+<label for="street">Dirección</label>
+<input id="street" name="street" type="text" value="{{ street }}" required maxlength="120" autocomplete="street-address">
+
+<label for="postal-code">Código postal</label>
+<input id="postal-code" name="postalCode" type="text" inputmode="numeric" value="{{ postalCode }}" required maxlength="5" autocomplete="postal-code">
+
+<label for="municipality">Municipio</label>
+<input id="municipality" name="municipality" type="text" value="{{ municipality }}" required maxlength="80">
+
+<label for="province">Provincia</label>
+<select id="province" name="province" required>
+    <option value="">Elige una provincia</option>
+    {% for name in provinces %}
+        <option value="{{ name }}" {% if province == name %}selected{% endif %}>{{ name }}</option>
+    {% endfor %}
+</select>

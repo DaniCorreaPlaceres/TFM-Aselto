@@ -1,0 +1,11 @@
+.commercial-page .pricing-page {
+  .pricing-heading { padding-block: 4rem 2rem; max-width: 50rem; } h1 { font-size: clamp(2.3rem,4.5vw,4rem); }
+  .pricing-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 1.5rem; padding-bottom: 3rem; }
+  .pricing-card { display: flex; flex-direction: column; align-items: flex-start; padding: 1.75rem; border: 1px solid #bacdd2; border-radius: 1.25rem; background: white; min-width: 0; }
+  .pricing-card h2 { margin-top: 0; font-size: 1.75rem; } .pricing-featured { border: 2px solid #006b70; background: #edf5f5; }
+  .pricing-amount { font-size: clamp(2.3rem,3.5vw,3rem); color: #14243b; font-weight: 650; line-height: 1.2; }
+  .pricing-amount span { display: block; font-size: 1rem; font-weight: 500; color: #475569; margin-top: .5rem; }
+  .pricing-card ul { padding-left: 1.25rem; display: grid; gap: .75rem; margin-bottom: 2rem; } .pricing-card .action { margin-top: auto; }
+  .pricing-details { max-width: 54rem; padding-bottom: 4rem; } .pricing-details h2 { font-size: 1.6rem; }
+  @media(max-width:900px) { .pricing-grid { grid-template-columns: 1fr; } }
+}

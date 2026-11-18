@@ -1,0 +1,77 @@
+doctrine:
+    dbal:
+        url: '%env(resolve:DATABASE_URL)%'
+
+        # IMPORTANT: You MUST configure your server version,
+        # either here or in the DATABASE_URL env var (see .env file)
+        #server_version: '16'
+
+        profiling_collect_backtrace: '%kernel.debug%'
+    orm:
+        validate_xml_mapping: true
+        naming_strategy: doctrine.orm.naming_strategy.underscore
+        identity_generation_preferences:
+            Doctrine\DBAL\Platforms\PostgreSQLPlatform: identity
+        auto_mapping: true
+        mappings:
+            App:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Entity'
+                prefix: 'App\Entity'
+            Identidad:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Identidad/Infrastructure/Persistence'
+                prefix: 'App\Identidad\Infrastructure\Persistence'
+            Asesoria:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Asesoria/Infrastructure/Persistence'
+                prefix: 'App\Asesoria\Infrastructure\Persistence'
+            Cliente:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Cliente/Infrastructure/Persistence'
+                prefix: 'App\Cliente\Infrastructure\Persistence'
+            Documento:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Documento/Infrastructure/Persistence'
+                prefix: 'App\Documento\Infrastructure\Persistence'
+
+            Finanzas:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Finanzas/Infrastructure/Persistence'
+                prefix: 'App\Finanzas\Infrastructure\Persistence'
+
+            Comunicacion:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Comunicacion/Infrastructure/Persistence'
+                prefix: 'App\Comunicacion\Infrastructure\Persistence'
+
+when@test:
+    doctrine:
+        dbal:
+            # "TEST_TOKEN" is typically set by ParaTest
+            dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+
+when@prod:
+    doctrine:
+        orm:
+            query_cache_driver:
+                type: pool
+                pool: doctrine.system_cache_pool
+            result_cache_driver:
+                type: pool
+                pool: doctrine.result_cache_pool
+
+    framework:
+        cache:
+            pools:
+                doctrine.result_cache_pool:
+                    adapter: cache.app
+                doctrine.system_cache_pool:
+                    adapter: cache.system

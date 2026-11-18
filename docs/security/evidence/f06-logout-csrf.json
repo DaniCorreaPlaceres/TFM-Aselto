@@ -1,0 +1,59 @@
+{
+  "recorded_at": "2026-11-15",
+  "base_commit": "a866b17",
+  "branch": "feature/logout-csrf",
+  "environment": "Docker local; kernel y autenticadores reales con MockArraySessionStorage y contadores de prueba aislados.",
+  "configuration": {
+    "enable_csrf": true,
+    "csrf_parameter": "_csrf_token",
+    "csrf_token_id": "logout",
+    "methods": [
+      "POST"
+    ],
+    "generated_route": "_logout_main",
+    "manual_route": "logout"
+  },
+  "verification": {
+    "http_workflow": {
+      "command": "php tests/Integration/logout-csrf-workflow.php",
+      "checks": 45,
+      "passed": true,
+      "coverage": [
+        "ausente/inválido/tipo array/otra sesión/otro propósito reciben 403",
+        "intento rechazado conserva identificador y acceso privado",
+        "rechazo no limpia cookie de suscripción",
+        "GET/HEAD/OPTIONS/PUT/PATCH/DELETE reciben 405 incluso con token válido",
+        "ruta codificada no evade CSRF",
+        "token original sigue válido tras intentos fallidos",
+        "salida válida invalida sesión/tiempos/identificador y limpia cookie",
+        "token previo no autoriza salida después de reentrar",
+        "JWT válido sigue funcionando tras salida web",
+        "sesión ya caducada se invalida antes del chequeo de logout conforme a F05",
+        "identidades originales conservadas tras rollback"
+      ]
+    },
+    "phpunit": {
+      "tests": 404,
+      "assertions": 1042,
+      "passed": true
+    },
+    "regressions": {
+      "live_quarter": 38,
+      "session_expiration": 78,
+      "api_authentication": 74
+    },
+    "phpstan": true,
+    "container": true,
+    "yaml_files": 23,
+    "formatter": true
+  },
+  "additional_finding": "El importador security.route_loader.logout registraba _logout_main con ANY pese al controlador POST; el import ahora restringe métodos a POST.",
+  "external_mail_sent": false,
+  "external_ai_called": false,
+  "limitations": [
+    "Sin navegador real ni despliegue Hostinger comprobados.",
+    "Pruebas fuerzan peticiones HTTP sintéticas con sesión vigente; no se afirma haber ejecutado un ataque entre sitios reales.",
+    "Se usa el lector nativo de parámetros de Symfony; el formulario utiliza el cuerpo y GET se rechaza independientemente del token.",
+    "No cambia la caducidad de F05 ni el contrato JWT; la auditoría histórica permanece intacta."
+  ]
+}

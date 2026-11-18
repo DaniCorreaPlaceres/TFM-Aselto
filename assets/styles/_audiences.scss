@@ -1,0 +1,15 @@
+.commercial-page .audience-page {
+  .audience-hero { padding: clamp(3rem, 7vw, 6rem) 0; max-width: 58rem; }
+  h1 { font-size: clamp(2.3rem, 5vw, 4.5rem); line-height: 1.1; max-width: 18ch; }
+  .audience-intro { font-size: 1.25rem; max-width: 48ch; margin-top: 1.75rem; }
+  h2 { font-size: clamp(1.6rem, 3vw, 2.25rem); }
+  .audience-benefits { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 1.5rem; margin-block: 2rem 4rem; }
+  .audience-benefits article { background: white; border: 1px solid #ccdadd; padding: 1.75rem; border-radius: 1rem; }
+  .audience-benefits h3 { font-size: 1.4rem; margin-block: 1rem; }
+  .audience-example { padding: clamp(1.5rem,4vw,3rem); background: #142f3b; border-radius: 1.25rem; margin-bottom: 4rem; }
+  .audience-example h2, .audience-example p { color: white; }
+  .audience-example .home-kicker { color: #b4e1dc; }
+  .audience-example .muted { font-size: 1rem; color: #dae6ea; margin-bottom: 0; }
+  .audience-start { padding-bottom: 4rem; max-width: 52rem; }
+  @media(max-width:800px) { .audience-benefits { grid-template-columns: 1fr; } }
+}

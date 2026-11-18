@@ -1,0 +1,26 @@
+{% extends 'communication/_layout.html.twig' %}
+{% block communication_body %}
+    <h1>{{ conversation.subject }}</h1>
+    <p>{{ conversation.client }}{% if conversation.request %} · {{ conversation.resolvedAt ? 'Solicitud resuelta' : 'Solicitud pendiente' }}{% endif %}</p>
+    <p><a href="{{ path('messages') }}">Volver a mensajes</a></p>
+    {% if conversation.documentId %}<p><a href="{{ path(clientView ? 'client_document' : 'firm_document', {id: conversation.documentId}) }}">Ver documento relacionado</a></p>{% endif %}
+    {% if conversation.resolvedAt %}<p>Resuelta por {{ conversation.resolvedBy ?: 'Autor no disponible' }} el {{ conversation.resolvedAt|date('d/m/Y H:i T', 'Atlantic/Canary') }}.</p>{% endif %}
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    <ol class="message-history">
+    {% for message in conversation.messages %}<li><article>
+        <h2>{{ message.author }}</h2><p><time datetime="{{ message.at|date('c') }}">{{ message.at|date('d/m/Y H:i T', 'Atlantic/Canary') }}</time></p>
+        <p class="message-text">{{ message.text }}</p>
+        {% if message.files %}<ul>{% for file in message.files %}<li><a href="{{ path('message_attachment', {id: conversation.id, fileId: file.id}) }}">Descargar {{ file.name }}</a></li>{% endfor %}</ul>{% endif %}
+    </article></li>{% endfor %}</ol>
+    <h2>Responder</h2>
+    <form method="post" enctype="multipart/form-data">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('thread_' ~ conversation.id) }}">
+        <label for="text">Mensaje (obligatorio)</label><textarea id="text" name="text" rows="6" maxlength="4000" required>{{ text }}</textarea>
+        {{ include('communication/_attachments.html.twig') }}
+        {% if error %}<p>Vuelve a seleccionar los archivos si quieres adjuntarlos.</p>{% endif %}
+        <button type="submit" name="intent" value="reply">Enviar respuesta</button>
+    </form>
+    {% if staff and conversation.request and not conversation.resolvedAt %}
+        <form method="post"><input type="hidden" name="_csrf_token" value="{{ csrf_token('thread_' ~ conversation.id) }}"><p>Responder no resuelve la solicitud automáticamente. Márcala cuando hayas comprobado lo solicitado.</p><button class="quiet" type="submit" name="intent" value="resolve">Marcar como resuelta</button></form>
+    {% endif %}
+{% endblock %}

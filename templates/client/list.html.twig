@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Clientes{% endblock %}
+
+{% block body %}
+    <main class="panel wide">
+        <h1>{{ unlinked ? 'Clientes sin asesoría' : 'Clientes' }}</h1>
+        {% if unlinked %}
+            <p>Sin asesoría.</p>
+        {% endif %}
+
+        {% for message in app.flashes('success') %}
+            <p class="success">{{ message }}</p>
+        {% endfor %}
+
+    {{ include('ui/_server_table.html.twig', {kind: unlinked ? 'independent' : 'clients', caption: 'Clientes de tu ámbito', headers: ['Nombre', 'Tipo', 'Correo'], filters: ['Autónomo', 'Sociedad']}) }}
+
+
+        {% if canCreate %}
+            {% if unlinked %}<p><a class="action" href="{{ path('platform_invitation_new', {target: 'self_employed'}) }}">Invitar a un autónomo</a> <a class="action" href="{{ path('platform_invitation_new', {target: 'company'}) }}">Invitar a una empresa</a></p>{% endif %}
+            <h2>Dar de alta un cliente</h2>
+            <p>Le enviaremos un correo para confirmar su dirección y crear su contraseña.</p>
+
+            {% if error %}
+                <p class="error" role="alert">{{ error }}</p>
+            {% endif %}
+
+            {{ include('client/_form.html.twig', {csrf: 'create_client', submit: 'Guardar'}) }}
+        {% endif %}
+    </main>
+{% endblock %}

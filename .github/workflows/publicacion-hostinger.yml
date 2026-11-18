@@ -1,0 +1,100 @@
+name: Paquete y publicación Hostinger
+
+on:
+  workflow_call:
+    inputs:
+      deploy:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Paquete de producción
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      APP_ENV: prod
+      APP_DEBUG: '0'
+      APP_SECRET: synthetic-package-build-only
+      DATABASE_URL: 'mysql://unused:unused@127.0.0.1:1/unavailable?serverVersion=11.8.9-MariaDB&charset=utf8mb4'
+      MAILER_DSN: 'null://null'
+      OPENAI_API_KEY: ''
+      SECURITY_ALERT_EMAIL_ENABLED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: intl, mbstring, zip, bcmath, dom, xml, openssl, sodium
+          coverage: none
+      - run: composer install --no-dev --no-interaction --prefer-dist --no-scripts --optimize-autoloader
+      - run: composer check-platform-reqs --no-dev
+      - run: |
+          php bin/console importmap:install --env=prod --no-debug
+          php bin/console sass:build --env=prod --no-debug
+          php bin/console asset-map:compile --env=prod --no-debug
+          mkdir dist
+          php bin/deploy/build.php "$GITHUB_SHA" "$PWD/dist"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aselto-${{ github.sha }}
+          path: dist/*
+          retention-days: 14
+          if-no-files-found: error
+
+  deploy:
+    name: Publicar en Hostinger
+    needs: build
+    if: inputs.deploy && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    concurrency:
+      group: hostinger-production
+      cancel-in-progress: false
+    env:
+      SSH_HOST: ${{ vars.HOSTINGER_SSH_HOST }}
+      SSH_PORT: ${{ vars.HOSTINGER_SSH_PORT }}
+      SSH_USER: ${{ vars.HOSTINGER_SSH_USER }}
+      DOMAIN_ROOT: /home/u842582284/domains/aselto.com
+      SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+      SSH_KNOWN_HOSTS: ${{ secrets.HOSTINGER_SSH_KNOWN_HOSTS }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: aselto-${{ github.sha }}
+          path: dist
+      - name: Comprobar que el commit sigue siendo main
+        run: |
+          current=$(git ls-remote origin refs/heads/main | cut -f1)
+          test "$current" = "$GITHUB_SHA"
+      - name: Transferir y desplegar por SSH verificado
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          umask 077
+          [[ "$SSH_HOST" =~ ^[a-zA-Z0-9.-]+$ && "$SSH_PORT" =~ ^[0-9]{1,5}$ && "$SSH_USER" =~ ^u[0-9]+$ ]]
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+          mkdir -p "$RUNNER_TEMP/aselto-ssh"
+          key="$RUNNER_TEMP/aselto-ssh/key"
+          hosts="$RUNNER_TEMP/aselto-ssh/known_hosts"
+          trap 'rm -f "$key" "$hosts"' EXIT
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$hosts"
+          options=(-i "$key" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$hosts" -o ConnectTimeout=20)
+          package="aselto-$GITHUB_SHA.zip"
+          (cd dist && sha256sum -c "$package.sha256")
+          checksum=$(cut -d' ' -f1 "dist/$package.sha256")
+          [[ "$GITHUB_SHA" =~ ^[a-f0-9]{40}$ && "$checksum" =~ ^[a-f0-9]{64}$ ]]
+          target="$DOMAIN_ROOT/private/incoming/$GITHUB_SHA"
+          ssh -p "$SSH_PORT" "${options[@]}" "$SSH_USER@$SSH_HOST" "umask 077; mkdir -m 700 '$target'"
+          scp -P "$SSH_PORT" "${options[@]}" "dist/$package" "$SSH_USER@$SSH_HOST:$target/package.zip"
+          scp -P "$SSH_PORT" "${options[@]}" bin/deploy/prepare.php bin/deploy/hostinger.sh "$SSH_USER@$SSH_HOST:$target/"
+          current=$(git ls-remote origin refs/heads/main | cut -f1)
+          test "$current" = "$GITHUB_SHA"
+          ssh -p "$SSH_PORT" "${options[@]}" "$SSH_USER@$SSH_HOST" "bash '$target/hostinger.sh' '$DOMAIN_ROOT' '$GITHUB_SHA' '$checksum'"

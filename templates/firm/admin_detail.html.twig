@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+{% block title %}Administrar asesoría{% endblock %}
+{% block body %}
+<main class="panel wide">
+    <a class="quiet-link" href="{{ path('firms') }}">Volver a asesorías</a>
+    <h1>{{ view.firm.name }}</h1>
+    <p>Datos administrativos de la asesoría. Esta ficha no da acceso a su actividad económica ni a la documentación de sus clientes.</p>
+    {% for message in app.flashes('success') %}<p class="success" role="status">{{ message }}</p>{% endfor %}
+    {% for message in app.flashes('error') %}<p class="error" role="alert">{{ message }}</p>{% endfor %}
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    <h2>Datos principales</h2>
+    <form method="post">
+        <label for="name">Nombre de la asesoría</label>
+        <input id="name" name="name" value="{{ name }}" maxlength="120" required>
+        {{ include('_fiscal_contact.html.twig') }}
+        <input type="hidden" name="action" value="details">
+        <input type="hidden" name="fingerprint" value="{{ fingerprint }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('administer_firm_' ~ view.firm.id) }}">
+        <button type="submit">Guardar datos</button>
+    </form>
+    <h2>Correo del admin</h2>
+    {% if view.admin %}
+        <p>Correo actual: <strong>{{ view.admin.email }}</strong><br>{{ view.admin.activated ? 'Cuenta activada' : 'Pendiente de crear su contraseña' }}</p>
+        {% if view.emailChange and view.emailChange.confirmedAt is null %}
+            <p>Cambio {{ view.emailChange.expiresAt > now ? 'pendiente' : 'caducado' }} a <strong>{{ view.emailChange.newEmail }}</strong>. Caducidad: {{ view.emailChange.expiresAt|date('d/m/Y H:i', 'Atlantic/Canary') }} (Canarias).</p>
+            <form method="post"><input type="hidden" name="action" value="cancel"><input type="hidden" name="fingerprint" value="{{ fingerprint }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('administer_firm_' ~ view.firm.id) }}"><button class="quiet" type="submit">Cancelar cambio pendiente</button></form>
+        {% endif %}
+        {% if view.emailChange and view.emailChange.confirmedAt is not null and not view.emailChange.noticeSent %}
+            <p class="error">El cambio se confirmó, pero queda pendiente el aviso al correo antiguo. Envíalo antes de solicitar otro cambio.</p>
+            <form method="post"><input type="hidden" name="action" value="notice"><input type="hidden" name="_csrf_token" value="{{ csrf_token('administer_firm_' ~ view.firm.id) }}"><button type="submit">Reenviar aviso de seguridad</button></form>
+        {% else %}
+            <p>El correo actual seguirá vigente hasta que se confirme el nuevo. Al confirmar se cerrarán sus accesos anteriores, se invalidarán sus enlaces de activación y recuperación y se avisará al correo antiguo. La cuenta, contraseña y permisos se conservan.</p>
+            <form method="post">
+                <label for="email">Nuevo correo del admin</label>
+                <input id="email" name="email" type="email" value="{{ email }}" maxlength="180" required autocomplete="off">
+                <input type="hidden" name="action" value="email"><input type="hidden" name="fingerprint" value="{{ fingerprint }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('administer_firm_' ~ view.firm.id) }}">
+                <button type="submit">Enviar confirmación al nuevo correo</button>
+            </form>
+            <p class="muted">El enlace dura 24 horas. Volver a enviarlo sustituye el anterior; la fecha de solicitud no acredita entrega en el buzón.</p>
+        {% endif %}
+    {% else %}
+        <p>No se ha encontrado un único admin para esta asesoría. No se puede cambiar su correo desde esta ficha.</p>
+    {% endif %}
+</main>
+{% endblock %}

@@ -1,0 +1,1 @@
+{% if row.status in ['Pendiente', 'Caducada'] %}<form method="post" action="{{ path('platform_invitation_resend', {id: row.id}) }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('resend_invitation_' ~ row.id) }}"><button class="quiet" type="submit" aria-label="Reenviar invitación a {{ row.email }}">Reenviar</button></form>{% else %}Sin acciones{% endif %}

@@ -1,0 +1,17 @@
+{% if history is not empty %}
+    <details class="review-history" {% if document.statusCode == 'rejected' %}open{% endif %}>
+        <summary>Historial de revisión</summary>
+        <ol>
+            {% for event in history %}
+                <li>
+                    <strong>{{ event.action }}</strong>
+                    <p>{{ event.author }} · {{ event.date }}</p>
+                    {% if event.reason %}<p class="review-reason">{{ event.reason }}</p>{% endif %}
+                    {% if event.changes is not empty %}
+                        <ul>{% for change in event.changes %}<li>{{ change }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+    </details>
+{% endif %}

@@ -1,0 +1,6 @@
+# Recursos visuales locales
+
+- DataTables 3.1.5, Buttons 4.1.3, Responsive 4.1.1, integración Bootstrap 5, jQuery 3.7.0 y JSZip 3.10.1. Bundle descargado del constructor oficial: https://cdn.datatables.net/v/bs5/jq-3.7.0/jszip-3.10.1/dt-3.1.5/b-4.1.3/b-html5-4.1.3/r-4.1.1/datatables.min.js (y .css). Cabeceras de copyright y licencia conservadas. Licencias MIT; JSZip permite elegir MIT. https://datatables.net/license/
+- PDF.js 6.5.438, paquete oficial pdfjs-dist de npm: https://registry.npmjs.org/pdfjs-dist/6.5.438. Licencia Apache 2.0 incluida en pdfjs/LICENSE. Se incluyen build/pdf.min.mjs y pdf.worker.min.mjs renombrados a .js para servirlos con MIME JavaScript, además de standard_fonts, cmaps y wasm. El navegador carga la biblioteca solo en vistas con PDF; los archivos privados se obtienen desde sus rutas autorizadas.
+
+Para actualizar, obtener una distribución oficial completa y coherente, conservar licencias, comprobar búsqueda, navegación Turbo, Excel/CSV y renderizado PDF. Los archivos se sirven desde el propio proyecto; las operaciones no envían datos fiscales a CDN externos.

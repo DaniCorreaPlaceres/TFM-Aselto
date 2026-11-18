@@ -1,0 +1,21 @@
+{
+    "recorded_at": "2026-11-14T18:36:46+00:00",
+    "environment": "local-dev",
+    "external_mail_sent": false,
+    "external_ai_called": false,
+    "jwt_before_password_reset": 200,
+    "jwt_after_password_reset": 200,
+    "old_password_after_reset": 401,
+    "new_password_after_reset": 200,
+    "reset_token_reuse_rejected": true,
+    "expired_reset_token_rejected": true,
+    "common_eight_character_password_accepted": true,
+    "token_stored_only_as_hash": true,
+    "reset_link_host_from_request_context": "audit-invalid.example.test",
+    "logout_without_csrf_status": 302,
+    "logout_missing_csrf_rejected": false,
+    "reflected_form_payload_escaped": true,
+    "identities_unchanged_after_rollback": true,
+    "production_mode_missing_route_status": 404,
+    "production_mode_error_without_stack_trace": true
+}
