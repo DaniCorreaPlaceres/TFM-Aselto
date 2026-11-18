@@ -227,6 +227,8 @@ La actualización preserva `.env.local`, las claves, el almacenamiento y el esta
 
 Las migraciones expresan cambios de estructura de datos mediante código versionado. `cache:clear` recompila el estado de Symfony para las nuevas clases y parámetros; no borra facturas ni equivale a vaciar OPcache de PHP web. La política de OPcache y los recursos del hosting deben ser compatibles con la activación de código nuevo.
 
+Decisión posterior del proyecto: ante la ausencia de valores efectivos confirmados de OPcache, el usuario mantiene el despliegue sobre las rutas existentes y acepta suponer que borrar la caché del sitio en Hostinger renueva OPcache. No se ha demostrado esa equivalencia. La acción en hPanel permanece manual y debe acompañarse de una comprobación funcional del código nuevo; el workflow no la automatiza. La propuesta de releases separadas no se adopta. Para el TFM se registra como limitación operativa aceptada, diferenciando lo supuesto de lo comprobado. [Ficha de decisión](../sdd/hostinger-opcache-assumption.md).
+
 El instalador restaura el `.htaccess` público con permiso 0644 y comprueba salud JSON, acceso 200 y API anónima 401. La publicación no es atómica entre todas las carpetas: existe una pausa y una ventana de comprobación después de reabrir.
 
 ### Qué ocurre si hay un error
