@@ -46,7 +46,7 @@ La instalación debe estar sana, con `.env.local` propio, JWT y var persistentes
 
 Comprobar en hPanel cuota/inodos y espacio para paquete, extracción y copias; `df` de un servidor compartido no acredita cuota de la cuenta. No se automatiza todavía la eliminación de copias ni de incoming. Establecer una retención y revisar espacio antes de habilitar uso continuado. La copia externa sigue aplazada y una copia en la misma cuenta no cubre pérdida de la cuenta.
 
-Comprobar el comportamiento de OPcache web: validación de cambios de archivos habilitada y política de actualización compatible con el despliegue. `cache:clear` de Symfony no equivale a vaciar OPcache de los procesos web. Si el proveedor exige recargar PHP para activar código, concretar y ensayar esa operación antes de habilitar publicación automática. No crear un endpoint público para vaciar OPcache.
+Decisión posterior sobre OPcache: el proveedor confirma PHP web 8.4.27 y OPcache activo, pero no expone ni confirma validate_timestamps/revalidate_freq ni un reinicio del pool. El usuario decide mantener este instalador y asumir operativamente que **borrar la caché del sitio desde hPanel** renueva también OPcache. Es una suposición aceptada, no una invalidación comprobada. No se adapta a releases separadas. El operador realizará esa acción manual tras publicar y comprobará el comportamiento esperado del código nuevo; un 200 de salud no demuestra por sí solo su versión. `cache:clear` de Symfony sigue sin equivaler a vaciar OPcache web. El workflow no ejecuta la acción de hPanel ni añade endpoints de invalidación. [Decisión y límites](../sdd/hostinger-opcache-assumption.md).
 
 ## 2. Preparar el bloqueo en la instalación actual
 
@@ -78,7 +78,7 @@ En el entorno production, crear:
 - Secreto `HOSTINGER_SSH_PRIVATE_KEY`: clave privada dedicada, completa y con saltos de línea.
 - Secreto `HOSTINGER_SSH_KNOWN_HOSTS`: entrada del servidor contrastada.
 
-En las variables del **repositorio**, crear `HOSTINGER_DEPLOY_ENABLED` inicialmente como `false`. Cambiarla a `true` solo cuando el bloqueo, permisos, clave, huella, cuota/retención y OPcache estén preparados y revisados. Esta variable no es una credencial. La activación se hace por el usuario; no se han creado secretos, entornos ni permisos remotos desde el asistente.
+En las variables del **repositorio**, crear `HOSTINGER_DEPLOY_ENABLED` inicialmente como `false`. Cambiarla a `true` tras revisar bloqueo, permisos, clave, huella, cuota/retención y la decisión operativa sobre OPcache anterior. La variable no es una credencial. Su activación requiere una decisión expresa para la primera publicación; aceptar la suposición sobre caché no activa el despliegue.
 
 El workflow pasa secretos al reutilizable, pero solo el job de despliegue accede al entorno production. Las credenciales de base, SMTP, IA y JWT **permanecen en Hostinger**; no se requieren en GitHub. El job de empaquetado utiliza valores sintéticos y no incluye caché ni configuración privada.
 
