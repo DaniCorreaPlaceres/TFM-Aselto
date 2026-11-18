@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-16",
+  "base": "1912def",
+  "target_reported_by_user": {"plan": "Cloud Startup", "ssh": true, "domain": "aselto.com", "php": "8.4", "database": "11.8.9-MariaDB-log", "php_cli_after_upgrade": "not independently confirmed"},
+  "hosting_accessed_or_modified": false,
+  "local_database": {"image": "mariadb:11.8.9", "digest": "sha256:d36f18d65a0459510b8b0f643b226a6d299e3206486e2b64ff20754a6d291707", "reported_version": "11.8.9-MariaDB-ubu2404", "published_ports": false, "storage": "disposable tmpfs", "normal_mysql_database_used": false, "server_version_parameter": "11.8.9-MariaDB"},
+  "migration_check": {"migrations": 19, "latest": "DoctrineMigrations\\Version20261114050000", "schema_validation": "passed", "sql_or_mapping_changes_required": false},
+  "local_platform": {"doctrine": "Doctrine\\DBAL\\Platforms\\MariaDB110700Platform", "sql_mode": "STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION", "database_charset": "utf8mb4"},
+  "security_workflows": {"count": 19, "result": "passed", "api_documents": 108, "api_authentication": 74, "api_communication": 79, "api_quarters": 60, "document_upload": 43, "messaging": 37, "quarter_manual": 45, "platform_firms": 70, "independent_clients": 55, "platform_invitations": 118, "canonical_links": 17, "authentication_limits": 45, "limiter_storage": "6 workers, 30 attempts, 5 accepted, 25 limited", "password_policy": 33, "session_expiration": 78, "logout": 47, "headers": 149, "resource_limits": 56, "security_logging": 29},
+  "production_package": {"php": "8.5.12 local", "composer_no_dev": "passed, 44 packages removed in isolated copy", "platform_requirements": "passed for local runtime", "jwt_keys": "new synthetic keys only", "sass": "passed", "compiled_assets": 34, "cache": "prod rebuilt", "version": "1.0.0-dev", "phpunit_class_available": false},
+  "production_kernel_smoke": {"health": 200, "home": 200, "swagger": 200, "unauthenticated_api": 401, "synthetic_form_login": 302, "client_home": "200, manual mode", "quarter": "200, manual mode", "subscription": 404},
+  "public_directory_probe": {"server": "temporary local PHP server, stopped after probe", "layout": "public_html with separate private/aselto", "adapted_front_controller": "passed", "health": 200, "home": 200, "compiled_css": 200, "env": 404, "vendor": 404, "jwt_private_key": 404, "storage_path": 404, "apache_litespeed_htaccess": "not tested by PHP built-in server"},
+  "restore_probe": {"data": "synthetic demo only", "destination": "separate disposable MariaDB database and filesystem directory", "dump_import": "passed", "tables_compared": 13, "rows_compared": 91, "restored_files_and_keys_hashed": 39, "restored_document_originals_read": 33, "result": "all compared values and file hashes match"},
+  "external_mail_or_ai": false,
+  "cleanup": "Dedicated MariaDB container and its tmpfs removed after identity verification; task-owned temporary application/package/restore copies removed; normal MySQL untouched",
+  "pending_hosting_checks": ["Actual PHP CLI version/extensions and PHP web options", "Real root/private paths and file permissions", "LiteSpeed rewrite and headers", "TLS/proxy/cookies/cache", "Actual database privileges/options", "SMTP and authorized test delivery", "Cron and operational monitoring", "Restoration on a hosting-equivalent staging environment", "Capacity and measured recovery objectives"],
+  "scope_limit": "Local compatibility evidence, not a deployment or full guarantee about Hostinger configuration; no CI/CD implemented"
+}
