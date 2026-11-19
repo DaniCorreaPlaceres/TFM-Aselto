@@ -33,7 +33,7 @@ final class FirmInboxController extends AbstractController
     {
         $user = $this->actor();
         $filter = (string) $request->query->get('status', 'submitted');
-        if (!in_array($filter, ['submitted', 'rejected', 'validated'], true)) {
+        if (!in_array($filter, ['submitted', 'rejected', 'validated', 'personal'], true)) {
             $filter = 'submitted';
         }
         $cells = $tables->initial($user->id(), 'inbox', $filter);
@@ -105,7 +105,8 @@ final class FirmInboxController extends AbstractController
             }
         }
         $view = $form->viewDocument($document, $input, $withholdingPolicy->allows($document->clientUserId()));
-        $view['editable'] = DocumentStatus::Submitted === $document->status() && null === $document->pendingRequest();
+        $view['personalHistory'] = null === $document->firmId();
+        $view['editable'] = null !== $document->firmId() && DocumentStatus::Submitted === $document->status() && null === $document->pendingRequest();
 
         return $this->render('firm/document.html.twig', ['document' => $view, 'clientName' => $entry->clientName, 'history' => $presenter->history($document), 'supportingFiles' => $presenter->files($document), 'fieldErrors' => $fieldErrors, 'error' => $error, 'reason' => $reason, 'reviewer' => true, 'csrfId' => 'review_document_'.$id]);
     }

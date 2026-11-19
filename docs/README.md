@@ -28,6 +28,7 @@ Toda la documentación del proyecto vive en esta carpeta, en la raíz del reposi
 - [Tareas.md](Tareas.md). Lista de tareas del proyecto, sin el detalle de cada una.
 - [versioning.md](versioning.md). Consulta de versión del producto, criterio SemVer y preparación de la etiqueta final de main.
 - [manual-quarter-refresh.md](manual-quarter-refresh.md). Actualización manual de cifras en producción sin hub, con modo en vivo conservado para desarrollo.
+- [client-firm-linking.md](client-firm-linking.md). Vinculación consentida de cuentas existentes, permisos, histórico personal y pruebas.
 - [deployment/hostinger.md](deployment/hostinger.md). Guía para Cloud Startup, compatibilidad MariaDB y enlace al estado de la instalación real.
 - [deployment/hostinger-tfm.md](deployment/hostinger-tfm.md). Primera instalación real del 18/11/2026: decisiones, incidencias resueltas, evidencias de recuperación, cron, guion oral y material de despliegue para la presentación del TFM.
 - [deployment/hostinger-verification.md](deployment/hostinger-verification.md). Comprobaciones adicionales de API, lectura de archivos recuperados y evidencias de cron; helper privado con guardas de entorno y base.

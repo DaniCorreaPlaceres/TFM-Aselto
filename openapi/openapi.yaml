@@ -4,6 +4,69 @@ info:
   version: 0.6.0
   description: 'API v1: acceso JWT, identidad, documentos, revisión, trimestres y comunicación. Reutiliza los casos de uso de la web. Importes calculados en céntimos; conversaciones y adjuntos privados con permisos de la asesoría actual.'
 paths:
+  /api/v1/firm-link-invitations:
+    post:
+      operationId: inviteExistingClient
+      security:
+        - bearerAuth: {}
+      summary: Invitar o reenviar la vinculación de una cuenta independiente
+      description: 'Admin y gestor de la asesoría. No comparte información hasta la aceptación del cliente. Enviar de nuevo invalida el enlace anterior; caduca en 24 horas.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: {type: string, format: email, maxLength: 180}
+      responses:
+        '201':
+          description: Invitación guardada y enviada
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          description: Se requiere JWT válido
+        '404':
+          description: Cuenta o permiso no disponible; no se ha vinculado
+        '422':
+          description: Falta el correo
+        '503':
+          description: Invitación guardada pero correo no enviado; se puede reenviar
+  /api/v1/firm-link-invitations/accept:
+    post:
+      operationId: acceptFirmLink
+      security:
+        - bearerAuth: {}
+      summary: Aceptar la vinculación desde la cuenta destinataria
+      description: 'Conserva cierres personales y mueve registros de periodos abiertos a revisión de la asesoría. No cambia rol ni contraseña. Invalida sesiones y JWT anteriores; volver a iniciar sesión tras aceptar.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token: {type: string, pattern: '^[a-f0-9]{64}$', writeOnly: true}
+      responses:
+        '200':
+          description: Vinculación aceptada; volver a iniciar sesión
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: {type: string, enum: [linked]}
+                  login_required: {type: boolean, enum: [true]}
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          description: Se requiere JWT válido
+        '404':
+          description: Enlace caducado, reenviado, usado, cuenta incorrecta o ya vinculada
+        '422':
+          description: Falta el token
   /api/v1/auth/login:
     post:
       operationId: login
@@ -599,6 +662,7 @@ paths:
     get:
       operationId: advisoryDocuments
       summary: 'Listar documentos compartidos con la asesoría'
+      description: 'Incluye el histórico personal de clientes que han aceptado vincularse. Estos registros conservan firm_id null y su confirmación personal; son de consulta y no admiten validación profesional. section=personal permite filtrarlos; submitted, rejected y validated filtran el ámbito de la asesoría.'
       security:
         -
           bearerAuth: {  }

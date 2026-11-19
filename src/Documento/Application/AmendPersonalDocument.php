@@ -20,13 +20,17 @@ final class AmendPersonalDocument
     {
         return $this->transaction->run($ownerId, function () use ($ownerId, $documentId, $version): Document {
             $client = $this->clients->findByUserId($ownerId);
-            if (null === $client || null !== $client->firmId()) {
+            if (null === $client) {
                 throw new DocumentNotFound('The personal record cannot be amended.');
             }
             $document = $this->access->execute($ownerId, $documentId);
             $document->assertVersion($version);
             $this->closedPeriods->assertOpen($ownerId, $document->firmId(), $document->issuedOn());
             $updated = $document->amendPersonal($ownerId, $this->clock->now());
+            if (null !== $client->firmId()) {
+                $this->closedPeriods->assertOpen($ownerId, $client->firmId(), $document->issuedOn());
+                $updated = $updated->joinFirm($client->firmId());
+            }
             $this->documents->save($updated);
 
             return $updated;

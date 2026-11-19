@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+{% block title %}Vincular tu asesoría{% endblock %}
+{% block body %}
+<main class="panel">
+    <h1>Vincular tu cuenta a {{ firmName }}</h1>
+    <p>Al aceptar, el admin y los gestores de esta asesoría podrán consultar tus documentos e histórico y revisar tus registros.</p>
+    <p>Tus cierres personales se conservarán diferenciados. Los registros confirmados de periodos abiertos pasarán a revisión y sus cifras se distinguirán de las validadas.</p>
+    <p>Conservarás tu cuenta y contraseña. Después de aceptar tendrás que volver a entrar.</p>
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    <form method="post">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('firm_link_accept') }}">
+        <button type="submit">Aceptar y compartir con esta asesoría</button>
+    </form>
+    <a href="{{ path('client_firm') }}">Volver sin aceptar</a>
+</main>
+{% endblock %}
