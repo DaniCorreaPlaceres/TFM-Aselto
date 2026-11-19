@@ -80,6 +80,15 @@ final class User
         return $this->authVersion;
     }
 
+    public function joinFirm(string $firmId): self
+    {
+        if (Role::Client !== $this->role || null !== $this->firmId || !$this->activated) {
+            throw new InvalidUser('Only an activated independent client may join a firm.');
+        }
+
+        return new self($this->id, $this->email, $this->passwordHash, $this->role, $firmId, $this->activated, $this->authVersion + 1);
+    }
+
     public function changeEmail(string $email): self
     {
         return new self($this->id, $email, $this->passwordHash, $this->role, $this->firmId, $this->activated, $this->authVersion + 1);

@@ -88,6 +88,15 @@ final class Client
         return $this->version;
     }
 
+    public function joinFirm(string $firmId): self
+    {
+        if (null !== $this->firmId) {
+            throw new InvalidClient('Only an independent client may join a firm.');
+        }
+
+        return new self($this->id, $this->userId, $this->kind, $this->name, $firmId, $this->contact, $this->version);
+    }
+
     public function changeDetails(string $name, FiscalContact $contact): self
     {
         $this->changeContact($contact);

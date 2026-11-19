@@ -52,6 +52,7 @@ services:
             - '../src/Identidad/Infrastructure/Persistence/DoctrineAdminEmailChange.php'
             - '../src/Asesoria/Infrastructure/Persistence/DoctrineFirm.php'
             - '../src/Cliente/Infrastructure/Persistence/DoctrineClient.php'
+            - '../src/Cliente/Infrastructure/Persistence/DoctrineFirmLinkInvitation.php'
             - '../src/Documento/Infrastructure/Persistence/DoctrineDocument.php'
             - '../src/Finanzas/Infrastructure/Persistence/DoctrineQuarter.php'
             - '../src/Comunicacion/Infrastructure/Persistence/DoctrineConversation.php'
@@ -124,6 +125,12 @@ services:
 
     App\Cliente\Domain\ClientRepository:
         alias: App\Cliente\Infrastructure\Persistence\DoctrineClientRepository
+
+    App\Cliente\Domain\FirmLinkInvitations:
+        alias: App\Cliente\Infrastructure\Persistence\DoctrineFirmLinkInvitations
+
+    App\Cliente\Domain\FirmLinkNotifier:
+        alias: App\Cliente\Infrastructure\SymfonyFirmLinkNotifier
 
     App\Documento\Domain\DocumentRepository:
         alias: App\Documento\Infrastructure\Persistence\DoctrineDocumentRepository

@@ -12,7 +12,7 @@ $workflows = [
     'platform-firms', 'platform-independent-clients', 'platform-invitations',
     'canonical-account-links', 'authentication-rate-limits', 'authentication-limit-storage',
     'password-policy', 'session-expiration', 'logout-csrf',
-    'browser-security-headers', 'resource-limits', 'security-event-logging',
+    'browser-security-headers', 'resource-limits', 'security-event-logging', 'firm-link',
 ];
 
 try {

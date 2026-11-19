@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+{% block title %}Vincular cliente existente{% endblock %}
+{% block body %}
+<main class="panel wide">
+    <h1>Vincular cliente existente</h1>
+    <p>Invita a un autónomo o empresa que ya tenga una cuenta activada sin asesoría. Solo accederéis a su información cuando acepte.</p>
+    {% for message in app.flashes('success') %}<p class="success" role="status">{{ message }}</p>{% endfor %}
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+    <form method="post">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('firm_link_send') }}">
+        <label for="link-email">Correo del cliente</label>
+        <input id="link-email" name="email" type="email" maxlength="180" required value="{{ email }}" autocomplete="email">
+        <p>El enlace caduca en 24 horas. Enviar de nuevo al mismo correo invalida el enlace anterior.</p>
+        <button type="submit">Enviar o reenviar invitación</button>
+    </form>
+    <h2>Últimas invitaciones de tu asesoría</h2>
+    <ul>{% for invitation in invitations %}
+        <li>{{ invitation.email }} · {{ invitation.status }}</li>
+    {% else %}<li>Todavía no hay invitaciones.</li>{% endfor %}</ul>
+    <a href="{{ path('clients') }}">Volver a clientes</a>
+</main>
+{% endblock %}
