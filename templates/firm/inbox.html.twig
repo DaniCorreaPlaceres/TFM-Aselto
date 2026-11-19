@@ -6,7 +6,7 @@
     <h1>Bandeja de la asesoría</h1>
     <p>Revisa los registros enviados por tus clientes.</p>
     <nav class="review-nav" aria-label="Estado de los registros">
-        {% for status, label in {submitted: 'Pendientes', rejected: 'Rechazados', validated: 'Validados'} %}
+        {% for status, label in {submitted: 'Pendientes', rejected: 'Rechazados', validated: 'Validados', personal: 'Histórico personal'} %}
             <a href="{{ path('firm_inbox', {status: status}) }}" {% if filter == status %}aria-current="page"{% endif %}>{{ label }}</a>
         {% endfor %}
     </nav>

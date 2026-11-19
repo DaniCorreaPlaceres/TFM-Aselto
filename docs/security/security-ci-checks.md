@@ -4,7 +4,7 @@
 
 El job `Seguridad web y API`, en `.github/workflows/comprobaciones.yml`, se añade a cada PR a `develop`/`main` y push a esas ramas. No tiene filtros de rutas ni `continue-on-error`. Usa Ubuntu, PHP 8.4 y MySQL 8.4 desechable. Genera claves JWT sintéticas, instala Importmap, compila Sass, aplica migraciones y valida el esquema antes de las pruebas. El job tiene 25 minutos de máximo y cada workflow, 300 segundos.
 
-`php bin/check-security.php` ejecuta 19 workflows en procesos separados, secuencialmente. Sale con código 1 al primer error, timeout o fallo de limpieza. No reintenta ni convierte un fallo en éxito. Exige `SECURITY_CHECKS_DISPOSABLE=1`, `APP_ENV=dev`, una base cuyo nombre termine en `_security_ci`, coincidencia con la base realmente conectada y tablas de negocio vacías. Comprueba ese estado inicial y después de cada workflow. No crea, vacía ni elimina bases automáticamente.
+`php bin/check-security.php` ejecuta 20 workflows en procesos separados, secuencialmente. Sale con código 1 al primer error, timeout o fallo de limpieza. No reintenta ni convierte un fallo en éxito. Exige `SECURITY_CHECKS_DISPOSABLE=1`, `APP_ENV=dev`, una base cuyo nombre termine en `_security_ci`, coincidencia con la base realmente conectada y tablas de negocio vacías. Comprueba ese estado inicial y después de cada workflow. No crea, vacía ni elimina bases automáticamente.
 
 Se usa `dev` porque los kernels de estas integraciones ya lo declaran explícitamente; no se utiliza el sufijo automático `_test` de Doctrine. Esto no configura una aplicación productiva: el runner y la base son desechables y no contienen datos reales. Los cinco jobs anteriores conservan su comportamiento.
 
@@ -17,6 +17,7 @@ El ejecutor fuerza correo `null://null`, clave de OpenAI vacía, alertas desacti
 - Comunicación API/aplicación: ámbito de conversaciones y archivos, solicitudes y permisos.
 - Trimestres API/web/aplicación: ámbito, cierre/reapertura, histórico y bloqueo de escrituras concurrentes.
 - Administración de asesorías, clientes independientes e invitaciones: permisos y exclusión del contenido fiscal.
+- Vinculación consentida de cuentas existentes: admin/gestor, enlaces reenviados, acceso anterior/posterior, histórico personal, revocación de sesiones/JWT y bloqueo compartido entre conexiones.
 - Enlaces canónicos, límites de autenticación y almacenamiento compartido entre seis procesos, política de contraseña, caducidad y logout CSRF.
 - Cabeceras del navegador, presupuestos de recursos y registro privado de seguridad.
 

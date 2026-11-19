@@ -29,7 +29,7 @@ final class FirmDocumentAccess
     {
         $firmId = $this->firmFor($actorId);
         $document = $this->documents->find($documentId);
-        if (null === $document || $document->firmId() !== $firmId || !in_array($document->status(), [DocumentStatus::Submitted, DocumentStatus::Rejected, DocumentStatus::Validated], true)) {
+        if (null === $document || (null !== $document->firmId() && $document->firmId() !== $firmId) || !in_array($document->status(), [DocumentStatus::Submitted, DocumentStatus::Rejected, DocumentStatus::Validated], true)) {
             throw new DocumentNotFound('The firm document does not exist.');
         }
         $client = $this->clients->findByUserId($document->clientUserId());

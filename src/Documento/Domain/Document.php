@@ -279,6 +279,15 @@ final class Document
             || DocumentStatus::Rejected === $this->status;
     }
 
+    public function joinFirm(string $firmId): self
+    {
+        if (null !== $this->firmId) {
+            throw new InvalidDocument('The document already belongs to a firm.');
+        }
+
+        return new self($this->id, $this->clientUserId, $firmId, $this->originalName, $this->storedPath, $this->mediaType, $this->status, $this->direction, $this->issuedOn, $this->partyName, $this->taxId, $this->baseCents, $this->taxRate, $this->quotaCents, $this->totalCents, $this->proposal, $this->createdAt, $this->tax, $this->surcharge, $this->surchargeQuotaCents, $this->withholdingRate, $this->withholdingQuotaCents, $this->reviewHistory, $this->supportingFiles, $this->pendingRequest, $this->version, $this->taxExempt);
+    }
+
     public function needsReview(): bool
     {
         return $this->isEditable() || null !== $this->pendingRequest;

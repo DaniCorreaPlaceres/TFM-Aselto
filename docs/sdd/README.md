@@ -14,6 +14,8 @@ La memoria de producto, stack y arquitectura está en [../memoria.md](../memoria
 
 Al cerrar, la ficha anota solo lo comprobado.
 
+- [existing-client-firm-invitations.md](existing-client-firm-invitations.md). Tarea 49: vinculación consentida de clientes existentes e histórico personal.
+
 ## Publicación
 
 - [hostinger-cicd.md](hostinger-cicd.md). Preparación del CI/CD tras el cierre aceptado de la tarea 45; pruebas locales, requisitos de activación y límites.

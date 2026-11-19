@@ -19,7 +19,7 @@ final readonly class DoctrineRecordCatalog implements RecordCatalog
 
     public function page(string $kind, string $scope, RecordCriteria $criteria): RecordPage
     {
-        $status = "CASE WHEN d.pending_request IS NOT NULL THEN 'Justificante pendiente' ELSE CASE d.status WHEN 'uploaded' THEN 'Subido' WHEN 'extracting' THEN 'Extrayendo' WHEN 'draft' THEN 'Borrador' WHEN 'submitted' THEN 'Enviado' WHEN 'validated' THEN 'Validado' WHEN 'rejected' THEN 'Rechazado' END END";
+        $status = "CASE WHEN d.pending_request IS NOT NULL THEN 'Justificante pendiente' WHEN d.firm_id IS NULL AND d.status = 'submitted' THEN 'Confirmado personalmente' ELSE CASE d.status WHEN 'uploaded' THEN 'Subido' WHEN 'extracting' THEN 'Extrayendo' WHEN 'draft' THEN 'Borrador' WHEN 'submitted' THEN 'Enviado' WHEN 'validated' THEN 'Validado' WHEN 'rejected' THEN 'Rechazado' END END";
         $direction = "CASE d.direction WHEN 'income' THEN 'Ingreso' WHEN 'expense' THEN 'Gasto' ELSE '' END";
         $name = "COALESCE(NULLIF(d.party_name, ''), d.original_name)";
         $clientKind = "CASE c.kind WHEN 'self_employed' THEN 'Autónomo' ELSE 'Sociedad' END";
@@ -28,7 +28,7 @@ final readonly class DoctrineRecordCatalog implements RecordCatalog
         $invitationTarget = "CASE i.target WHEN 'advisory' THEN 'Asesoría (cuenta de admin)' WHEN 'company' THEN 'Empresa sin asesoría' ELSE 'Autónomo sin asesoría' END";
         [$from, $where, $columns, $select, $filter] = match ($kind) {
             'documents', 'pending' => ['client_document d', 'd.client_user_id = :scope'.('pending' === $kind ? " AND (d.status IN ('uploaded','extracting','draft','rejected') OR d.pending_request IS NOT NULL)" : ''), [$name, $direction, $status], 'd.id, '.$name.' AS name, '.$direction.' AS direction, '.$status.' AS status', $status],
-            'inbox' => ['client_document d JOIN client_profile c ON c.user_id = d.client_user_id AND c.firm_id = d.firm_id', "d.firm_id = :scope AND d.status IN ('submitted', 'rejected', 'validated')", ["CONCAT(c.name, ' · ', $name)", $status, 'd.total_cents'], 'd.id, c.name AS client, '.$name.' AS name, '.$status.' AS status, d.total_cents AS total', $status],
+            'inbox' => ['client_document d JOIN client_profile c ON c.user_id = d.client_user_id', "c.firm_id = :scope AND (d.firm_id = c.firm_id OR d.firm_id IS NULL) AND d.status IN ('submitted', 'rejected', 'validated')", ["CONCAT(c.name, ' · ', $name)", $status, 'd.total_cents'], 'd.id, c.name AS client, '.$name.' AS name, '.$status.' AS status, d.total_cents AS total', $status],
             'clients', 'independent' => ["client_profile c JOIN identity_user u ON u.id = c.user_id AND u.role='client' AND u.firm_id <=> c.firm_id", 'clients' === $kind ? 'c.firm_id = :scope' : 'c.firm_id IS NULL', ['c.name', $clientKind, 'u.email'], 'c.id, c.name, '.$clientKind.' AS kind, u.email', $clientKind],
             'team' => ['identity_user u', "u.firm_id = :scope AND u.role IN ('advisor','firm_admin')", ['u.email', "CASE u.role WHEN 'advisor' THEN 'Gestor' ELSE 'Admin de la asesoría' END"], "u.id, u.email, CASE u.role WHEN 'advisor' THEN 'Gestor' ELSE 'Admin de la asesoría' END AS role", 'u.role'],
             'firms' => ['advisory_firm f', '1=1', ['f.name', "(SELECT CASE WHEN COUNT(*)=1 THEN MAX(u.email) ELSE 'Sin un admin único' END FROM identity_user u WHERE u.firm_id=f.id AND u.role='firm_admin')"], "f.id, f.name, (SELECT CASE WHEN COUNT(*)=1 THEN MAX(u.email) ELSE 'Sin un admin único' END FROM identity_user u WHERE u.firm_id=f.id AND u.role='firm_admin') AS email", 'f.name'],
@@ -43,8 +43,12 @@ final readonly class DoctrineRecordCatalog implements RecordCatalog
             $parameters['owner'] = $criteria->owner;
         }
         if ('inbox' === $kind && '' !== $criteria->section) {
-            $where .= ' AND d.status = :section';
-            $parameters['section'] = $criteria->section;
+            if ('personal' === $criteria->section) {
+                $where .= ' AND d.firm_id IS NULL';
+            } else {
+                $where .= ' AND d.firm_id = c.firm_id AND d.status = :section';
+                $parameters['section'] = $criteria->section;
+            }
         }
         $total = $criteria->count ? (int) $this->connection->fetchOne('SELECT /*+ MAX_EXECUTION_TIME(5000) */ COUNT(*) FROM '.$from.' WHERE '.$where, $parameters) : 0;
         if ('' !== $criteria->search) {

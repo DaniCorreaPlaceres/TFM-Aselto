@@ -8,7 +8,7 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     app.quarter_live_enabled: true
-    app.version: '1.0.0-dev'
+    app.version: '1.0.0'
     env(MAILER_FROM): 'Aselto <no-responder@aselto.test>'
     env(SECURITY_ALERT_EMAIL_ENABLED): '0'
     env(SECURITY_ALERT_RECIPIENT): 'webmaster@aselto.com'
@@ -52,6 +52,7 @@ services:
             - '../src/Identidad/Infrastructure/Persistence/DoctrineAdminEmailChange.php'
             - '../src/Asesoria/Infrastructure/Persistence/DoctrineFirm.php'
             - '../src/Cliente/Infrastructure/Persistence/DoctrineClient.php'
+            - '../src/Cliente/Infrastructure/Persistence/DoctrineFirmLinkInvitation.php'
             - '../src/Documento/Infrastructure/Persistence/DoctrineDocument.php'
             - '../src/Finanzas/Infrastructure/Persistence/DoctrineQuarter.php'
             - '../src/Comunicacion/Infrastructure/Persistence/DoctrineConversation.php'
@@ -124,6 +125,12 @@ services:
 
     App\Cliente\Domain\ClientRepository:
         alias: App\Cliente\Infrastructure\Persistence\DoctrineClientRepository
+
+    App\Cliente\Domain\FirmLinkInvitations:
+        alias: App\Cliente\Infrastructure\Persistence\DoctrineFirmLinkInvitations
+
+    App\Cliente\Domain\FirmLinkNotifier:
+        alias: App\Cliente\Infrastructure\SymfonyFirmLinkNotifier
 
     App\Documento\Domain\DocumentRepository:
         alias: App\Documento\Infrastructure\Persistence\DoctrineDocumentRepository

@@ -176,7 +176,7 @@ final class DocumentController extends AbstractController
             'fieldErrors' => $fieldErrors,
             'entryDirection' => $entryDirection,
             'hasFirm' => null !== $document->firmId(),
-            'canAmendPersonal' => null === $clients->findByUserId($user->id())?->firmId() && null === $document->firmId() && \App\Documento\Domain\DocumentStatus::Submitted === $document->status(),
+            'canAmendPersonal' => null === $document->firmId() && \App\Documento\Domain\DocumentStatus::Submitted === $document->status(),
         ]);
     }
 

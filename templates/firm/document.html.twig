@@ -26,7 +26,9 @@
     {% else %}
         {{ include('document/_amount_summary.html.twig') }}
     {% endif %}
-    {% if document.statusCode == 'submitted' %}
+    {% if document.personalHistory %}
+        <p>Histórico personal del cliente. Su confirmación y cierre personal se conservan; este registro no está validado por la asesoría.</p>
+    {% elseif document.statusCode == 'submitted' %}
         <h2>Rechazar o pedir un justificante</h2>
         <form method="post">
             <label for="reason">Explica el motivo al cliente</label>
