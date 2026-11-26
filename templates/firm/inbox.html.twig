@@ -10,6 +10,6 @@
             <a href="{{ path('firm_inbox', {status: status}) }}" {% if filter == status %}aria-current="page"{% endif %}>{{ label }}</a>
         {% endfor %}
     </nav>
-    {{ include('ui/_server_table.html.twig', {kind: 'inbox', section: filter, caption: 'Registros de esta vista', headers: ['Cliente y documento', 'Estado', 'Total'], filters: ['Enviado', 'Justificante pendiente', 'Rechazado', 'Validado']}) }}
+    {{ include('ui/_server_table.html.twig', {kind: 'inbox', tableSection: filter, caption: 'Registros de esta vista', headers: ['Cliente y documento', 'Estado', 'Total'], filters: ['Enviado', 'Justificante pendiente', 'Rechazado', 'Validado']}) }}
 
 {% endblock %}
