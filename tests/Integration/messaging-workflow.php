@@ -157,6 +157,16 @@ try {
     $check(str_contains($response->getContent(), '&lt;script&gt;sin ejecutar&lt;/script&gt;'), 'Message HTML must be escaped.');
     $response = $http($owner, $url, 'POST', ['intent' => 'reply', 'text' => 'Respuesta web', '_csrf_token' => $csrf($response)]);
     $check(302 === $response->getStatusCode() && 2 === count($conversations->find($newId)->messages), 'Web reply must append without losing messages.');
+    foreach ([$owner, $admin, $advisor] as $viewer) {
+        $listPage = $http($viewer, '/mensajes');
+        preg_match('/data-server-table-url-value="([^"]+)"/', $listPage->getContent(), $tableMatch);
+        $tableUrl = html_entity_decode($tableMatch[1] ?? '', ENT_QUOTES);
+        $check('' !== $tableUrl, 'The message page must expose its actual table URL.');
+        $tableResponse = $http($viewer, $tableUrl);
+        $check(200 === $tableResponse->getStatusCode(), 'The rendered table URL must be accepted for client, admin and advisor.');
+        $tableData = json_decode($tableResponse->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        $check($tableData['recordsFiltered'] >= 1 && str_contains(json_encode($tableData['data'], JSON_THROW_ON_ERROR), 'Formulario web'), 'Created conversations and text-only replies must remain visible in the rendered listing.');
+    }
     $response = $http($advisor, $url);
     $response = $http($advisor, $url, 'POST', ['intent' => 'resolve', '_csrf_token' => $csrf($response)]);
     $check(302 === $response->getStatusCode() && $advisor->id() === $conversations->find($newId)->resolvedBy, 'Advisor web resolution must persist.');
