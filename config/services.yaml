@@ -8,7 +8,7 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     app.quarter_live_enabled: true
-    app.version: '1.0.0'
+    app.version: '1.0.1'
     env(MAILER_FROM): 'Aselto <no-responder@aselto.test>'
     env(SECURITY_ALERT_EMAIL_ENABLED): '0'
     env(SECURITY_ALERT_RECIPIENT): 'webmaster@aselto.com'
