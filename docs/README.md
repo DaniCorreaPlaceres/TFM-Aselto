@@ -35,7 +35,9 @@ Toda la documentación del proyecto vive en esta carpeta, en la raíz del reposi
 - [deployment/github-hostinger.md](deployment/github-hostinger.md). CI/CD preparado: paquete productivo, publicación de main tras comprobaciones, bloqueo web/cron, preparación SSH/GitHub y recuperación. Activación y primer despliegue reales pendientes.
 - [deployment/configuracion-despliegue-tfm.md](deployment/configuracion-despliegue-tfm.md). Capítulo explicativo para la memoria: finalidad de cada configuración de Hostinger/GitHub, SSH, secretos, CI/CD, mantenimiento, recuperación y cron, con evidencias y límites.
 - [deployment/cloud-startup-steps.md](deployment/cloud-startup-steps.md). Construcción, estructura privada/public_html, configuración, migraciones, cron y recuperación para ensayar en staging.
-- [releases/1.0.0.md](releases/1.0.0.md). Notas de 1.0.0 en preparación, sin fecha de publicación ni etiqueta creadas.
+- [releases/1.0.0.md](releases/1.0.0.md). Primera versión publicada y etiquetada, alcance y límites.
+- [releases/1.0.1.md](releases/1.0.1.md). Parche publicado del listado de mensajes y verificación posterior.
+- [sdd/final-review.md](sdd/final-review.md). Cierre aceptado de la tarea 47, fuentes de evidencia y límites conservados.
 - [producto/Aselto_Documento_introductorio.docx](producto/Aselto_Documento_introductorio.docx). Texto de presentación del proyecto.
 - [diseno/reglas-visuales.md](diseno/reglas-visuales.md). Reglas de interfaz. Los bocetos están en [diseno/bocetos](diseno/bocetos).
 - [diseno/platform-design.md](diseno/platform-design.md). Componentes de la interfaz, listados, visor y compilación Sass.

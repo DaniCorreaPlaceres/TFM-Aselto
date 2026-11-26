@@ -14,6 +14,8 @@ La memoria de producto, stack y arquitectura está en [../memoria.md](../memoria
 
 Al cerrar, la ficha anota solo lo comprobado.
 
+- [final-review.md](final-review.md). Tarea 47: revisión final aceptada, evidencias y comprobaciones aplazadas.
+
 - [existing-client-firm-invitations.md](existing-client-firm-invitations.md). Tarea 49: vinculación consentida de clientes existentes e histórico personal.
 
 ## Publicación
